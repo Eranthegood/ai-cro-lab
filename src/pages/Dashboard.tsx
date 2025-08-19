@@ -105,7 +105,7 @@ const Dashboard = () => {
                       Step 1. Feed the model with your company Data.
                     </h3>
                     <p className="text-muted-foreground">
-                      Importez vos données pour obtenir des insights personnalisés et lancer vos premiers tests A/B
+                      Import your data to get personalized insights and launch your first A/B tests
                     </p>
                   </div>
                 </div>
