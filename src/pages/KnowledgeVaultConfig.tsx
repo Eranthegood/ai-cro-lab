@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, Check, Upload, Lock, Brain, Target, Eye, BarChart, FileText, Palette, Users, TrendingUp, Zap } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { useKnowledgeVault } from "@/hooks/useKnowledgeVault";
+import { FileUploadCard } from "@/components/knowledge-vault/FileUploadCard";
 
 interface Section {
   id: string;
@@ -66,13 +68,17 @@ const sections: Section[] = [
 
 const KnowledgeVaultConfig = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>(["business"]);
-  const [sectionProgress, setSectionProgress] = useState<Record<string, number>>({
-    business: 0,
-    visual: 0,
-    behavioral: 0,
-    predictive: 0,
-    repository: 0
-  });
+  const { 
+    configurations, 
+    progress, 
+    totalProgress, 
+    loading, 
+    uploading, 
+    updateConfiguration,
+    uploadFile,
+    getFiles,
+    deleteFile 
+  } = useKnowledgeVault();
 
   const [formData, setFormData] = useState({
     companyDescription: "",
@@ -83,7 +89,40 @@ const KnowledgeVaultConfig = () => {
     challenges: ""
   });
 
-  const totalProgress = Object.values(sectionProgress).reduce((sum, val) => sum + val, 0);
+  const [sectionFiles, setSectionFiles] = useState<Record<string, any[]>>({});
+
+  // Load existing configurations
+  useEffect(() => {
+    if (configurations.business?.config_data) {
+      setFormData(prev => ({
+        ...prev,
+        ...configurations.business.config_data
+      }));
+    }
+  }, [configurations]);
+
+  // Load files for each section
+  useEffect(() => {
+    const loadFiles = async () => {
+      const sections = ['business', 'visual', 'behavioral', 'predictive', 'repository'];
+      const filesData: Record<string, any[]> = {};
+      
+      for (const section of sections) {
+        const { files } = await getFiles(section);
+        filesData[section] = files;
+      }
+      
+      setSectionFiles(filesData);
+    };
+    
+    loadFiles();
+  }, [getFiles]);
+
+  // Convert progress array to object for easier access
+  const sectionProgress = progress.reduce((acc, item) => {
+    acc[item.section] = item.completion_percentage;
+    return acc;
+  }, {} as Record<string, number>);
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev =>
@@ -93,11 +132,8 @@ const KnowledgeVaultConfig = () => {
     );
   };
 
-  const updateSectionProgress = (sectionId: string, points: number) => {
-    setSectionProgress(prev => ({
-      ...prev,
-      [sectionId]: Math.min(points, sections.find(s => s.id === sectionId)?.points || 0)
-    }));
+  const updateSectionProgress = async (sectionId: string, configData: any, points: number) => {
+    await updateConfiguration(sectionId, configData, points);
   };
 
   return (
@@ -222,31 +258,49 @@ const KnowledgeVaultConfig = () => {
 
                 {expandedSections.includes(section.id) && (
                   <CardContent className="border-t">
-                    {section.id === "business" && (
-                      <BusinessFoundationSection 
-                        onProgressUpdate={(points) => updateSectionProgress("business", points)}
-                      />
-                    )}
-                    {section.id === "visual" && (
-                      <VisualIntelligenceSection 
-                        onProgressUpdate={(points) => updateSectionProgress("visual", points)}
-                      />
-                    )}
-                    {section.id === "behavioral" && (
-                      <BehavioralIntelligenceSection 
-                        onProgressUpdate={(points) => updateSectionProgress("behavioral", points)}
-                      />
-                    )}
-                    {section.id === "predictive" && (
-                      <PredictiveIntelligenceSection 
-                        onProgressUpdate={(points) => updateSectionProgress("predictive", points)}
-                      />
-                    )}
-                    {section.id === "repository" && (
-                      <KnowledgeRepositorySection 
-                        onProgressUpdate={(points) => updateSectionProgress("repository", points)}
-                      />
-                    )}
+                     {section.id === "business" && (
+                       <BusinessFoundationSection 
+                         formData={formData}
+                         setFormData={setFormData}
+                         updateConfiguration={updateConfiguration}
+                         sectionFiles={sectionFiles.business || []}
+                         uploadFile={uploadFile}
+                         deleteFile={deleteFile}
+                         uploading={uploading}
+                       />
+                     )}
+                     {section.id === "visual" && (
+                       <VisualIntelligenceSection 
+                         sectionFiles={sectionFiles.visual || []}
+                         uploadFile={uploadFile}
+                         deleteFile={deleteFile}
+                         uploading={uploading}
+                       />
+                     )}
+                     {section.id === "behavioral" && (
+                       <BehavioralIntelligenceSection 
+                         sectionFiles={sectionFiles.behavioral || []}
+                         uploadFile={uploadFile}
+                         deleteFile={deleteFile}
+                         uploading={uploading}
+                       />
+                     )}
+                     {section.id === "predictive" && (
+                       <PredictiveIntelligenceSection 
+                         sectionFiles={sectionFiles.predictive || []}
+                         uploadFile={uploadFile}
+                         deleteFile={deleteFile}
+                         uploading={uploading}
+                       />
+                     )}
+                     {section.id === "repository" && (
+                       <KnowledgeRepositorySection 
+                         sectionFiles={sectionFiles.repository || []}
+                         uploadFile={uploadFile}
+                         deleteFile={deleteFile}
+                         uploading={uploading}
+                       />
+                     )}
                   </CardContent>
                 )}
               </Card>
@@ -276,8 +330,40 @@ const KnowledgeVaultConfig = () => {
 };
 
 // Section Components
-const BusinessFoundationSection = ({ onProgressUpdate }: { onProgressUpdate: (points: number) => void }) => {
+const BusinessFoundationSection = ({ 
+  formData, 
+  setFormData, 
+  updateConfiguration,
+  sectionFiles,
+  uploadFile,
+  deleteFile,
+  uploading 
+}: { 
+  formData: any;
+  setFormData: (data: any) => void;
+  updateConfiguration: (section: string, data: any, score: number) => Promise<any>;
+  sectionFiles: any[];
+  uploadFile: (file: File, section: string) => Promise<any>;
+  deleteFile: (id: string, path: string) => Promise<any>;
+  uploading: boolean;
+}) => {
   const [progress, setProgress] = useState(0);
+
+  const handleSave = async () => {
+    const score = calculateBusinessScore(formData);
+    await updateConfiguration('business', formData, score);
+    setProgress(score);
+  };
+
+  const calculateBusinessScore = (data: any) => {
+    let score = 0;
+    if (data.companyDescription?.length > 50) score += 3;
+    if (data.industry) score += 2;
+    if (data.revenueRange) score += 2;
+    if (data.businessModel) score += 2;
+    if (data.challenges?.length > 100) score += 8;
+    return Math.min(score, 20);
+  };
   
   return (
     <div className="space-y-6 py-6">
@@ -291,18 +377,15 @@ const BusinessFoundationSection = ({ onProgressUpdate }: { onProgressUpdate: (po
                 id="company-description"
                 placeholder="E-commerce women's fashion, 25-45 audience, €89 AOV, 34% checkout abandonment, Q4 seasonal peak, mobile-first"
                 className="min-h-[120px]"
-                onChange={(e) => {
-                  const newProgress = e.target.value.length > 50 ? progress + 3 : progress;
-                  setProgress(newProgress);
-                  onProgressUpdate(newProgress);
-                }}
+                value={formData.companyDescription || ""}
+                onChange={(e) => setFormData({ ...formData, companyDescription: e.target.value })}
               />
               <p className="text-xs text-muted-foreground mt-1">+3 points for detailed description (50+ characters)</p>
             </div>
 
             <div>
               <Label htmlFor="industry">Industry Vertical</Label>
-              <Select>
+              <Select value={formData.industry || ""} onValueChange={(value) => setFormData({ ...formData, industry: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select your industry" />
                 </SelectTrigger>
@@ -329,7 +412,7 @@ const BusinessFoundationSection = ({ onProgressUpdate }: { onProgressUpdate: (po
           <div className="space-y-4">
             <div>
               <Label htmlFor="revenue-range">Revenue Range</Label>
-              <Select>
+              <Select value={formData.revenueRange || ""} onValueChange={(value) => setFormData({ ...formData, revenueRange: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select revenue range" />
                 </SelectTrigger>
@@ -346,7 +429,7 @@ const BusinessFoundationSection = ({ onProgressUpdate }: { onProgressUpdate: (po
 
             <div>
               <Label htmlFor="business-model">Business Model</Label>
-              <Select>
+              <Select value={formData.businessModel || ""} onValueChange={(value) => setFormData({ ...formData, businessModel: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select business model" />
                 </SelectTrigger>
@@ -369,14 +452,39 @@ const BusinessFoundationSection = ({ onProgressUpdate }: { onProgressUpdate: (po
         <Textarea
           placeholder="Primary CRO challenges, conversion rates, biggest pain points, competition pressure..."
           className="min-h-[100px]"
+          value={formData.challenges || ""}
+          onChange={(e) => setFormData({ ...formData, challenges: e.target.value })}
         />
         <p className="text-xs text-muted-foreground mt-1">+8 points for comprehensive challenge description</p>
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <Button onClick={handleSave} disabled={uploading}>
+          Save Business Configuration
+        </Button>
       </div>
     </div>
   );
 };
 
-const VisualIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate: (points: number) => void }) => {
+const VisualIntelligenceSection = ({ 
+  sectionFiles,
+  uploadFile,
+  deleteFile,
+  uploading 
+}: { 
+  sectionFiles: any[];
+  uploadFile: (file: File, section: string) => Promise<any>;
+  deleteFile: (id: string, path: string) => Promise<any>;
+  uploading: boolean;
+}) => {
+  const handleFileUpload = async (file: File) => {
+    await uploadFile(file, 'visual');
+  };
+
+  const handleFileDelete = async (fileData: any) => {
+    await deleteFile(fileData.id, fileData.storage_path);
+  };
   return (
     <div className="space-y-6 py-6">
       <div>
@@ -388,16 +496,22 @@ const VisualIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate: (po
             { name: "Product/Service Page", description: "Core conversion page", points: 4 },
             { name: "Checkout/Signup Flow", description: "Critical conversion step", points: 3 },
             { name: "Mobile Critical Page", description: "Mobile-specific friction point", points: 2 }
-          ].map((upload, index) => (
-            <Card key={index} className="border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer group">
-              <CardContent className="p-6 text-center">
-                <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary mx-auto mb-3" />
-                <h4 className="font-semibold mb-1">{upload.name}</h4>
-                <p className="text-sm text-muted-foreground mb-2">{upload.description}</p>
-                <Badge variant="outline">+{upload.points} points</Badge>
-              </CardContent>
-            </Card>
-          ))}
+          ].map((upload, index) => {
+            const existingFile = sectionFiles.find(f => f.file_name.includes(upload.name.toLowerCase().replace(/[^a-z]/g, '')));
+            return (
+              <FileUploadCard
+                key={index}
+                title={upload.name}
+                description={upload.description}
+                points={upload.points}
+                acceptedTypes={['image/*']}
+                onFileUpload={handleFileUpload}
+                isUploading={uploading}
+                uploadedFile={existingFile}
+                onRemoveFile={existingFile ? () => handleFileDelete(existingFile) : undefined}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -429,7 +543,24 @@ const VisualIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate: (po
   );
 };
 
-const BehavioralIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate: (points: number) => void }) => {
+const BehavioralIntelligenceSection = ({ 
+  sectionFiles,
+  uploadFile,
+  deleteFile,
+  uploading 
+}: { 
+  sectionFiles: any[];
+  uploadFile: (file: File, section: string) => Promise<any>;
+  deleteFile: (id: string, path: string) => Promise<any>;
+  uploading: boolean;
+}) => {
+  const handleFileUpload = async (file: File) => {
+    await uploadFile(file, 'behavioral');
+  };
+
+  const handleFileDelete = async (fileData: any) => {
+    await deleteFile(fileData.id, fileData.storage_path);
+  };
   return (
     <div className="space-y-6 py-6">
       <div>
@@ -478,7 +609,24 @@ const BehavioralIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate:
   );
 };
 
-const PredictiveIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate: (points: number) => void }) => {
+const PredictiveIntelligenceSection = ({ 
+  sectionFiles,
+  uploadFile,
+  deleteFile,
+  uploading 
+}: { 
+  sectionFiles: any[];
+  uploadFile: (file: File, section: string) => Promise<any>;
+  deleteFile: (id: string, path: string) => Promise<any>;
+  uploading: boolean;
+}) => {
+  const handleFileUpload = async (file: File) => {
+    await uploadFile(file, 'predictive');
+  };
+
+  const handleFileDelete = async (fileData: any) => {
+    await deleteFile(fileData.id, fileData.storage_path);
+  };
   return (
     <div className="space-y-6 py-6">
       <div>
@@ -538,7 +686,20 @@ const PredictiveIntelligenceSection = ({ onProgressUpdate }: { onProgressUpdate:
   );
 };
 
-const KnowledgeRepositorySection = ({ onProgressUpdate }: { onProgressUpdate: (points: number) => void }) => {
+const KnowledgeRepositorySection = ({ 
+  sectionFiles,
+  uploadFile,
+  deleteFile,
+  uploading 
+}: { 
+  sectionFiles: any[];
+  uploadFile: (file: File, section: string) => Promise<any>;
+  deleteFile: (id: string, path: string) => Promise<any>;
+  uploading: boolean;
+}) => {
+  const handleFileUpload = async (file: File) => {
+    await uploadFile(file, 'repository');
+  };
   return (
     <div className="space-y-6 py-6">
       <div>
@@ -563,10 +724,23 @@ const KnowledgeRepositorySection = ({ onProgressUpdate }: { onProgressUpdate: (p
                 <p className="text-muted-foreground mb-4">
                   Product roadmaps, business plans, marketing strategies, growth plans, competitive analysis
                 </p>
-                <Button className="mb-2">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Strategy Documents
-                </Button>
+              <Button onClick={() => document.getElementById('strategy-upload')?.click()} className="mb-2">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Strategy Documents
+              </Button>
+              <input
+                id="strategy-upload"
+                type="file"
+                multiple
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.md"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    Array.from(files).forEach(file => handleFileUpload(file));
+                  }
+                }}
+              />
                 <p className="text-xs text-muted-foreground">+5 points for comprehensive strategy docs</p>
               </CardContent>
             </Card>
