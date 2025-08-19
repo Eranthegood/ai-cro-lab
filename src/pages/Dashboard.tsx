@@ -111,39 +111,6 @@ const Dashboard = () => {
           </div>
 
         </div>
-
-        {/* Minimal Action Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          
-          <Card className="border-0 shadow-none bg-muted/30">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Data Analysis</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Upload and analyze your data
-              </p>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard/analysis">
-                  Start Analysis <ArrowRight className="w-3 h-3 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-none bg-muted/30">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Knowledge Base</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Manage your knowledge repository
-              </p>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard/knowledge">
-                  Manage Knowledge <ArrowRight className="w-3 h-3 ml-2" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-        </div>
       </div>
     </DashboardLayout>
   );
