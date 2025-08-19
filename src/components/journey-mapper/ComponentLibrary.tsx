@@ -141,7 +141,8 @@ const DraggableComponent = ({ component, color }: { component: any; color: strin
     data: {
       type: component.type,
       title: component.title,
-      category: component.category
+      category: component.category,
+      fromLibrary: true,
     }
   });
 

@@ -44,41 +44,58 @@ export const JourneyMapper = () => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && over.id === 'canvas') {
-      const overRect = over.rect;
-      const activeRect = event.active.rect?.current?.translated || event.active.rect?.current?.initial;
-      if (overRect && activeRect) {
-        const dropCenterX = activeRect.left + activeRect.width / 2;
-        const dropCenterY = activeRect.top + activeRect.height / 2;
-        const localX = dropCenterX - overRect.left;
-        const localY = dropCenterY - overRect.top;
+    const { active, over, delta } = event;
 
-        const newStep: JourneyStep = {
-          id: `step-${Date.now()}`,
-          type: active.data.current?.type || 'custom',
-          title: active.data.current?.title || 'New Step',
-          category: active.data.current?.category || 'custom',
-          position: {
-            x: localX / canvasZoom - canvasOffset.x,
-            y: localY / canvasZoom - canvasOffset.y
-          },
-          data: {
-            conversionRate: Math.floor(Math.random() * 40) + 40, // 40-80%
-            averageTime: `${Math.floor(Math.random() * 5) + 1}m ${Math.floor(Math.random() * 60)}s`,
-            trafficVolume: Math.floor(Math.random() * 10000) + 1000,
-            pages: [],
-            dataSources: [],
-            insights: ""
-          }
-        };
-        
-        setSteps(prev => [...prev, newStep]);
-        toast.success(`Added ${newStep.title} to journey`);
+    // If dragging from the library, create a new step only when dropped on the canvas
+    if (active.data.current?.fromLibrary) {
+      if (over && over.id === 'canvas') {
+        const overRect = over.rect;
+        const activeRect = event.active.rect?.current?.translated || event.active.rect?.current?.initial;
+        if (overRect && activeRect) {
+          const dropCenterX = activeRect.left + activeRect.width / 2;
+          const dropCenterY = activeRect.top + activeRect.height / 2;
+          const localX = dropCenterX - overRect.left;
+          const localY = dropCenterY - overRect.top;
+
+          const newStep: JourneyStep = {
+            id: `step-${Date.now()}`,
+            type: active.data.current?.type || 'custom',
+            title: active.data.current?.title || 'New Step',
+            category: active.data.current?.category || 'custom',
+            position: {
+              x: localX / canvasZoom - canvasOffset.x,
+              y: localY / canvasZoom - canvasOffset.y
+            },
+            data: {
+              conversionRate: Math.floor(Math.random() * 40) + 40, // 40-80%
+              averageTime: `${Math.floor(Math.random() * 5) + 1}m ${Math.floor(Math.random() * 60)}s`,
+              trafficVolume: Math.floor(Math.random() * 10000) + 1000,
+              pages: [],
+              dataSources: [],
+              insights: ""
+            }
+          };
+
+          setSteps(prev => [...prev, newStep]);
+          toast.success(`Added ${newStep.title} to journey`);
+        }
       }
+    } else {
+      // Moving an existing step: update its position instead of creating a new one
+      const movedId = active.id as string;
+      setSteps(prev => prev.map(step =>
+        step.id === movedId
+          ? {
+              ...step,
+              position: {
+                x: step.position.x + delta.x / canvasZoom,
+                y: step.position.y + delta.y / canvasZoom,
+              },
+            }
+          : step
+      ));
     }
-    
+
     setActiveId(null);
   };
 
