@@ -19,7 +19,7 @@ const AIInsights = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-4xl font-bold text-foreground">
-                    AI Insights
+                    Intel
                   </h1>
                   <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200">
                     <Sparkles className="h-3 w-3 mr-1" />
