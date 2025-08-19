@@ -6,15 +6,28 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FileText, ArrowRight, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { FileText, ArrowRight, CheckCircle, Rocket, Upload, Building, Target } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
 import { useNotifications } from "@/context/NotificationContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Dashboard = () => {
   const { updateStatuses } = useNotifications();
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [formData, setFormData] = useState({
+    companyName: '',
+    industry: '',
+    companyDescription: '',
+    targetAudience: '',
+    businessGoals: ''
+  });
   
   // Mock data - in real app this would come from Supabase
   const metrics = {
@@ -76,6 +89,37 @@ const Dashboard = () => {
               New Analysis
             </Link>
           </Button>
+        </div>
+
+        {/* Onboarding CTA */}
+        <div className="mb-12">
+          <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-primary/10">
+                    <Rocket className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-1">
+                      Enrichissez votre IA avec les données de votre entreprise
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Importez vos données pour obtenir des insights personnalisés et lancer vos premiers tests A/B
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="lg" 
+                  onClick={() => setIsOnboardingOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
+                >
+                  <Target className="w-5 h-5 mr-2" />
+                  Launch AB Test right now
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Core Metrics - Minimal 4-column grid */}
@@ -204,6 +248,136 @@ const Dashboard = () => {
           </div>
 
         </div>
+
+        {/* Onboarding Modal */}
+        <Dialog open={isOnboardingOpen} onOpenChange={setIsOnboardingOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Building className="h-5 w-5 text-primary" />
+                Configuration de votre entreprise - Étape {onboardingStep}/3
+              </DialogTitle>
+              <DialogDescription>
+                Aidez-nous à personnaliser l'IA selon votre entreprise pour de meilleurs résultats
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-6">
+              {onboardingStep === 1 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Nom de l'entreprise *</Label>
+                    <Input
+                      id="companyName"
+                      value={formData.companyName}
+                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                      placeholder="Ex: TechCorp Solutions"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Secteur d'activité *</Label>
+                    <Input
+                      id="industry"
+                      value={formData.industry}
+                      onChange={(e) => setFormData({...formData, industry: e.target.value})}
+                      placeholder="Ex: SaaS, E-commerce, Fintech..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="companyDescription">Description de l'entreprise</Label>
+                    <Textarea
+                      id="companyDescription"
+                      value={formData.companyDescription}
+                      onChange={(e) => setFormData({...formData, companyDescription: e.target.value})}
+                      placeholder="Décrivez brièvement votre entreprise, vos produits/services..."
+                      rows={4}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {onboardingStep === 2 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetAudience">Audience cible *</Label>
+                    <Textarea
+                      id="targetAudience"
+                      value={formData.targetAudience}
+                      onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
+                      placeholder="Décrivez votre audience principale : démographie, besoins, comportements..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="businessGoals">Objectifs business *</Label>
+                    <Textarea
+                      id="businessGoals"
+                      value={formData.businessGoals}
+                      onChange={(e) => setFormData({...formData, businessGoals: e.target.value})}
+                      placeholder="Quels sont vos principaux objectifs ? (conversion, engagement, rétention...)"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {onboardingStep === 3 && (
+                <div className="space-y-6 text-center">
+                  <div className="p-8 border-2 border-dashed border-muted-foreground/20 rounded-lg">
+                    <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Importez vos données (Optionnel)</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Glissez-déposez vos fichiers ou cliquez pour les sélectionner
+                    </p>
+                    <Button variant="outline">
+                      Choisir des fichiers
+                    </Button>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Formats acceptés : CSV, JSON, PDF, DOCX
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-6 border-t">
+              {onboardingStep > 1 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setOnboardingStep(onboardingStep - 1)}
+                >
+                  Précédent
+                </Button>
+              )}
+              <div className="flex gap-2 ml-auto">
+                {onboardingStep < 3 ? (
+                  <Button 
+                    onClick={() => setOnboardingStep(onboardingStep + 1)}
+                    disabled={
+                      (onboardingStep === 1 && (!formData.companyName || !formData.industry)) ||
+                      (onboardingStep === 2 && (!formData.targetAudience || !formData.businessGoals))
+                    }
+                  >
+                    Suivant
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => {
+                      setIsOnboardingOpen(false);
+                      setOnboardingStep(1);
+                      // Ici on pourrait sauvegarder les données et rediriger vers Knowledge Vault
+                    }}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Lancer mon premier test A/B
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         </div>
         </DashboardLayout>
     </TooltipProvider>
