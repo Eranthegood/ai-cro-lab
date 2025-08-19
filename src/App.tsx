@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import DataAnalysis from "./pages/DataAnalysis";
 import CodeGenerator from "./pages/CodeGenerator";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,11 @@ const App = () => (
               <Route path="/dashboard/knowledge" element={
                 <ProtectedRoute>
                   <KnowledgeBase />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/analytics" element={
+                <ProtectedRoute>
+                  <Analytics />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
