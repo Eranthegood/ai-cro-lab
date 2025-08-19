@@ -15,6 +15,7 @@ import {
   FileText,
   Home
 } from "lucide-react";
+import { AnthropicIcon } from "@/assets/AnthropicIcon";
 import { useLocation, NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
@@ -71,7 +72,7 @@ const AppSidebar = () => {
     },
     { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
-    { title: "Intel", url: "/dashboard/insights", icon: Brain },
+    { title: "Intel", url: "/dashboard/insights", icon: AnthropicIcon },
   ];
 
   const isActive = (path: string) => location.pathname === path;
