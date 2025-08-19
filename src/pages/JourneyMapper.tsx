@@ -47,16 +47,22 @@ export const JourneyMapper = () => {
     const { active, over } = event;
     
     if (over && over.id === 'canvas') {
-      const rect = over.rect;
-      if (rect) {
+      const overRect = over.rect;
+      const activeRect = event.active.rect?.current?.translated || event.active.rect?.current?.initial;
+      if (overRect && activeRect) {
+        const dropCenterX = activeRect.left + activeRect.width / 2;
+        const dropCenterY = activeRect.top + activeRect.height / 2;
+        const localX = dropCenterX - overRect.left;
+        const localY = dropCenterY - overRect.top;
+
         const newStep: JourneyStep = {
           id: `step-${Date.now()}`,
           type: active.data.current?.type || 'custom',
           title: active.data.current?.title || 'New Step',
           category: active.data.current?.category || 'custom',
           position: {
-            x: (event.delta.x + rect.left) / canvasZoom - canvasOffset.x,
-            y: (event.delta.y + rect.top) / canvasZoom - canvasOffset.y
+            x: localX / canvasZoom - canvasOffset.x,
+            y: localY / canvasZoom - canvasOffset.y
           },
           data: {
             conversionRate: Math.floor(Math.random() * 40) + 40, // 40-80%

@@ -55,7 +55,8 @@ export const JourneyCanvas = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.target === canvasRef.current) {
+    const target = e.target as Node;
+    if (canvasRef.current && canvasRef.current.contains(target)) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
     }
