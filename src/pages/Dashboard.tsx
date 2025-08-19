@@ -102,7 +102,7 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground mb-1">
-                      Enrichissez votre IA avec les données de votre entreprise
+                      Step 1. Feed the model with your company Data.
                     </h3>
                     <p className="text-muted-foreground">
                       Importez vos données pour obtenir des insights personnalisés et lancer vos premiers tests A/B
