@@ -44,9 +44,7 @@ const AppSidebar = () => {
       setOpen: setConfigureOpen,
       items: [
         { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
-        { title: "Data Sources", url: "/dashboard/analysis", icon: Database },
         { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
-        { title: "Settings", url: "/dashboard/settings", icon: Settings },
       ]
     },
     {
@@ -55,7 +53,6 @@ const AppSidebar = () => {
       isOpen: observeOpen,
       setOpen: setObserveOpen,
       items: [
-        { title: "Analytics", url: "/dashboard/analytics", icon: TrendingUp },
         { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
       ]
     },
@@ -67,9 +64,6 @@ const AppSidebar = () => {
       items: [
         { title: "Code Generator", url: "/dashboard/generator", icon: Code },
         { title: "AI Insights", url: "/dashboard/insights", icon: Brain },
-        { title: "Optimization", url: "/dashboard/optimization", icon: Zap, badge: "New" },
-        { title: "Targeting", url: "/dashboard/targeting", icon: Target },
-        { title: "Personalization", url: "/dashboard/personalization", icon: User },
       ]
     }
   ];
@@ -121,16 +115,9 @@ const AppSidebar = () => {
                           isActive(item.url) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
                         )}
                       >
-                        <NavLink to={item.url} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+                        <NavLink to={item.url} className="flex items-center gap-3">
                             <item.icon className="h-4 w-4" />
                             <span className="text-sm">{item.title}</span>
-                          </div>
-                          {item.badge && (
-                            <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                              {item.badge}
-                            </Badge>
-                          )}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
