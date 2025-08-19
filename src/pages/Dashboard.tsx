@@ -93,29 +93,28 @@ const Dashboard = () => {
 
         {/* Onboarding CTA */}
         <div className="mb-12">
-          <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardContent className="p-8">
+          <Card className="border border-border/50 bg-gradient-to-r from-background to-muted/30">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-primary/10">
-                    <Rocket className="h-6 w-6 text-primary" />
+                <div className="flex items-center gap-6">
+                  <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                    <Rocket className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-1">
-                      Enrichissez votre IA avec les données de votre entreprise
+                    <h3 className="text-lg font-medium text-foreground mb-1">
+                      Enrichissez votre IA
                     </h3>
-                    <p className="text-muted-foreground">
-                      Importez vos données pour obtenir des insights personnalisés et lancer vos premiers tests A/B
+                    <p className="text-sm text-muted-foreground">
+                      Importez vos données pour des insights personnalisés
                     </p>
                   </div>
                 </div>
                 <Button 
-                  size="lg" 
                   onClick={() => setIsOnboardingOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2"
                 >
-                  <Target className="w-5 h-5 mr-2" />
-                  Launch AB Test right now
+                  Launch AB Test
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </CardContent>
