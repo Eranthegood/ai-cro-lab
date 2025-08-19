@@ -23,6 +23,12 @@ const Dashboard = () => {
     { month: 'Jan', tests: 18 },
   ];
 
+  const plannedTestsChartData = [
+    { month: 'Nov', planned: 8 },
+    { month: 'Dec', planned: 10 },
+    { month: 'Jan', planned: 12 },
+  ];
+
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8">
@@ -107,7 +113,42 @@ const Dashboard = () => {
             <div className="text-5xl font-light text-foreground mb-2">
               {metrics.plannedTests}
             </div>
-            <p className="text-muted-foreground text-sm">Tests Planned</p>
+            <p className="text-muted-foreground text-sm mb-4">Tests Planned</p>
+            
+            {/* Discreet line chart */}
+            <div className="h-16 w-full opacity-60 hover:opacity-100 transition-opacity">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={plannedTestsChartData}>
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: 'currentColor' }}
+                  />
+                  <YAxis 
+                    hide 
+                    domain={['dataMin - 1', 'dataMax + 1']}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--background))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="planned" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    strokeWidth={1.5}
+                    dot={{ r: 2.5, fill: 'hsl(var(--muted-foreground))' }}
+                    activeDot={{ r: 3.5, fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
         </div>
