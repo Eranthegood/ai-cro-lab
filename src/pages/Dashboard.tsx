@@ -74,34 +74,38 @@ const Dashboard = () => {
           
           {/* Knowledge Freshness */}
           <div className="text-center">
-            <div className="text-5xl font-light text-foreground mb-2 relative">
+            <div className="text-5xl font-light text-foreground mb-2">
               {metrics.knowledgeFreshness}%
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <p className="text-muted-foreground text-sm">Knowledge Freshness</p>
               <UITooltip>
                 <TooltipTrigger asChild>
-                  <CheckCircle className={`w-3 h-3 ${freshnessStatus.color} absolute -top-1 -right-4 opacity-60`} />
+                  <CheckCircle className={`w-3 h-3 ${freshnessStatus.color} opacity-60`} />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">The fresher the data, the better the performance results</p>
                 </TooltipContent>
               </UITooltip>
             </div>
-            <p className="text-muted-foreground text-sm">Knowledge Freshness</p>
           </div>
 
           {/* Knowledge Score */}
           <div className="text-center">
-            <div className="text-5xl font-light text-foreground mb-2 relative">
+            <div className="text-5xl font-light text-foreground mb-2">
               {metrics.knowledgeScore}
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <p className="text-muted-foreground text-sm">Knowledge Score</p>
               <UITooltip>
                 <TooltipTrigger asChild>
-                  <CheckCircle className={`w-3 h-3 ${knowledgeStatus.color} absolute -top-1 -right-4 opacity-60`} />
+                  <CheckCircle className={`w-3 h-3 ${knowledgeStatus.color} opacity-60`} />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">The higher the knowledge, the better the performance results</p>
                 </TooltipContent>
               </UITooltip>
             </div>
-            <p className="text-muted-foreground text-sm">Knowledge Score</p>
           </div>
 
           {/* Velocity Rate */}
