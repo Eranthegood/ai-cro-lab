@@ -24,9 +24,9 @@ const Dashboard = () => {
   ];
 
   const plannedTestsChartData = [
-    { month: 'Nov', planned: 8 },
-    { month: 'Dec', planned: 10 },
-    { month: 'Jan', planned: 12 },
+    { month: 'Nov', planned: 2 },
+    { month: 'Dec', planned: 16 },
+    { month: 'Jan', planned: 8 },
   ];
 
   return (
