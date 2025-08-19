@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { ZoomIn, ZoomOut, RotateCcw, Move } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, Move, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JourneyStep as JourneyStepComponent } from "./JourneyStep";
 import { JourneyConnection } from "./JourneyConnection";
 import { JourneyStep, JourneyConnection as Connection } from "../../pages/JourneyMapper";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface JourneyCanvasProps {
   steps: JourneyStep[];
@@ -83,8 +84,10 @@ export const JourneyCanvas = ({
     if (connectingFrom && connectingFrom !== stepId) {
       onAddConnection(connectingFrom, stepId);
       setConnectingFrom(null);
+      toast.success("Connexion créée entre les étapes");
     } else {
       setConnectingFrom(stepId);
+      toast.info("Cliquez sur une autre étape pour créer la connexion");
     }
   };
 
@@ -206,8 +209,14 @@ export const JourneyCanvas = ({
 
           {/* Connection Helper */}
           {connectingFrom && (
-            <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium shadow-lg animate-pulse">
-              Click another step to create connection
+            <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-4 py-3 rounded-lg text-sm font-medium shadow-lg animate-pulse">
+              <div className="flex items-center gap-2 mb-1">
+                <ArrowRight className="h-4 w-4" />
+                <span>Mode Connexion Activé</span>
+              </div>
+              <p className="text-xs opacity-90">
+                Cliquez sur une autre card pour créer la connexion
+              </p>
             </div>
           )}
 
@@ -216,11 +225,16 @@ export const JourneyCanvas = ({
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-muted-foreground max-w-md">
                 <div className="text-6xl mb-4">🎯</div>
-                <h3 className="text-xl font-medium mb-2">Start Building Your Journey</h3>
-                <p className="text-sm">
-                  Drag components from the sidebar to map your customer journey. 
-                  Connect steps to visualize the flow and analyze conversion rates.
+                <h3 className="text-xl font-medium mb-2">Créez votre parcours client</h3>
+                <p className="text-sm mb-4">
+                  Glissez des composants depuis la barre latérale pour mapper votre parcours client.
                 </p>
+                <div className="text-xs text-muted-foreground/80 bg-muted/30 p-3 rounded-lg">
+                  <p className="mb-2"><strong>💡 Pour connecter les étapes :</strong></p>
+                  <p className="mb-1">• Cliquez sur le cercle bleu à droite d'une card</p>
+                  <p className="mb-1">• Puis cliquez sur le cercle bleu à gauche de la card suivante</p>
+                  <p>• Cela définira l'ordre du parcours client</p>
+                </div>
               </div>
             </div>
           )}

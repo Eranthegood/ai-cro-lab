@@ -8,7 +8,9 @@ import {
   TrendingUp,
   Clock,
   Users,
-  Eye
+  Eye,
+  Plus,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -238,6 +240,44 @@ export const JourneyStep = ({
           </Button>
         </div>
       </CardContent>
+
+      {/* Connection Handles */}
+      {!isDragging && (
+        <>
+          {/* Input Handle (Left) */}
+          <div 
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-primary border-2 border-background rounded-full cursor-pointer hover:scale-125 transition-transform z-10 flex items-center justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnectionStart();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            title="Connect from another step"
+          >
+            <div className="w-2 h-2 bg-background rounded-full"></div>
+          </div>
+          
+          {/* Output Handle (Right) */}
+          <div 
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-primary border-2 border-background rounded-full cursor-pointer hover:scale-125 transition-transform z-10 flex items-center justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnectionStart();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            title="Connect to another step"
+          >
+            <ArrowRight className="w-2 h-2 text-background" />
+          </div>
+        </>
+      )}
+
+      {/* Connection Mode Indicator */}
+      {isConnecting && (
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full animate-pulse">
+          Click to connect
+        </div>
+      )}
     </Card>
   );
 };
