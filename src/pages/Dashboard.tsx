@@ -47,7 +47,7 @@ const Dashboard = () => {
   };
 
   const getKnowledgeScoreStatus = (score: number) => {
-    if (score > 800) return { color: 'text-green-500', status: 'good' };
+    if (score >= 840) return { color: 'text-green-500', status: 'good' };
     if (score >= 500) return { color: 'text-orange-500', status: 'warning' };
     return { color: 'text-red-500', status: 'critical' };
   };
