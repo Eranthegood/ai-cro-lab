@@ -49,7 +49,7 @@ const Landing = () => {
       <section className="py-24 px-6">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-8 leading-tight tracking-tight">
-            Transform Contentsquare Data Into{" "}
+            Transform Data Into{" "}
             <br className="hidden md:block" />
             Ready-to-Deploy{" "}
             <br className="hidden md:block" />
