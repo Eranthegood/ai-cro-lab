@@ -11,6 +11,7 @@ const Dashboard = () => {
     knowledgeScore: 847,
     knowledgeTotal: 1000,
     velocityRate: 18,
+    plannedTests: 12,
     lastUpdate: "2h ago"
   };
 
@@ -31,8 +32,8 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Core Metrics - Minimal 3-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/* Core Metrics - Minimal 4-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
           
           {/* Knowledge Freshness */}
           <div className="text-center">
@@ -56,6 +57,14 @@ const Dashboard = () => {
               {metrics.velocityRate}
             </div>
             <p className="text-muted-foreground text-sm">Tests Launched (30d)</p>
+          </div>
+
+          {/* Planned Tests */}
+          <div className="text-center">
+            <div className="text-5xl font-light text-foreground mb-2">
+              {metrics.plannedTests}
+            </div>
+            <p className="text-muted-foreground text-sm">Tests Planned</p>
           </div>
 
         </div>
