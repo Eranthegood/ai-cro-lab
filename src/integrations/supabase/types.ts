@@ -179,6 +179,147 @@ export type Database = {
           },
         ]
       }
+      knowledge_vault_audit: {
+        Row: {
+          action: string
+          action_metadata: Json | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          action_metadata?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          action_metadata?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_vault_audit_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_vault_config: {
+        Row: {
+          completion_score: number
+          config_data: Json
+          config_section: string
+          created_at: string
+          created_by: string
+          id: string
+          is_sensitive: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          completion_score?: number
+          config_data?: Json
+          config_section: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_sensitive?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          completion_score?: number
+          config_data?: Json
+          config_section?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_sensitive?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_vault_config_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_vault_files: {
+        Row: {
+          config_section: string
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          is_processed: boolean
+          storage_path: string
+          upload_metadata: Json | null
+          uploaded_by: string
+          workspace_id: string
+        }
+        Insert: {
+          config_section: string
+          created_at?: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id?: string
+          is_processed?: boolean
+          storage_path: string
+          upload_metadata?: Json | null
+          uploaded_by: string
+          workspace_id: string
+        }
+        Update: {
+          config_section?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_processed?: boolean
+          storage_path?: string
+          upload_metadata?: Json | null
+          uploaded_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_vault_files_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -339,9 +480,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_knowledge_vault_progress: {
+        Args: { p_workspace_id: string }
+        Returns: {
+          completion_percentage: number
+          max_score: number
+          score: number
+          section: string
+        }[]
+      }
       get_user_workspaces: {
         Args: { user_uuid: string }
         Returns: string[]
+      }
+      log_knowledge_vault_action: {
+        Args: {
+          p_action: string
+          p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_workspace_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
