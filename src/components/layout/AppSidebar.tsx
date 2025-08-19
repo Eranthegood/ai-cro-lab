@@ -15,7 +15,7 @@ import {
   FileText
 } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -38,7 +38,22 @@ const AppSidebar = () => {
   const location = useLocation();
   const { hasDataFreshnessWarning, hasKnowledgeScoreWarning } = useNotifications();
   const { open } = useSidebar();
-  const [knowledgeExpanded, setKnowledgeExpanded] = useState(false);
+  
+  // Check if current route is in Knowledge Vault submenu
+  const isKnowledgeRoute = (path: string) => {
+    return path.startsWith('/dashboard/knowledge');
+  };
+  
+  const [knowledgeExpanded, setKnowledgeExpanded] = useState(() => 
+    isKnowledgeRoute(location.pathname)
+  );
+
+  // Update expansion when route changes
+  useEffect(() => {
+    if (isKnowledgeRoute(location.pathname)) {
+      setKnowledgeExpanded(true);
+    }
+  }, [location.pathname]);
 
   const menuItems = [
     { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
