@@ -12,7 +12,8 @@ import {
   ChevronDown,
   User,
   Map,
-  FileText
+  FileText,
+  Home
 } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -56,6 +57,7 @@ const AppSidebar = () => {
   }, [location.pathname]);
 
   const menuItems = [
+    { title: "Home", url: "/", icon: Home },
     { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
     { 
       title: "Knowledge Vault", 
