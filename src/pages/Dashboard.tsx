@@ -81,7 +81,7 @@ const Dashboard = () => {
                   <CheckCircle className={`w-3 h-3 ${freshnessStatus.color} absolute -top-1 -right-4 opacity-60`} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">Plus la data est fraîche, plus les résultats sont performants</p>
+                  <p className="text-xs">The fresher the data, the better the performance results</p>
                 </TooltipContent>
               </UITooltip>
             </div>
@@ -97,7 +97,7 @@ const Dashboard = () => {
                   <CheckCircle className={`w-3 h-3 ${knowledgeStatus.color} absolute -top-1 -right-4 opacity-60`} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">Plus le knowledge est élevé, plus les résultats sont performants</p>
+                  <p className="text-xs">The higher the knowledge, the better the performance results</p>
                 </TooltipContent>
               </UITooltip>
             </div>
