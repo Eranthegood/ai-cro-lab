@@ -106,7 +106,7 @@ const KnowledgeBase = () => {
       <div className="border-b border-border bg-card p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Knowledge Base</h1>
+            <h1 className="text-2xl font-bold text-foreground">Knowledge Vault</h1>
             <p className="text-muted-foreground mt-1">
               Enhance AI analysis with your company's context, design system, and business intelligence.
             </p>

@@ -39,7 +39,7 @@ const AppSidebar = () => {
 
   const menuItems = [
     { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
-    { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
+    { title: "Knowledge Vault", url: "/dashboard/knowledge", icon: BookOpen },
     { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
     { title: "AI Insights", url: "/dashboard/insights", icon: Brain },
@@ -89,7 +89,7 @@ const AppSidebar = () => {
                           <item.icon className="h-4 w-4" />
                           {/* Warning dots for specific menu items */}
                           {(item.title === "Dashboard" && hasDataFreshnessWarning) || 
-                           (item.title === "Knowledge Base" && hasKnowledgeScoreWarning) ? (
+                           (item.title === "Knowledge Vault" && hasKnowledgeScoreWarning) ? (
                             <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></div>
                           ) : null}
                         </div>
