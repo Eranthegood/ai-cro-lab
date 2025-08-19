@@ -1,0 +1,223 @@
+import { useState, useRef, useEffect } from 'react';
+import { Send, Brain, Loader2, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/hooks/useAuth';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+interface Message {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+interface VaultChatInterfaceProps {
+  className?: string;
+}
+
+export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      type: 'assistant',
+      content: 'Bonjour ! Je suis Claude, votre assistant IA connecté à votre Knowledge Vault. Je peux analyser toutes vos données business, visuelles, comportementales et prédictives pour vous donner des insights actionnables. Que souhaitez-vous analyser ?',
+      timestamp: new Date()
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || !user || !currentWorkspace || loading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: input.trim(),
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('knowledge-vault-chat', {
+        body: {
+          message: userMessage.content,
+          workspaceId: currentWorkspace.id,
+          userId: user.id
+        }
+      });
+
+      if (error) throw error;
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: data.response,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      toast({
+        title: "Analyse terminée",
+        description: "Claude a analysé votre Knowledge Vault",
+      });
+
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible d'envoyer le message",
+      });
+
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants.",
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const suggestedPrompts = [
+    "Analyse mes données de conversion et suggère des améliorations",
+    "Quelles sont les principales opportunités CRO basées sur ma vault ?", 
+    "Compare mes métriques business avec les benchmarks de mon industrie",
+    "Quelles sont les prochaines étapes pour optimiser mon funnel ?",
+    "Identifie les points de friction dans mon parcours utilisateur"
+  ];
+
+  return (
+    <Card className={cn("h-[600px] flex flex-col", className)}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Brain className="h-5 w-5 text-primary" />
+          </div>
+          Intelligence Collective
+          <Badge variant="secondary" className="ml-auto">
+            <Sparkles className="h-3 w-3 mr-1" />
+            Claude + Vault
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="flex flex-col flex-1 p-4 gap-4">
+        {/* Messages */}
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex gap-3",
+                  message.type === 'user' ? 'justify-end' : 'justify-start'
+                )}
+              >
+                <div
+                  className={cn(
+                    "rounded-lg px-4 py-2 max-w-[80%] break-words",
+                    message.type === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-foreground'
+                  )}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <span className="text-xs opacity-60 mt-1 block">
+                    {message.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {loading && (
+              <div className="flex gap-3 justify-start">
+                <div className="bg-muted rounded-lg px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Claude analyse votre Knowledge Vault...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Suggested Prompts */}
+        {messages.length <= 1 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground font-medium">Suggestions d'analyse :</p>
+            <div className="flex flex-wrap gap-2">
+              {suggestedPrompts.map((prompt, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-auto py-2 px-3 whitespace-normal text-left"
+                  onClick={() => setInput(prompt)}
+                  disabled={loading}
+                >
+                  {prompt}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Input */}
+        <div className="flex gap-2">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Posez votre question à Claude sur votre Knowledge Vault..."
+            className="min-h-[80px] resize-none"
+            disabled={loading}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!input.trim() || loading}
+            className="px-3 self-end"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          Claude analysera automatiquement toutes les données de votre Knowledge Vault pour vous donner des insights personnalisés.
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

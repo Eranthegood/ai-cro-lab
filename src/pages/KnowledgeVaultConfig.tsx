@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useKnowledgeVault } from "@/hooks/useKnowledgeVault";
 import { FileUploadCard } from "@/components/knowledge-vault/FileUploadCard";
+import { VaultChatInterface } from "@/components/knowledge-vault/VaultChatInterface";
 
 interface Section {
   id: string;
@@ -205,9 +206,11 @@ const KnowledgeVaultConfig = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto p-8">
-          <div className="space-y-6">
-            {sections.map((section, index) => (
+        <div className="max-w-7xl mx-auto p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Configuration Sections */}
+            <div className="lg:col-span-2 space-y-6">
+              {sections.map((section, index) => (
               <Card key={section.id} className="overflow-hidden">
                 <CardHeader
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -304,20 +307,26 @@ const KnowledgeVaultConfig = () => {
                   </CardContent>
                 )}
               </Card>
-            ))}
+              ))}
+            </div>
+
+            {/* Claude Chat Interface */}
+            <div className="lg:col-span-1">
+              <VaultChatInterface />
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-between items-center mt-8 p-6 bg-muted/50 rounded-lg">
+          <div className="flex justify-between items-center mt-8 p-6 bg-muted/50 rounded-lg max-w-4xl mx-auto">
             <div>
               <h3 className="font-semibold mb-1">Ready to unlock predictive insights?</h3>
               <p className="text-sm text-muted-foreground">
-                Complete configuration: {totalProgress}% • {5 - Object.values(sectionProgress).filter(v => v > 0).length} sections remaining
+                Complete configuration: {Math.round(totalProgress)}% • {5 - Object.values(sectionProgress).filter(v => v > 0).length} sections remaining
               </p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline">Save Draft</Button>
-              <Button disabled={totalProgress < 100} className="px-8">
+              <Button disabled={totalProgress < 80} className="px-8">
                 <Zap className="h-4 w-4 mr-2" />
                 Activate AI Intelligence
               </Button>
