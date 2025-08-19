@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ArrowRight } from "lucide-react";
+import { FileText, ArrowRight, CheckCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
@@ -15,6 +15,22 @@ const Dashboard = () => {
     plannedTests: 12,
     lastUpdate: "2h ago"
   };
+
+  // Status calculation functions
+  const getFreshnessStatus = (percentage: number) => {
+    if (percentage >= 80) return { color: 'text-green-500', status: 'good' };
+    if (percentage >= 60) return { color: 'text-orange-500', status: 'warning' };
+    return { color: 'text-red-500', status: 'critical' };
+  };
+
+  const getKnowledgeScoreStatus = (score: number) => {
+    if (score > 800) return { color: 'text-green-500', status: 'good' };
+    if (score >= 500) return { color: 'text-orange-500', status: 'warning' };
+    return { color: 'text-red-500', status: 'critical' };
+  };
+
+  const freshnessStatus = getFreshnessStatus(metrics.knowledgeFreshness);
+  const knowledgeStatus = getKnowledgeScoreStatus(metrics.knowledgeScore);
 
   // Chart data for last 3 months
   const velocityChartData = [
@@ -51,16 +67,22 @@ const Dashboard = () => {
           
           {/* Knowledge Freshness */}
           <div className="text-center">
-            <div className="text-5xl font-light text-foreground mb-2">
-              {metrics.knowledgeFreshness}%
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="text-5xl font-light text-foreground">
+                {metrics.knowledgeFreshness}%
+              </div>
+              <CheckCircle className={`w-6 h-6 ${freshnessStatus.color}`} />
             </div>
             <p className="text-muted-foreground text-sm">Knowledge Freshness</p>
           </div>
 
           {/* Knowledge Score */}
           <div className="text-center">
-            <div className="text-5xl font-light text-foreground mb-2">
-              {metrics.knowledgeScore}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="text-5xl font-light text-foreground">
+                {metrics.knowledgeScore}
+              </div>
+              <CheckCircle className={`w-6 h-6 ${knowledgeStatus.color}`} />
             </div>
             <p className="text-muted-foreground text-sm">Knowledge Score</p>
           </div>
