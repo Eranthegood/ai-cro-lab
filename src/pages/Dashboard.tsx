@@ -1,5 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { 
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { FileText, ArrowRight, CheckCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -46,8 +52,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen p-8">
+    <TooltipProvider>
+      <DashboardLayout>
+        <div className="min-h-screen p-8">
         {/* Minimalist Header */}
         <div className="flex items-center justify-between mb-12">
           <div>
@@ -67,22 +74,32 @@ const Dashboard = () => {
           
           {/* Knowledge Freshness */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="text-5xl font-light text-foreground">
-                {metrics.knowledgeFreshness}%
-              </div>
-              <CheckCircle className={`w-6 h-6 ${freshnessStatus.color}`} />
+            <div className="text-5xl font-light text-foreground mb-2 relative">
+              {metrics.knowledgeFreshness}%
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <CheckCircle className={`w-3 h-3 ${freshnessStatus.color} absolute -top-1 -right-4 opacity-60`} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Plus la data est fraîche, plus les résultats sont performants</p>
+                </TooltipContent>
+              </UITooltip>
             </div>
             <p className="text-muted-foreground text-sm">Knowledge Freshness</p>
           </div>
 
           {/* Knowledge Score */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="text-5xl font-light text-foreground">
-                {metrics.knowledgeScore}
-              </div>
-              <CheckCircle className={`w-6 h-6 ${knowledgeStatus.color}`} />
+            <div className="text-5xl font-light text-foreground mb-2 relative">
+              {metrics.knowledgeScore}
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <CheckCircle className={`w-3 h-3 ${knowledgeStatus.color} absolute -top-1 -right-4 opacity-60`} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Plus le knowledge est élevé, plus les résultats sont performants</p>
+                </TooltipContent>
+              </UITooltip>
             </div>
             <p className="text-muted-foreground text-sm">Knowledge Score</p>
           </div>
@@ -174,8 +191,9 @@ const Dashboard = () => {
           </div>
 
         </div>
-      </div>
-    </DashboardLayout>
+        </div>
+      </DashboardLayout>
+    </TooltipProvider>
   );
 };
 
