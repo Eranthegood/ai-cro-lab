@@ -112,7 +112,7 @@ const KnowledgeVaultConfig = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-foreground">
-                  🧠 Configure Your Knowledge Vault
+                  Configure Your Knowledge Vault
                 </h1>
                 <p className="text-xl text-muted-foreground mt-2">
                   Achieve 100% Predictive Power - Feed Your AI Everything It Needs
