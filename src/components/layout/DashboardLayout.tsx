@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         
         <div className="flex flex-1 w-full">
           <AppSidebar />
-          <main className="flex-1 flex flex-col">
+          <main className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <header className="flex items-center justify-between h-14 px-4 border-b border-border bg-background">
             <SidebarTrigger />

@@ -24,6 +24,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import { useNotifications } from "@/context/NotificationContext";
 const AppSidebar = () => {
   const location = useLocation();
   const { hasDataFreshnessWarning, hasKnowledgeScoreWarning } = useNotifications();
+  const { open } = useSidebar();
 
   const menuItems = [
     { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
@@ -46,15 +48,26 @@ const AppSidebar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar className="bg-background border-r border-border">
+    <Sidebar className="bg-background border-r border-border" collapsible="icon">
       <SidebarHeader className="p-4 border-b border-border">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-8 w-8 bg-foreground rounded flex items-center justify-center">
-            <span className="text-background text-sm font-bold">CI</span>
+        {open && (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 bg-foreground rounded flex items-center justify-center">
+                <span className="text-background text-sm font-bold">CI</span>
+              </div>
+              <h2 className="font-medium text-foreground">CRO Intelligence</h2>
+            </div>
+            <WorkspaceSwitcher />
+          </>
+        )}
+        {!open && (
+          <div className="flex items-center justify-center">
+            <div className="h-8 w-8 bg-foreground rounded flex items-center justify-center">
+              <span className="text-background text-sm font-bold">CI</span>
+            </div>
           </div>
-          <h2 className="font-medium text-foreground">CRO Intelligence</h2>
-        </div>
-        <WorkspaceSwitcher />
+        )}
       </SidebarHeader>
 
       <SidebarContent className="p-0">
@@ -66,11 +79,12 @@ const AppSidebar = () => {
                   <SidebarMenuButton 
                     asChild 
                     className={cn(
-                      "mx-4 px-3 py-2 rounded-sm",
+                      open ? "mx-4 px-3 py-2 rounded-sm" : "mx-2 px-2 py-2 rounded-sm justify-center",
                       isActive(item.url) ? "bg-accent text-accent-foreground border-b border-accent-foreground" : "text-muted-foreground hover:text-foreground"
                     )}
+                    tooltip={!open ? item.title : undefined}
                   >
-                    <NavLink to={item.url} className="flex items-center gap-3">
+                    <NavLink to={item.url} className={cn("flex items-center", open ? "gap-3" : "justify-center")}>
                         <div className="relative">
                           <item.icon className="h-4 w-4" />
                           {/* Warning dots for specific menu items */}
@@ -79,7 +93,7 @@ const AppSidebar = () => {
                             <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></div>
                           ) : null}
                         </div>
-                        <span className="text-sm">{item.title}</span>
+                        {open && <span className="text-sm">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
