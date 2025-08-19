@@ -28,11 +28,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex flex-col w-full bg-background">
-        {/* Top Banner */}
-        <Banner message="Free Access for all, help us improve" />
-        
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      {/* Top Banner - Above everything */}
+      <Banner message="Free Access for all, help us improve" />
+      
+      <SidebarProvider defaultOpen={true}>
         <div className="flex flex-1 w-full">
           <AppSidebar />
           <main className="flex-1 flex flex-col min-w-0">
@@ -92,8 +92,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
           </main>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 };
 
