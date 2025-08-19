@@ -1,103 +1,60 @@
-import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import {
-  BarChart3,
-  Upload,
-  Code2,
-  Rocket,
-  BookOpen,
-  Settings,
-  User,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-
+import { BarChart3, Database, Code, BookOpen, Settings, LogOut, User } from "lucide-react";
+import { useLocation, NavLink } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
+  SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 
-const navigation = [
-  { title: "Overview", url: "/dashboard", icon: BarChart3 },
-  { title: "Data Analysis", url: "/dashboard/analysis", icon: Upload },
-  { title: "Code Generator", url: "/dashboard/generator", icon: Code2 },
-  { title: "Deployments", url: "/dashboard/deployments", icon: Rocket },
-  { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
-];
-
-export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+const AppSidebar = () => {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const { user, signOut } = useAuth();
 
-  const isActive = (path: string) => currentPath === path;
-  const getNavClass = (path: string) =>
-    isActive(path) 
-      ? "bg-primary text-primary-foreground font-medium" 
-      : "hover:bg-muted text-muted-foreground hover:text-foreground";
+  const navigation = [
+    { title: "Overview", url: "/dashboard", icon: BarChart3 },
+    { title: "Data Analysis", url: "/dashboard/analysis", icon: Database },
+    { title: "Code Generator", url: "/dashboard/generator", icon: Code },
+    { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
+    { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  ];
 
-  const isCollapsed = state === "collapsed";
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
-      {/* Header with Logo */}
-      <div className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            {!isCollapsed && (
-              <span className="text-lg font-semibold text-sidebar-foreground">
-                CRO Intelligence
-              </span>
-            )}
+    <Sidebar>
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-8 w-8 bg-black rounded flex items-center justify-center">
+            <span className="text-white text-sm font-bold">CI</span>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSidebar}
-            className="h-6 w-6 p-0 text-sidebar-foreground"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
+          <h2 className="font-bold text-lg">CRO Intelligence</h2>
         </div>
-      </div>
+        <WorkspaceSwitcher />
+      </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
-            Main
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className={getNavClass(item.url)}
-                    tooltip={isCollapsed ? item.title : undefined}
+                    className={isActive(item.url) ? "bg-accent text-accent-foreground" : ""}
                   >
-                    <NavLink to={item.url}>
+                    <NavLink to={item.url} className="flex items-center gap-3">
                       <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -107,27 +64,33 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                SC
-              </AvatarFallback>
-            </Avatar>
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  Sarah Chen
-                </p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">
-                  PM @ TechCorp
-                </p>
-              </div>
-            )}
+      <SidebarFooter className="p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={signOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
-}
+};
+
+export default AppSidebar;

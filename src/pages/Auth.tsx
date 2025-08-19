@@ -1,28 +1,62 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Zap, 
-  ArrowRight,
-  Github,
-  Chrome
-} from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Github, Zap, ArrowRight } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { Link } from "react-router-dom";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, signUp, signIn, signInWithGitHub, signInWithGoogle } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate authentication
-    navigate('/dashboard');
+    setIsLoading(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (!error) {
+          // Navigation is handled in signIn function
+        }
+      } else {
+        const { error } = await signUp(email, password, name);
+        if (!error) {
+          // Show success message, user will need to confirm email
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    setIsLoading(true);
+    await signInWithGitHub();
+    setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    await signInWithGoogle();
+    setIsLoading(false);
   };
 
   return (
@@ -31,8 +65,8 @@ const Auth = () => {
         {/* Header */}
         <div className="text-center">
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="h-6 w-6 text-primary-foreground" />
+            <div className="h-10 w-10 bg-foreground rounded-lg flex items-center justify-center">
+              <Zap className="h-6 w-6 text-background" />
             </div>
             <span className="text-2xl font-bold text-foreground">CRO Intelligence</span>
           </Link>
@@ -58,12 +92,22 @@ const Auth = () => {
           <CardContent className="space-y-4">
             {/* Social Auth */}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline">
-                <Github className="mr-2 h-4 w-4" />
-                Github
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleGitHubSignIn}
+                disabled={isLoading}
+              >
+                <Github className="h-4 w-4 mr-2" />
+                GitHub
               </Button>
-              <Button variant="outline">
-                <Chrome className="mr-2 h-4 w-4" />
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <FcGoogle className="h-4 w-4 mr-2" />
                 Google
               </Button>
             </div>
@@ -82,45 +126,39 @@ const Auth = () => {
               {!isLogin && (
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="name" 
-                      type="text" 
-                      placeholder="Sarah Chen"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
+                  <Input 
+                    id="name" 
+                    type="text" 
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
                 </div>
               )}
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="sarah@techcorp.com"
-                    className="pl-10"
-                    required
-                  />
-                </div>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••"
-                    className="pl-10"
-                    required
-                  />
-                </div>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
 
               {isLogin && (
@@ -135,8 +173,8 @@ const Auth = () => {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" size="lg">
-                {isLogin ? 'Sign In' : 'Create Account'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Processing..." : (isLogin ? "Sign In" : "Create Account")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </form>
