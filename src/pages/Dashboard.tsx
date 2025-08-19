@@ -76,7 +76,10 @@ const Dashboard = () => {
                     tickLine={false} 
                     tick={{ fontSize: 10, fill: 'currentColor' }}
                   />
-                  <YAxis hide />
+                  <YAxis 
+                    hide 
+                    domain={['dataMin - 2', 'dataMax + 2']}
+                  />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--background))', 
@@ -90,9 +93,9 @@ const Dashboard = () => {
                     type="monotone" 
                     dataKey="tests" 
                     stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: 'hsl(var(--primary))' }}
-                    activeDot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                    strokeWidth={1.5}
+                    dot={{ r: 2.5, fill: 'hsl(var(--primary))' }}
+                    activeDot={{ r: 3.5, fill: 'hsl(var(--primary))' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
