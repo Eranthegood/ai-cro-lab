@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, ArrowRight } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
 
@@ -14,6 +15,13 @@ const Dashboard = () => {
     plannedTests: 12,
     lastUpdate: "2h ago"
   };
+
+  // Chart data for last 3 months
+  const velocityChartData = [
+    { month: 'Nov', tests: 14 },
+    { month: 'Dec', tests: 16 },
+    { month: 'Jan', tests: 18 },
+  ];
 
   return (
     <DashboardLayout>
@@ -56,7 +64,39 @@ const Dashboard = () => {
             <div className="text-5xl font-light text-foreground mb-2">
               {metrics.velocityRate}
             </div>
-            <p className="text-muted-foreground text-sm">Tests Launched (30d)</p>
+            <p className="text-muted-foreground text-sm mb-4">Tests Launched (30d)</p>
+            
+            {/* Discreet line chart */}
+            <div className="h-16 w-full opacity-60 hover:opacity-100 transition-opacity">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={velocityChartData}>
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: 'currentColor' }}
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--background))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="tests" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+                    activeDot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Planned Tests */}
