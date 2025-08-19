@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useKnowledgeVault } from "@/hooks/useKnowledgeVault";
 import { FileUploadCard } from "@/components/knowledge-vault/FileUploadCard";
-import { VaultChatInterface } from "@/components/knowledge-vault/VaultChatInterface";
 
 interface Section {
   id: string;
@@ -206,11 +205,9 @@ const KnowledgeVaultConfig = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Configuration Sections */}
-            <div className="lg:col-span-2 space-y-6">
-              {sections.map((section, index) => (
+        <div className="max-w-4xl mx-auto p-8">
+          <div className="space-y-6">
+            {sections.map((section, index) => (
               <Card key={section.id} className="overflow-hidden">
                 <CardHeader
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -310,14 +307,8 @@ const KnowledgeVaultConfig = () => {
               ))}
             </div>
 
-            {/* Claude Chat Interface */}
-            <div className="lg:col-span-1">
-              <VaultChatInterface />
-            </div>
-          </div>
-
           {/* Action Buttons */}
-          <div className="flex justify-between items-center mt-8 p-6 bg-muted/50 rounded-lg max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mt-8 p-6 bg-muted/50 rounded-lg">
             <div>
               <h3 className="font-semibold mb-1">Ready to unlock predictive insights?</h3>
               <p className="text-sm text-muted-foreground">
