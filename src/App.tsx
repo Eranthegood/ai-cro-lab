@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
+import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
 import Landing from "./pages/Landing";
@@ -25,7 +26,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <WorkspaceProvider>
-        <TooltipProvider>
+        <ProjectsProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -93,8 +95,9 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </WorkspaceProvider>
-    </AuthProvider>
+      </ProjectsProvider>
+    </WorkspaceProvider>
+  </AuthProvider>
   </QueryClientProvider>
 );
 

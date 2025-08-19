@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Brain, Loader2, Sparkles } from 'lucide-react';
+import { Send, Brain, Loader2, Sparkles, Archive } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,9 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { useProjects } from '@/hooks/useProjects';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ProjectSelector } from '@/components/project/ProjectSelector';
+import { SaveToVaultModal } from '@/components/project/SaveToVaultModal';
 
 interface Message {
   id: string;
@@ -25,6 +28,7 @@ interface VaultChatInterfaceProps {
 export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const { currentProject, createConversation, updateConversation } = useProjects();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -35,6 +39,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,7 +49,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !user || !currentWorkspace || loading) return;
+    if (!input.trim() || !user || !currentWorkspace || !currentProject || loading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -53,15 +58,28 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
 
     try {
+      // Create conversation if none exists
+      if (!currentConversationId) {
+        const { conversation, error: convError } = await createConversation(
+          currentProject.id,
+          `Conversation ${new Date().toLocaleDateString()}`
+        );
+        if (!convError && conversation) {
+          setCurrentConversationId(conversation.id);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('knowledge-vault-chat', {
         body: {
           message: userMessage.content,
           workspaceId: currentWorkspace.id,
+          projectId: currentProject.id,
           userId: user.id
         }
       });
@@ -75,7 +93,13 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      const updatedMessages = [...newMessages, assistantMessage];
+      setMessages(updatedMessages);
+
+      // Save conversation
+      if (currentConversationId) {
+        await updateConversation(currentConversationId, updatedMessages);
+      }
       
       toast({
         title: "Analyse terminée",
@@ -121,16 +145,21 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   return (
     <Card className={cn("h-[600px] flex flex-col", className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Brain className="h-5 w-5 text-primary" />
-          </div>
-          Intelligence Collective
-          <Badge variant="secondary" className="ml-auto">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Claude + Vault
-          </Badge>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Brain className="h-5 w-5 text-primary" />
+            </div>
+            Intelligence Collective
+            <Badge variant="secondary" className="ml-2">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Claude + Vault
+            </Badge>
+          </CardTitle>
+        </div>
+        <div className="mt-3">
+          <ProjectSelector />
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-col flex-1 p-4 gap-4">
@@ -154,9 +183,25 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
                   )}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <span className="text-xs opacity-60 mt-1 block">
-                    {message.timestamp.toLocaleTimeString()}
-                  </span>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs opacity-60">
+                      {message.timestamp.toLocaleTimeString()}
+                    </span>
+                    {message.type === 'assistant' && currentProject && (
+                      <SaveToVaultModal 
+                        content={message.content}
+                        messageContext={{
+                          messageId: message.id,
+                          timestamp: message.timestamp,
+                          projectId: currentProject.id
+                        }}
+                      >
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-60 hover:opacity-100">
+                          <Archive className="h-3 w-3" />
+                        </Button>
+                      </SaveToVaultModal>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -175,7 +220,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
         </ScrollArea>
 
         {/* Suggested Prompts */}
-        {messages.length <= 1 && (
+        {messages.length <= 1 && currentProject && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground font-medium">Suggestions d'analyse :</p>
             <div className="flex flex-wrap gap-2">
@@ -195,6 +240,14 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
           </div>
         )}
 
+        {!currentProject && (
+          <div className="text-center space-y-2 p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Créez ou sélectionnez un projet pour commencer à utiliser Claude
+            </p>
+          </div>
+        )}
+
         {/* Input */}
         <div className="flex gap-2">
           <Textarea
@@ -207,7 +260,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || loading || !currentProject}
             className="px-3 self-end"
           >
             <Send className="h-4 w-4" />

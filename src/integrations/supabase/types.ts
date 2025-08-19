@@ -279,6 +279,7 @@ export type Database = {
           file_type: string
           id: string
           is_processed: boolean
+          project_id: string | null
           storage_path: string
           upload_metadata: Json | null
           uploaded_by: string
@@ -292,6 +293,7 @@ export type Database = {
           file_type: string
           id?: string
           is_processed?: boolean
+          project_id?: string | null
           storage_path: string
           upload_metadata?: Json | null
           uploaded_by: string
@@ -305,12 +307,20 @@ export type Database = {
           file_type?: string
           id?: string
           is_processed?: boolean
+          project_id?: string | null
           storage_path?: string
           upload_metadata?: Json | null
           uploaded_by?: string
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "knowledge_vault_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "knowledge_vault_files_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -346,6 +356,118 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_conversations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          messages: Json
+          project_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          messages?: Json
+          project_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          messages?: Json
+          project_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_conversations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          settings: Json | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          settings?: Json | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          settings?: Json | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      vault_saved_responses: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          message_context: Json | null
+          name: string
+          project_id: string
+          workspace_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          message_context?: Json | null
+          name: string
+          project_id: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          message_context?: Json | null
+          name?: string
+          project_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_saved_responses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_invitations: {
         Row: {
@@ -502,6 +624,15 @@ export type Database = {
           p_workspace_id: string
         }
         Returns: undefined
+      }
+      update_knowledge_vault_config: {
+        Args: {
+          p_completion_score: number
+          p_config_data: Json
+          p_section: string
+          p_workspace_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
