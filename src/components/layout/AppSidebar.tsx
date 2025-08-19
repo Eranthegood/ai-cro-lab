@@ -71,7 +71,7 @@ const AppSidebar = () => {
     },
     { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
-    { title: "AI Insights", url: "/dashboard/insights", icon: Brain },
+    { title: "Intel", url: "/dashboard/insights", icon: Brain },
   ];
 
   const isActive = (path: string) => location.pathname === path;
