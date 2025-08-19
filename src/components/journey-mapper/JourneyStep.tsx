@@ -112,20 +112,38 @@ export const JourneyStep = ({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-white/20"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={onClick}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}>
                 <Settings className="h-4 w-4 mr-2" />
                 Configure
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onConnectionStart}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                onConnectionStart();
+              }}>
                 <Link className="h-4 w-4 mr-2" />
                 Connect
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-red-600">
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }} 
+                className="text-red-600"
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>
@@ -195,11 +213,26 @@ export const JourneyStep = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2 border-t">
-          <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={onClick}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1 text-xs" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <Settings className="h-3 w-3 mr-1" />
             Edit
           </Button>
-          <Button variant="outline" size="sm" className="flex-1 text-xs">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1 text-xs"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <TrendingUp className="h-3 w-3 mr-1" />
             Data
           </Button>

@@ -6,6 +6,8 @@ import { ComponentLibrary } from "@/components/journey-mapper/ComponentLibrary";
 import { JourneyCanvas } from "@/components/journey-mapper/JourneyCanvas";
 import { AnalyticsPanel } from "@/components/journey-mapper/AnalyticsPanel";
 import { ConfigModal } from "@/components/journey-mapper/ConfigModal";
+import { Button } from "@/components/ui/button";
+import { Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface JourneyStep {
@@ -38,6 +40,33 @@ export const JourneyMapper = () => {
   const [selectedStep, setSelectedStep] = useState<JourneyStep | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+  const [history, setHistory] = useState<{steps: JourneyStep[], connections: JourneyConnection[]}[]>([]);
+
+  const saveToHistory = () => {
+    setHistory(prev => [...prev, { steps, connections }].slice(-10)); // Keep only last 10 actions
+  };
+
+  const undoLastAction = () => {
+    if (history.length > 0) {
+      const lastState = history[history.length - 1];
+      setSteps(lastState.steps);
+      setConnections(lastState.connections);
+      setHistory(prev => prev.slice(0, -1));
+      toast.success("Action undone");
+    } else {
+      toast.error("No actions to undo");
+    }
+  };
+
+  const clearAll = () => {
+    if (steps.length > 0 || connections.length > 0) {
+      saveToHistory();
+      setSteps([]);
+      setConnections([]);
+      setSelectedStep(null);
+      toast.success("Journey cleared");
+    }
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -76,6 +105,7 @@ export const JourneyMapper = () => {
             }
           };
 
+          saveToHistory();
           setSteps(prev => [...prev, newStep]);
           toast.success(`Added ${newStep.title} to journey`);
         }
@@ -106,6 +136,7 @@ export const JourneyMapper = () => {
   };
 
   const deleteStep = (stepId: string) => {
+    saveToHistory();
     setSteps(prev => prev.filter(step => step.id !== stepId));
     setConnections(prev => prev.filter(conn => 
       conn.source !== stepId && conn.target !== stepId
@@ -114,6 +145,7 @@ export const JourneyMapper = () => {
   };
 
   const addConnection = (sourceId: string, targetId: string) => {
+    saveToHistory();
     const newConnection: JourneyConnection = {
       id: `conn-${Date.now()}`,
       source: sourceId,
@@ -147,6 +179,26 @@ export const JourneyMapper = () => {
                 </p>
               </div>
               <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={undoLastAction}
+                  disabled={history.length === 0}
+                  className="flex items-center gap-2"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Annuler
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAll}
+                  disabled={steps.length === 0 && connections.length === 0}
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Tout effacer
+                </Button>
                 <div className="text-sm text-muted-foreground">
                   Journey Health: <span className={`font-semibold ${journeyHealth >= 70 ? 'text-green-500' : journeyHealth >= 50 ? 'text-orange-500' : 'text-red-500'}`}>
                     {journeyHealth}%
