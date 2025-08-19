@@ -151,7 +151,7 @@ const AppSidebar = () => {
                                 <span>{subItem.title}</span>
                                 {subItem.title === "Journey Mapper" && (
                                   <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
-                                    Beta
+                                    Alpha
                                   </Badge>
                                 )}
                               </NavLink>
