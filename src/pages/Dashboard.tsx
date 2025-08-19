@@ -10,6 +10,7 @@ import { FileText, ArrowRight, CheckCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
+import { NotificationProvider } from "@/hooks/useNotifications";
 
 const Dashboard = () => {
   // Mock data - in real app this would come from Supabase
@@ -53,7 +54,11 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider>
-      <DashboardLayout>
+      <NotificationProvider 
+        freshnessStatus={freshnessStatus} 
+        knowledgeStatus={knowledgeStatus}
+      >
+        <DashboardLayout>
         <div className="min-h-screen p-8">
         {/* Minimalist Header */}
         <div className="flex items-center justify-between mb-12">
@@ -196,7 +201,8 @@ const Dashboard = () => {
 
         </div>
         </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </NotificationProvider>
     </TooltipProvider>
   );
 };

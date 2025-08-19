@@ -13,6 +13,7 @@ import {
 import { LogOut, User, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AppSidebar from "./AppSidebar";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -34,8 +35,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <header className="flex items-center justify-between h-14 px-4 border-b border-border bg-background">
             <SidebarTrigger />
             
-            {/* User Profile Dropdown */}
-            <DropdownMenu>
+            <div className="flex items-center gap-2">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
+              {/* User Profile Dropdown */}
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
@@ -72,7 +77,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <span>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+              </DropdownMenu>
+            </div>
           </header>
           
           {/* Main Content */}

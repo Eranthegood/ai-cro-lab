@@ -29,9 +29,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { hasDataFreshnessWarning, hasKnowledgeScoreWarning } = useNotifications();
   const [configureOpen, setConfigureOpen] = useState(true);
   const [observeOpen, setObserveOpen] = useState(true);
   const [enhanceOpen, setEnhanceOpen] = useState(true);
@@ -116,7 +118,14 @@ const AppSidebar = () => {
                         )}
                       >
                         <NavLink to={item.url} className="flex items-center gap-3">
-                            <item.icon className="h-4 w-4" />
+                            <div className="relative">
+                              <item.icon className="h-4 w-4" />
+                              {/* Warning dots for specific menu items */}
+                              {(item.title === "Dashboard" && hasDataFreshnessWarning) || 
+                               (item.title === "Knowledge Base" && hasKnowledgeScoreWarning) ? (
+                                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></div>
+                              ) : null}
+                            </div>
                             <span className="text-sm">{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
