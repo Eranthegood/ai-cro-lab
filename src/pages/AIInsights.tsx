@@ -1,4 +1,5 @@
 import { Brain, Sparkles, Zap } from "lucide-react";
+import { AnthropicIcon } from "@/assets/AnthropicIcon";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ const AIInsights = () => {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-primary/10 rounded-xl">
-                <Brain className="h-8 w-8 text-primary" />
+                <AnthropicIcon className="h-8 w-8 text-primary" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
