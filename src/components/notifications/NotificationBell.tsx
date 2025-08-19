@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/context/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
 
 const NotificationBell = () => {

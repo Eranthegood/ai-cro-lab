@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { NotificationProvider } from "@/context/NotificationContext";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import DataAnalysis from "./pages/DataAnalysis";
@@ -30,27 +31,37 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <NotificationProvider>
+                    <Dashboard />
+                  </NotificationProvider>
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/analysis" element={
                 <ProtectedRoute>
-                  <DataAnalysis />
+                  <NotificationProvider>
+                    <DataAnalysis />
+                  </NotificationProvider>
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/generator" element={
                 <ProtectedRoute>
-                  <CodeGenerator />
+                  <NotificationProvider>
+                    <CodeGenerator />
+                  </NotificationProvider>
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/knowledge" element={
                 <ProtectedRoute>
-                  <KnowledgeBase />
+                  <NotificationProvider>
+                    <KnowledgeBase />
+                  </NotificationProvider>
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/analytics" element={
                 <ProtectedRoute>
-                  <Analytics />
+                  <NotificationProvider>
+                    <Analytics />
+                  </NotificationProvider>
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

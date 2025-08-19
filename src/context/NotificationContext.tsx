@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface NotificationContextType {
   hasDataFreshnessWarning: boolean;
@@ -11,6 +11,7 @@ interface NotificationContextType {
     timestamp: Date;
     read: boolean;
   }>;
+  updateStatuses: (freshnessStatus: { status: string }, knowledgeStatus: { status: string }) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -25,17 +26,16 @@ export const useNotifications = () => {
 
 interface NotificationProviderProps {
   children: ReactNode;
-  freshnessStatus: { status: string };
-  knowledgeStatus: { status: string };
 }
 
-export const NotificationProvider = ({ 
-  children, 
-  freshnessStatus, 
-  knowledgeStatus 
-}: NotificationProviderProps) => {
-  const hasDataFreshnessWarning = freshnessStatus.status !== 'good';
-  const hasKnowledgeScoreWarning = knowledgeStatus.status !== 'good';
+export const NotificationProvider = ({ children }: NotificationProviderProps) => {
+  const [hasDataFreshnessWarning, setHasDataFreshnessWarning] = useState(false);
+  const [hasKnowledgeScoreWarning, setHasKnowledgeScoreWarning] = useState(false);
+
+  const updateStatuses = (freshnessStatus: { status: string }, knowledgeStatus: { status: string }) => {
+    setHasDataFreshnessWarning(freshnessStatus.status !== 'good');
+    setHasKnowledgeScoreWarning(knowledgeStatus.status !== 'good');
+  };
 
   // Mock notifications - in real app this would come from API/database
   const notifications = [
@@ -69,7 +69,8 @@ export const NotificationProvider = ({
     <NotificationContext.Provider value={{
       hasDataFreshnessWarning,
       hasKnowledgeScoreWarning,
-      notifications
+      notifications,
+      updateStatuses
     }}>
       {children}
     </NotificationContext.Provider>

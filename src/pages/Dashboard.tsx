@@ -10,9 +10,12 @@ import { FileText, ArrowRight, CheckCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Link } from "react-router-dom";
-import { NotificationProvider } from "@/hooks/useNotifications";
+import { useNotifications } from "@/context/NotificationContext";
+import { useEffect } from "react";
 
 const Dashboard = () => {
+  const { updateStatuses } = useNotifications();
+  
   // Mock data - in real app this would come from Supabase
   const metrics = {
     knowledgeFreshness: 92,
@@ -39,6 +42,11 @@ const Dashboard = () => {
   const freshnessStatus = getFreshnessStatus(metrics.knowledgeFreshness);
   const knowledgeStatus = getKnowledgeScoreStatus(metrics.knowledgeScore);
 
+  // Update notification statuses when component mounts or metrics change
+  useEffect(() => {
+    updateStatuses(freshnessStatus, knowledgeStatus);
+  }, [freshnessStatus.status, knowledgeStatus.status, updateStatuses]);
+
   // Chart data for last 3 months
   const velocityChartData = [
     { month: 'Nov', tests: 14 },
@@ -54,11 +62,7 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider>
-      <NotificationProvider 
-        freshnessStatus={freshnessStatus} 
-        knowledgeStatus={knowledgeStatus}
-      >
-        <DashboardLayout>
+      <DashboardLayout>
         <div className="min-h-screen p-8">
         {/* Minimalist Header */}
         <div className="flex items-center justify-between mb-12">
@@ -202,7 +206,6 @@ const Dashboard = () => {
         </div>
         </div>
         </DashboardLayout>
-      </NotificationProvider>
     </TooltipProvider>
   );
 };

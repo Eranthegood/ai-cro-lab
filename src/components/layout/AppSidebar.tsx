@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 import { cn } from "@/lib/utils";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/context/NotificationContext";
 
 const AppSidebar = () => {
   const location = useLocation();
