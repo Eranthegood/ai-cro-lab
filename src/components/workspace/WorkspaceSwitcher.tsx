@@ -68,7 +68,7 @@ const WorkspaceSwitcher = () => {
               <div className="flex flex-col">
                 <span className="font-medium">{workspace.name}</span>
                 <span className="text-xs text-muted-foreground capitalize">
-                  {workspace.role} • {workspace.plan}
+                  {workspace.role} • Free
                 </span>
               </div>
             </DropdownMenuItem>

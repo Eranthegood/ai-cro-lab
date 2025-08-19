@@ -32,7 +32,6 @@ const Landing = () => {
             <a href="#features" className="text-foreground hover:text-muted-foreground transition-colors">Features</a>
             <a href="#examples" className="text-foreground hover:text-muted-foreground transition-colors">Examples</a>
             <a href="#case-study" className="text-foreground hover:text-muted-foreground transition-colors">Case Study</a>
-            <a href="#pricing" className="text-foreground hover:text-muted-foreground transition-colors">Pricing</a>
           </nav>
 
           <div className="flex items-center space-x-3">
