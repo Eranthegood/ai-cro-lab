@@ -14,9 +14,11 @@ import {
   Clock,
   RefreshCw,
   Plus,
-  MoreVertical
+  MoreVertical,
+  Settings
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Link } from "react-router-dom";
 
 const KnowledgeBase = () => {
   const knowledgeCategories = [
@@ -111,10 +113,18 @@ const KnowledgeBase = () => {
               Enhance AI analysis with your company's context, design system, and business intelligence.
             </p>
           </div>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Knowledge
-          </Button>
+          <div className="flex gap-3">
+            <Button asChild variant="outline">
+              <Link to="/dashboard/knowledge/config">
+                <Settings className="w-4 h-4 mr-2" />
+                Configure Knowledge Vault
+              </Link>
+            </Button>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Knowledge
+            </Button>
+          </div>
         </div>
       </div>
 

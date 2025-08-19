@@ -65,6 +65,7 @@ const AppSidebar = () => {
       icon: BookOpen,
       submenu: [
         { title: "Overview", url: "/dashboard/knowledge", icon: FileText },
+        { title: "Configuration", url: "/dashboard/knowledge/config", icon: Settings },
         { title: "Journey Mapper", url: "/dashboard/knowledge/journey-mapper", icon: Map }
       ]
     },
