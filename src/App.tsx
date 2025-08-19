@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import DataAnalysis from "./pages/DataAnalysis";
 import CodeGenerator from "./pages/CodeGenerator";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import { JourneyMapper } from "./pages/JourneyMapper";
 import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,13 @@ const App = () => (
                 <ProtectedRoute>
                   <NotificationProvider>
                     <KnowledgeBase />
+                  </NotificationProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/knowledge/journey-mapper" element={
+                <ProtectedRoute>
+                  <NotificationProvider>
+                    <JourneyMapper />
                   </NotificationProvider>
                 </ProtectedRoute>
               } />
