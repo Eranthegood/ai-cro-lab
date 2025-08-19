@@ -14,13 +14,335 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ab_tests: {
+        Row: {
+          business_impact: Json | null
+          code_generated: string | null
+          created_at: string
+          created_by: string
+          framework: string | null
+          hypothesis: string | null
+          id: string
+          metrics: Json | null
+          name: string
+          priority: string | null
+          status: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          business_impact?: Json | null
+          code_generated?: string | null
+          created_at?: string
+          created_by: string
+          framework?: string | null
+          hypothesis?: string | null
+          id?: string
+          metrics?: Json | null
+          name: string
+          priority?: string | null
+          status?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          business_impact?: Json | null
+          code_generated?: string | null
+          created_at?: string
+          created_by?: string
+          framework?: string | null
+          hypothesis?: string | null
+          id?: string
+          metrics?: Json | null
+          name?: string
+          priority?: string | null
+          status?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_tests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_tests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contentsquare_data: {
+        Row: {
+          analysis_results: Json | null
+          created_at: string
+          data: Json
+          file_type: string
+          filename: string
+          id: string
+          processed: boolean | null
+          uploaded_by: string
+          workspace_id: string
+        }
+        Insert: {
+          analysis_results?: Json | null
+          created_at?: string
+          data?: Json
+          file_type: string
+          filename: string
+          id?: string
+          processed?: boolean | null
+          uploaded_by: string
+          workspace_id: string
+        }
+        Update: {
+          analysis_results?: Json | null
+          created_at?: string
+          data?: Json
+          file_type?: string
+          filename?: string
+          id?: string
+          processed?: boolean | null
+          uploaded_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contentsquare_data_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contentsquare_data_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_base: {
+        Row: {
+          content: Json | null
+          created_at: string
+          file_size: number | null
+          id: string
+          name: string
+          processed_at: string | null
+          type: string
+          uploaded_by: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          name: string
+          processed_at?: string | null
+          type: string
+          uploaded_by: string
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          name?: string
+          processed_at?: string | null
+          type?: string
+          uploaded_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workspace_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: string
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          role: string
+          token: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: string
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plan: string | null
+          settings: Json | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plan?: string | null
+          settings?: Json | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: string | null
+          settings?: Json | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_workspace_permission: {
+        Args: {
+          required_role?: string
+          user_uuid: string
+          workspace_uuid: string
+        }
+        Returns: boolean
+      }
+      get_user_workspaces: {
+        Args: { user_uuid: string }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never
