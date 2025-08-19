@@ -27,8 +27,8 @@ const Dashboard = () => {
   };
 
   const velocityRate = {
-    testsLast30Days: 23,
-    avgTimeToGenerate: "2.3s",
+    testsLaunched30Days: 18,
+    deploymentRate: "78%",
     improvement: "+18%"
   };
 
@@ -118,9 +118,9 @@ const Dashboard = () => {
               <Zap className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{velocityRate.testsLast30Days}</div>
+              <div className="text-2xl font-bold text-foreground">{velocityRate.testsLaunched30Days}</div>
               <p className="text-xs text-muted-foreground mb-2">
-                Avg generation time: {velocityRate.avgTimeToGenerate}
+                Tests launched • Deployment rate: {velocityRate.deploymentRate}
               </p>
               <p className="text-xs text-success flex items-center">
                 <TrendingUp className="w-3 h-3 mr-1" />
