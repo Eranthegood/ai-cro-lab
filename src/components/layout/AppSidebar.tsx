@@ -2,20 +2,17 @@ import {
   Settings, 
   TrendingUp, 
   BarChart3, 
-  LogOut, 
-  User,
   Database,
   Brain,
-  FileText,
   Code,
   Zap,
   Target,
   TestTube,
   BookOpen,
-  ChevronDown
+  ChevronDown,
+  User
 } from "lucide-react";
 import { useLocation, NavLink } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import {
   Sidebar,
@@ -27,17 +24,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 import { cn } from "@/lib/utils";
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
   const [configureOpen, setConfigureOpen] = useState(true);
   const [observeOpen, setObserveOpen] = useState(true);
   const [enhanceOpen, setEnhanceOpen] = useState(true);
@@ -147,32 +141,6 @@ const AppSidebar = () => {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
-      <SidebarFooter className="p-4 border-t border-border">
-        <div className="flex items-center gap-3 mb-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback>
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-          </div>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
-          onClick={signOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
-      </SidebarFooter>
     </Sidebar>
   );
 };
