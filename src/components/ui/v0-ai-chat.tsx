@@ -464,12 +464,11 @@ export function VercelV0Chat() {
                         className="gap-2"
                         onClick={() => toast({ title: "CSV import", description: "Feature coming soon!" })}
                     >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14,2 14,8 20,8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <polyline points="10,9 9,9 8,9" />
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="1"/>
+                            <polyline points="14,2 14,8 20,8" fill="#cbd5e1"/>
+                            <rect x="2" y="14" width="20" height="8" rx="2" fill="#22C55E"/>
+                            <text x="12" y="19" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">CSV</text>
                         </svg>
                         Add CSV
                     </Button>
