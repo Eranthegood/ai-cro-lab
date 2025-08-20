@@ -449,10 +449,12 @@ export function VercelV0Chat() {
                         className="gap-2"
                         onClick={() => toast({ title: "Figma import", description: "Feature coming soon!" })}
                     >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#8B5CF6">
-                            <path d="M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" />
-                            <path d="M8.5 8.5a3.5 3.5 0 1 1 0-7h7a3.5 3.5 0 1 1 0 7h-7Z" />
-                            <path d="M8.5 15.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 5.5A3.5 3.5 0 0 1 8.5 2H12v7H8.5A3.5 3.5 0 0 1 5 5.5z" fill="#f24e1e"/>
+                            <path d="M12 2h3.5A3.5 3.5 0 0 1 19 5.5 3.5 3.5 0 0 1 15.5 9H12V2z" fill="#ff7262"/>
+                            <path d="M12 9h3.5A3.5 3.5 0 0 1 19 12.5 3.5 3.5 0 0 1 15.5 16H12V9z" fill="#1abcfe"/>
+                            <path d="M5 12.5A3.5 3.5 0 0 1 8.5 9H12v7H8.5A3.5 3.5 0 0 1 5 12.5z" fill="#0acf83"/>
+                            <path d="M5 19.5A3.5 3.5 0 0 1 8.5 16H12v3.5A3.5 3.5 0 0 1 8.5 23 3.5 3.5 0 0 1 5 19.5z" fill="#0acf83"/>
                         </svg>
                         Add Figma
                     </Button>
