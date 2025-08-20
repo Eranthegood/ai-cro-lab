@@ -137,9 +137,13 @@ export const useKnowledgeVault = () => {
     try {
       setUploading(true);
 
-      // Generate unique file path
+      // Generate unique file path with cleaned filename
       const fileExtension = file.name.split('.').pop();
-      const fileName = `${section}/${Date.now()}-${file.name}`;
+      const cleanFileName = file.name
+        .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace invalid characters with underscore
+        .replace(/_+/g, '_') // Replace multiple underscores with single one
+        .toLowerCase();
+      const fileName = `${section}/${Date.now()}-${cleanFileName}`;
       const storagePath = `${currentWorkspace.id}/${fileName}`;
 
       // Upload to Supabase Storage
