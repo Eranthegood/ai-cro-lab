@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         parsing_status: 'processing',
         structured_data: {},
         token_count: 0
-      });
+      }, { onConflict: 'file_id' });
 
     console.log('Starting to parse file:', fileData.file_name);
 
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
         token_count: parsedContent.tokenCount,
         parsing_status: 'success',
         parsed_at: new Date().toISOString()
-      });
+      }, { onConflict: 'file_id' });
 
     if (saveError) {
       throw new Error(`Failed to save parsed content: ${saveError.message}`);
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
           parsing_error: error.message,
           structured_data: {},
           token_count: 0
-        });
+        }, { onConflict: 'file_id' });
     }
 
     return new Response(
