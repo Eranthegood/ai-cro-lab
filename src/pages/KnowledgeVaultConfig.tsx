@@ -693,7 +693,7 @@ const BehavioralIntelligenceSection = ({
                 type="file"
                 multiple
                 className="hidden"
-                accept=".csv,.xlsx,.xls,.json,.pdf,.txt"
+                accept=".csv,.xlsx,.xls,.json,.pdf,.txt,image/*"
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files) {
@@ -724,7 +724,7 @@ const BehavioralIntelligenceSection = ({
               type="file"
               multiple
               className="hidden"
-              accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.json"
+              accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.json,image/*"
               onChange={(e) => {
                 const files = e.target.files;
                 if (files) {
@@ -800,7 +800,7 @@ const PredictiveIntelligenceSection = ({
                 type="file"
                 multiple
                 className="hidden"
-                accept=".csv,.xlsx,.xls,.pdf,.doc,.docx,.txt,.md,.json"
+                accept=".csv,.xlsx,.xls,.pdf,.doc,.docx,.txt,.md,.json,image/*"
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files) {
@@ -899,7 +899,7 @@ const KnowledgeRepositorySection = ({
                 type="file"
                 multiple
                 className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,image/*"
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files) {
@@ -935,7 +935,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,image/*"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -971,7 +971,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,image/*"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -1007,7 +1007,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,image/*"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
