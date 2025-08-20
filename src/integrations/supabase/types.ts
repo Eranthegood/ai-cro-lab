@@ -226,6 +226,45 @@ export type Database = {
           },
         ]
       }
+      knowledge_vault_cache: {
+        Row: {
+          context_size: number
+          created_at: string
+          file_hash: string
+          file_id: string
+          id: string
+          last_accessed: string
+          parsed_content: Json
+          token_count: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          context_size?: number
+          created_at?: string
+          file_hash: string
+          file_id: string
+          id?: string
+          last_accessed?: string
+          parsed_content?: Json
+          token_count?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          context_size?: number
+          created_at?: string
+          file_hash?: string
+          file_id?: string
+          id?: string
+          last_accessed?: string
+          parsed_content?: Json
+          token_count?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       knowledge_vault_config: {
         Row: {
           completion_score: number
@@ -601,6 +640,10 @@ export type Database = {
           workspace_uuid: string
         }
         Returns: boolean
+      }
+      clean_vault_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_knowledge_vault_progress: {
         Args: { p_workspace_id: string }

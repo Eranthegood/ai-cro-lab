@@ -61,7 +61,7 @@ serve(async (req) => {
     console.log('Knowledge Vault data gathered:', knowledgeVaultData);
 
     // Parse files based on user query for contextual relevance
-    const parsedFiles = await parseRelevantFiles(supabase, knowledgeVaultData.files, message);
+    const parsedFiles = await parseRelevantFiles(supabase, knowledgeVaultData.files, message, workspaceId);
     knowledgeVaultData.parsedFiles = parsedFiles;
 
     // Create smart context based on query and available data
@@ -428,8 +428,82 @@ async function parseCSVContent(content: string, fileName: string): Promise<any> 
   };
 }
 
-// Smart file parsing based on user query relevance
-async function parseRelevantFiles(supabase: any, files: any[], userQuery: string): Promise<Record<string, ParsedFileContent>> {
+// Generate file hash for cache validation
+async function generateFileHash(supabase: any, file: any): Promise<string> {
+  try {
+    const { data: fileBlob } = await supabase.storage
+      .from('knowledge-vault')
+      .download(file.storage_path);
+    
+    if (!fileBlob) return '';
+    
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (error) {
+    console.error('Error generating file hash:', error);
+    return `${file.id}-${file.file_size}-${file.created_at}`; // Fallback
+  }
+}
+
+// Check cache for parsed file content
+async function getCachedFileContent(supabase: any, workspaceId: string, file: any): Promise<ParsedFileContent | null> {
+  try {
+    const fileHash = await generateFileHash(supabase, file);
+    
+    const { data: cachedData } = await supabase
+      .from('knowledge_vault_cache')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('file_id', file.id)
+      .eq('file_hash', fileHash)
+      .maybeSingle();
+    
+    if (cachedData) {
+      // Update last_accessed
+      await supabase
+        .from('knowledge_vault_cache')
+        .update({ last_accessed: new Date().toISOString() })
+        .eq('id', cachedData.id);
+      
+      console.log(`✅ Cache HIT for file: ${file.file_name}`);
+      return cachedData.parsed_content as ParsedFileContent;
+    }
+    
+    console.log(`❌ Cache MISS for file: ${file.file_name}`);
+    return null;
+  } catch (error) {
+    console.error('Error checking cache:', error);
+    return null;
+  }
+}
+
+// Save parsed content to cache
+async function saveParsedContentToCache(supabase: any, workspaceId: string, file: any, parsedContent: ParsedFileContent): Promise<void> {
+  try {
+    const fileHash = await generateFileHash(supabase, file);
+    
+    await supabase
+      .from('knowledge_vault_cache')
+      .upsert({
+        workspace_id: workspaceId,
+        file_id: file.id,
+        file_hash: fileHash,
+        parsed_content: parsedContent,
+        context_size: JSON.stringify(parsedContent).length,
+        token_count: parsedContent.tokens || 0,
+        last_accessed: new Date().toISOString()
+      });
+    
+    console.log(`💾 Cached file: ${file.file_name} (${parsedContent.tokens} tokens)`);
+  } catch (error) {
+    console.error('Error saving to cache:', error);
+  }
+}
+
+// Smart file parsing with intelligent caching
+async function parseRelevantFiles(supabase: any, files: any[], userQuery: string, workspaceId: string): Promise<Record<string, ParsedFileContent>> {
   const queryLower = userQuery.toLowerCase();
   const relevantFiles: any[] = [];
   
@@ -470,14 +544,29 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
   const topFiles = relevantFiles.slice(0, 5);
   
   const parsedFiles: Record<string, ParsedFileContent> = {};
+  let cacheHits = 0;
+  let cacheMisses = 0;
   
-  // Parse relevant files in parallel
+  // Check cache first, then parse if needed
   await Promise.all(
     topFiles.map(async (file) => {
-      const parsed = await parseFileContent(supabase, file);
-      parsedFiles[file.id] = parsed;
+      // Try to get from cache first
+      const cachedContent = await getCachedFileContent(supabase, workspaceId, file);
+      
+      if (cachedContent) {
+        parsedFiles[file.id] = cachedContent;
+        cacheHits++;
+      } else {
+        // Parse file and save to cache
+        const parsed = await parseFileContent(supabase, file);
+        parsedFiles[file.id] = parsed;
+        await saveParsedContentToCache(supabase, workspaceId, file, parsed);
+        cacheMisses++;
+      }
     })
   );
+  
+  console.log(`📊 Cache stats: ${cacheHits} hits, ${cacheMisses} misses (${Math.round(cacheHits/(cacheHits+cacheMisses)*100)}% hit rate)`);
   
   return parsedFiles;
 }
