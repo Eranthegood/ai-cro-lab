@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ProjectSelector } from "@/components/project/ProjectSelector";
 import { SaveToVaultModal } from "@/components/project/SaveToVaultModal";
+import { ProjectSidebar } from "@/components/project/ProjectSidebar";
 import {
     ImageIcon,
     FileUp,
@@ -231,8 +232,27 @@ export function VercelV0Chat() {
         });
     };
 
+    const handleConversationSelect = (conversation: any) => {
+        // Load the conversation messages
+        if (conversation.messages && Array.isArray(conversation.messages)) {
+            setMessages(conversation.messages.map((msg: any, index: number) => ({
+                id: `${conversation.id}-${index}`,
+                role: msg.role || 'user',
+                content: msg.content || '',
+                timestamp: new Date(msg.timestamp || conversation.updated_at)
+            })));
+        }
+        
+        toast({
+            title: "Conversation loaded",
+            description: `Loaded conversation with ${conversation.messages?.length || 0} messages`,
+        });
+    };
+
     return (
-        <div className="flex flex-col w-full max-w-6xl mx-auto p-4 h-full">
+        <div className="flex h-full w-full">
+            {/* Main Chat Area */}
+            <div className="flex flex-col flex-1 max-w-4xl mx-auto p-4 min-w-0">
 
             {messages.length === 0 ? (
                 <div className="flex flex-col items-center space-y-8 flex-1 justify-center">
@@ -507,6 +527,15 @@ export function VercelV0Chat() {
                     </div>
                 )}
             </div>
+            </div>
+            
+            {/* Project Sidebar - Only show when in project mode */}
+            {!isGlobalMode && currentProject && (
+                <ProjectSidebar 
+                    projectId={currentProject.id}
+                    onConversationSelect={handleConversationSelect}
+                />
+            )}
         </div>
     );
 };
