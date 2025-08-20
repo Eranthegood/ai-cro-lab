@@ -534,7 +534,7 @@ const VisualIntelligenceSection = ({
                 title="Brand Guidelines"
                 description="Upload brand guidelines, style guide, or design system documentation"
                 points={2}
-                acceptedTypes={['.pdf', '.doc', '.docx', 'image/*']}
+                acceptedTypes={['.pdf', '.doc', '.docx', 'image/*', '.csv', '.xlsx', '.xls']}
                 onFileUpload={handleFileUpload}
                 isUploading={uploading}
                 uploadedFile={sectionFiles.find(f => f.file_name.toLowerCase().includes('style') || f.file_name.toLowerCase().includes('brand') || f.file_name.toLowerCase().includes('guideline'))}
@@ -575,40 +575,69 @@ const BehavioralIntelligenceSection = ({
         <h3 className="text-lg font-semibold mb-4">Analytics Data (12 points)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { name: "Contentsquare Export", format: "CSV/JSON", points: 3 },
-            { name: "Google Analytics 4", format: "Data Export", points: 3 },
-            { name: "Heatmap Data", format: "Hotjar/Fullstory", points: 3 },
-            { name: "Funnel Analysis", format: "CSV/Excel", points: 3 }
+            { name: "Contentsquare Export", format: "CSV/JSON", points: 3, uploadId: "contentsquare-upload" },
+            { name: "Google Analytics 4", format: "Data Export", points: 3, uploadId: "ga4-upload" },
+            { name: "Heatmap Data", format: "Hotjar/Fullstory", points: 3, uploadId: "heatmap-upload" },
+            { name: "Funnel Analysis", format: "CSV/Excel", points: 3, uploadId: "funnel-upload" }
           ].map((upload, index) => (
-            <Card key={index} className="border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <BarChart className="h-8 w-8 text-primary" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{upload.name}</h4>
-                    <p className="text-sm text-muted-foreground">{upload.format}</p>
+            <div key={index}>
+              <Card className="border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer"
+                    onClick={() => document.getElementById(upload.uploadId)?.click()}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <BarChart className="h-8 w-8 text-primary" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{upload.name}</h4>
+                      <p className="text-sm text-muted-foreground">{upload.format}</p>
+                    </div>
+                    <Badge variant="outline">+{upload.points}pt</Badge>
                   </div>
-                  <Badge variant="outline">+{upload.points}pt</Badge>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+              <input
+                id={upload.uploadId}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".csv,.xlsx,.xls,.json,.pdf,.txt"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    Array.from(files).forEach(file => handleFileUpload(file));
+                  }
+                }}
+              />
+            </div>
           ))}
         </div>
       </div>
 
       <div>
         <h3 className="text-lg font-semibold mb-4">Customer Intelligence (8 points)</h3>
-        <Card className="border-2 border-dashed border-muted-foreground/25">
+        <Card className="border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors">
           <CardContent className="p-6 text-center">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Upload Customer Data</h4>
             <p className="text-muted-foreground mb-4">
               Customer personas, feedback, journey maps, support tickets, user research
             </p>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => document.getElementById('customer-upload')?.click()}>
               <Upload className="h-4 w-4 mr-2" />
               Upload Files
             </Button>
+            <input
+              id="customer-upload"
+              type="file"
+              multiple
+              className="hidden"
+              accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.json"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files) {
+                  Array.from(files).forEach(file => handleFileUpload(file));
+                }
+              }}
+            />
             <p className="text-xs text-muted-foreground mt-2">+8 points for comprehensive customer intelligence</p>
           </CardContent>
         </Card>
@@ -641,25 +670,42 @@ const PredictiveIntelligenceSection = ({
         <h3 className="text-lg font-semibold mb-4">Historical Performance (12 points)</h3>
         <div className="space-y-4">
           {[
-            { name: "A/B Test History", description: "Upload wins/losses, test results", points: 4 },
-            { name: "Seasonal Performance", description: "Yearly trends and patterns", points: 3 },
-            { name: "Campaign Performance", description: "Marketing campaign results", points: 3 },
-            { name: "Conversion Evolution", description: "Historical conversion rate data", points: 2 }
+            { name: "A/B Test History", description: "Upload wins/losses, test results", points: 4, uploadId: "abtest-upload" },
+            { name: "Seasonal Performance", description: "Yearly trends and patterns", points: 3, uploadId: "seasonal-upload" },
+            { name: "Campaign Performance", description: "Marketing campaign results", points: 3, uploadId: "campaign-upload" },
+            { name: "Conversion Evolution", description: "Historical conversion rate data", points: 2, uploadId: "conversion-upload" }
           ].map((item, index) => (
-            <Card key={index} className="border-l-4 border-l-primary/30">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+            <div key={index}>
+              <Card className="border-l-4 border-l-primary/30">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-semibold">{item.name}</h4>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">+{item.points} points</Badge>
+                      <Button variant="outline" size="sm" onClick={() => document.getElementById(item.uploadId)?.click()}>
+                        Upload
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">+{item.points} points</Badge>
-                    <Button variant="outline" size="sm">Upload</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+              <input
+                id={item.uploadId}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".csv,.xlsx,.xls,.pdf,.doc,.docx,.txt,.md,.json"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    Array.from(files).forEach(file => handleFileUpload(file));
+                  }
+                }}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -741,7 +787,7 @@ const KnowledgeRepositorySection = ({
                 type="file"
                 multiple
                 className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.md"
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files) {
@@ -771,7 +817,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md"
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -801,7 +847,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md"
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -831,7 +877,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.md"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
