@@ -263,6 +263,27 @@ export const useKnowledgeVault = () => {
         description: `${file.name} uploaded successfully`,
       });
 
+      // Trigger file parsing
+      try {
+        const { error: parseError } = await supabase.functions.invoke('parse-vault-file', {
+          body: {
+            fileId: data.id,
+            workspaceId: currentWorkspace.id
+          }
+        });
+        
+        if (parseError) {
+          console.error('Parsing error:', parseError);
+          toast({
+            variant: "destructive",
+            title: "Parsing warning",
+            description: "File uploaded but parsing failed. You can retry later.",
+          });
+        }
+      } catch (parseErr) {
+        console.error('Parse trigger error:', parseErr);
+      }
+
       // Refresh data to update UI
       await fetchVaultData();
 

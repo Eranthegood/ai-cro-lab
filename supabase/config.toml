@@ -10,6 +10,12 @@ max_rows = 1000
 [functions.knowledge-vault-chat]
 verify_jwt = false
 
+[functions.parse-vault-file]
+verify_jwt = false
+
+[functions.migrate-vault-files]
+verify_jwt = true
+
 [db]
 port = 54322
 

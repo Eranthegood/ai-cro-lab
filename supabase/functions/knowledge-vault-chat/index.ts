@@ -502,7 +502,7 @@ async function saveParsedContentToCache(supabase: any, workspaceId: string, file
   }
 }
 
-// Smart file parsing with intelligent caching
+// Optimized file parsing - reads from pre-parsed content table
 async function parseRelevantFiles(supabase: any, files: any[], userQuery: string, workspaceId: string): Promise<Record<string, ParsedFileContent>> {
   const queryLower = userQuery.toLowerCase();
   const relevantFiles: any[] = [];
@@ -520,6 +520,11 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
     // Date-related queries
     if (queryLower.includes('hier') || queryLower.includes('yesterday') || queryLower.includes('today')) {
       if (fileName.includes('real') || fileName.includes('daily')) relevanceScore += 8;
+    }
+    
+    // Detail queries (columnes, schéma, détail)
+    if (queryLower.includes('colonnes') || queryLower.includes('schéma') || queryLower.includes('détail') || queryLower.includes('structure')) {
+      relevanceScore += 12; // High priority for detail requests
     }
     
     // Section-specific queries
@@ -544,29 +549,50 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
   const topFiles = relevantFiles.slice(0, 5);
   
   const parsedFiles: Record<string, ParsedFileContent> = {};
-  let cacheHits = 0;
-  let cacheMisses = 0;
+  let preParseHits = 0;
+  let cacheFallbacks = 0;
   
-  // Check cache first, then parse if needed
+  // First try to get from pre-parsed content table
   await Promise.all(
     topFiles.map(async (file) => {
-      // Try to get from cache first
-      const cachedContent = await getCachedFileContent(supabase, workspaceId, file);
+      // Try to get from knowledge_vault_parsed_content first
+      const { data: parsedContent } = await supabase
+        .from('knowledge_vault_parsed_content')
+        .select('*')
+        .eq('file_id', file.id)
+        .eq('parsing_status', 'success')
+        .single();
       
-      if (cachedContent) {
-        parsedFiles[file.id] = cachedContent;
-        cacheHits++;
+      if (parsedContent) {
+        console.log(`✅ Pre-parsed content found for file: ${file.file_name}`);
+        parsedFiles[file.id] = {
+          type: parsedContent.content_type,
+          data: parsedContent.structured_data,
+          summary: parsedContent.summary || `File: ${file.file_name}`,
+          metadata: parsedContent.columns_metadata || {},
+          tokenCount: parsedContent.token_count || 0
+        };
+        preParseHits++;
       } else {
-        // Parse file and save to cache
-        const parsed = await parseFileContent(supabase, file);
-        parsedFiles[file.id] = parsed;
-        await saveParsedContentToCache(supabase, workspaceId, file, parsed);
-        cacheMisses++;
+        console.log(`❌ No pre-parsed content for file: ${file.file_name}, falling back to cache`);
+        // Fallback to old cache method for files not yet parsed
+        const cachedContent = await getCachedFileContent(supabase, workspaceId, file);
+        
+        if (cachedContent) {
+          parsedFiles[file.id] = cachedContent;
+          cacheFallbacks++;
+        } else {
+          // Last resort: parse on demand
+          console.log(`⚠️ Parsing on demand: ${file.file_name}`);
+          const parsed = await parseFileContent(supabase, file);
+          parsedFiles[file.id] = parsed;
+          await saveParsedContentToCache(supabase, workspaceId, file, parsed);
+        }
       }
     })
   );
   
-  console.log(`📊 Cache stats: ${cacheHits} hits, ${cacheMisses} misses (${Math.round(cacheHits/(cacheHits+cacheMisses)*100)}% hit rate)`);
+  console.log(`📊 Parse stats: ${preParseHits} pre-parsed, ${cacheFallbacks} cache fallbacks`);
   
   return parsedFiles;
 }

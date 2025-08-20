@@ -369,6 +369,62 @@ export type Database = {
           },
         ]
       }
+      knowledge_vault_parsed_content: {
+        Row: {
+          columns_metadata: Json | null
+          content_type: string
+          created_at: string
+          file_id: string
+          id: string
+          parsed_at: string | null
+          parsing_error: string | null
+          parsing_status: string
+          structured_data: Json
+          summary: string | null
+          token_count: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          columns_metadata?: Json | null
+          content_type: string
+          created_at?: string
+          file_id: string
+          id?: string
+          parsed_at?: string | null
+          parsing_error?: string | null
+          parsing_status?: string
+          structured_data?: Json
+          summary?: string | null
+          token_count?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          columns_metadata?: Json | null
+          content_type?: string
+          created_at?: string
+          file_id?: string
+          id?: string
+          parsed_at?: string | null
+          parsing_error?: string | null
+          parsing_status?: string
+          structured_data?: Json
+          summary?: string | null
+          token_count?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_knowledge_vault_parsed_content_file"
+            columns: ["file_id"]
+            isOneToOne: true
+            referencedRelation: "knowledge_vault_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
