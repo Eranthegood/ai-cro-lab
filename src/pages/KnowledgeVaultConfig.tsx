@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, Check, Upload, Lock, Brain, Target, Eye, BarChart, FileText, Palette, Users, TrendingUp, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Upload, Lock, Brain, Target, Eye, BarChart, FileText, Palette, Users, TrendingUp, Zap, File, X } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useKnowledgeVault } from "@/hooks/useKnowledgeVault";
 import { FileUploadCard } from "@/components/knowledge-vault/FileUploadCard";
+import { toast } from "@/hooks/use-toast";
 
 interface Section {
   id: string;
@@ -65,6 +66,81 @@ const sections: Section[] = [
     description: "Universal document vault for comprehensive context"
   }
 ];
+
+// Composant pour afficher les fichiers uploadés
+const UploadedFilesList = ({ 
+  files, 
+  onDelete,
+  section 
+}: { 
+  files: any[];
+  onDelete: (fileId: string, storagePath: string) => Promise<void>;
+  section: string;
+}) => {
+  if (!files || files.length === 0) {
+    return null;
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleDelete = async (fileId: string, storagePath: string) => {
+    try {
+      await onDelete(fileId, storagePath);
+      toast({
+        title: "Fichier supprimé",
+        description: "Le fichier a été retiré du Knowledge Vault.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de supprimer le fichier.",
+      });
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-2">
+      <h5 className="text-sm font-medium text-muted-foreground">Fichiers uploadés :</h5>
+      <div className="space-y-2">
+        {files.map((file) => (
+          <div key={file.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+            <div className="flex items-center space-x-3">
+              <File className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium truncate max-w-[200px]" title={file.file_name}>
+                  {file.file_name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(file.file_size)} • {new Date(file.created_at).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Badge variant="secondary" className="text-xs">
+                {file.file_type.split('/')[1]?.toUpperCase() || 'FILE'}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(file.id, file.storage_path)}
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const KnowledgeVaultConfig = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>(["business"]);
@@ -641,6 +717,11 @@ const BehavioralIntelligenceSection = ({
             <p className="text-xs text-muted-foreground mt-2">+8 points for comprehensive customer intelligence</p>
           </CardContent>
         </Card>
+        <UploadedFilesList 
+          files={sectionFiles} 
+          onDelete={deleteFile}
+          section="behavioral"
+        />
       </div>
     </div>
   );
@@ -708,6 +789,11 @@ const PredictiveIntelligenceSection = ({
             </div>
           ))}
         </div>
+        <UploadedFilesList 
+          files={sectionFiles} 
+          onDelete={deleteFile}
+          section="predictive"
+        />
       </div>
 
       <div>
@@ -798,6 +884,11 @@ const KnowledgeRepositorySection = ({
                 <p className="text-xs text-muted-foreground">+5 points for comprehensive strategy docs</p>
               </CardContent>
             </Card>
+            <UploadedFilesList 
+              files={sectionFiles.filter(f => f.storage_path.includes('strategy'))} 
+              onDelete={deleteFile}
+              section="repository"
+            />
           </TabsContent>
 
           <TabsContent value="research" className="space-y-4">
@@ -817,7 +908,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -828,6 +919,11 @@ const KnowledgeRepositorySection = ({
                 <p className="text-xs text-muted-foreground">+5 points for research documentation</p>
               </CardContent>
             </Card>
+            <UploadedFilesList 
+              files={sectionFiles.filter(f => f.storage_path.includes('research'))} 
+              onDelete={deleteFile}
+              section="repository"
+            />
           </TabsContent>
 
           <TabsContent value="technical" className="space-y-4">
@@ -847,7 +943,7 @@ const KnowledgeRepositorySection = ({
                   type="file"
                   multiple
                   className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
@@ -858,6 +954,11 @@ const KnowledgeRepositorySection = ({
                 <p className="text-xs text-muted-foreground">+5 points for technical context</p>
               </CardContent>
             </Card>
+            <UploadedFilesList 
+              files={sectionFiles.filter(f => f.storage_path.includes('technical'))} 
+              onDelete={deleteFile}
+              section="repository"
+            />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-4">
@@ -888,6 +989,11 @@ const KnowledgeRepositorySection = ({
                 <p className="text-xs text-muted-foreground">+5 points for performance insights</p>
               </CardContent>
             </Card>
+            <UploadedFilesList 
+              files={sectionFiles} 
+              onDelete={deleteFile}
+              section="repository"
+            />
           </TabsContent>
         </Tabs>
       </div>
