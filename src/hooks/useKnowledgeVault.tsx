@@ -98,18 +98,13 @@ export const useKnowledgeVault = () => {
     if (!currentWorkspace?.id || !user) return { error: new Error('Missing workspace or user') };
 
     try {
-      // Call the function directly instead of using rpc
-      const { data, error } = await supabase
-        .from('knowledge_vault_config')
-        .upsert({
-          workspace_id: currentWorkspace.id,
-          config_section: section,
-          config_data: configData,
-          completion_score: completionScore,
-          created_by: user.id
-        })
-        .select()
-        .single();
+      // Use the RPC function for proper validation and RLS
+      const { data, error } = await supabase.rpc('update_knowledge_vault_config', {
+        p_workspace_id: currentWorkspace.id,
+        p_section: section,
+        p_config_data: configData,
+        p_completion_score: completionScore
+      });
 
       if (error) throw error;
 
