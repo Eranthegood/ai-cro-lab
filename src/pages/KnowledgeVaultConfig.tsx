@@ -203,8 +203,8 @@ const KnowledgeVaultConfig = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  // Fonction pour recharger les fichiers après suppression
-  const handleFileDeleted = async (section: string) => {
+  // Fonction pour recharger les fichiers après suppression ou ajout
+  const handleFileUpdated = async (section: string) => {
     const { files } = await getFiles(section);
     setSectionFiles(prev => ({
       ...prev,
@@ -371,7 +371,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
-                         onFileDeleted={handleFileDeleted}
+                         onFileUpdated={handleFileUpdated}
                        />
                      )}
                      {section.id === "predictive" && (
@@ -380,7 +380,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
-                         onFileDeleted={handleFileDeleted}
+                         onFileUpdated={handleFileUpdated}
                        />
                      )}
                      {section.id === "repository" && (
@@ -389,7 +389,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
-                         onFileDeleted={handleFileDeleted}
+                         onFileUpdated={handleFileUpdated}
                        />
                      )}
                   </CardContent>
@@ -647,16 +647,17 @@ const BehavioralIntelligenceSection = ({
   uploadFile,
   deleteFile,
   uploading,
-  onFileDeleted
+  onFileUpdated
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
-  onFileDeleted?: (section: string) => void;
+  onFileUpdated?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'behavioral');
+    onFileUpdated?.('behavioral');
   };
 
   const handleFileDelete = async (fileData: any) => {
@@ -738,7 +739,7 @@ const BehavioralIntelligenceSection = ({
           files={sectionFiles} 
           onDelete={deleteFile}
           section="behavioral"
-          onFileDeleted={onFileDeleted}
+          onFileDeleted={onFileUpdated}
         />
       </div>
     </div>
@@ -750,16 +751,17 @@ const PredictiveIntelligenceSection = ({
   uploadFile,
   deleteFile,
   uploading,
-  onFileDeleted
+  onFileUpdated
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
-  onFileDeleted?: (section: string) => void;
+  onFileUpdated?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'predictive');
+    onFileUpdated?.('predictive');
   };
 
   const handleFileDelete = async (fileData: any) => {
@@ -813,7 +815,7 @@ const PredictiveIntelligenceSection = ({
           files={sectionFiles} 
           onDelete={deleteFile}
           section="predictive"
-          onFileDeleted={onFileDeleted}
+          onFileDeleted={onFileUpdated}
         />
       </div>
 
@@ -852,16 +854,17 @@ const KnowledgeRepositorySection = ({
   uploadFile,
   deleteFile,
   uploading,
-  onFileDeleted
+  onFileUpdated
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
-  onFileDeleted?: (section: string) => void;
+  onFileUpdated?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'repository');
+    onFileUpdated?.('repository');
   };
   return (
     <div className="space-y-6 py-6">
@@ -911,7 +914,7 @@ const KnowledgeRepositorySection = ({
               files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
-              onFileDeleted={onFileDeleted}
+              onFileDeleted={onFileUpdated}
             />
           </TabsContent>
 
@@ -947,7 +950,7 @@ const KnowledgeRepositorySection = ({
               files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
-              onFileDeleted={onFileDeleted}
+              onFileDeleted={onFileUpdated}
             />
           </TabsContent>
 
@@ -983,7 +986,7 @@ const KnowledgeRepositorySection = ({
               files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
-              onFileDeleted={onFileDeleted}
+              onFileDeleted={onFileUpdated}
             />
           </TabsContent>
 
@@ -1019,7 +1022,7 @@ const KnowledgeRepositorySection = ({
               files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
-              onFileDeleted={onFileDeleted}
+              onFileDeleted={onFileUpdated}
             />
           </TabsContent>
         </Tabs>
