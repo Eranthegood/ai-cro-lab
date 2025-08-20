@@ -71,11 +71,13 @@ const sections: Section[] = [
 const UploadedFilesList = ({ 
   files, 
   onDelete,
-  section 
+  section,
+  onFileDeleted
 }: { 
   files: any[];
   onDelete: (fileId: string, storagePath: string) => Promise<void>;
   section: string;
+  onFileDeleted?: (section: string) => void;
 }) => {
   if (!files || files.length === 0) {
     return null;
@@ -92,6 +94,7 @@ const UploadedFilesList = ({
   const handleDelete = async (fileId: string, storagePath: string) => {
     try {
       await onDelete(fileId, storagePath);
+      onFileDeleted?.(section);
       toast({
         title: "Fichier supprimé",
         description: "Le fichier a été retiré du Knowledge Vault.",
@@ -199,6 +202,15 @@ const KnowledgeVaultConfig = () => {
     acc[item.section] = item.completion_percentage;
     return acc;
   }, {} as Record<string, number>);
+
+  // Fonction pour recharger les fichiers après suppression
+  const handleFileDeleted = async (section: string) => {
+    const { files } = await getFiles(section);
+    setSectionFiles(prev => ({
+      ...prev,
+      [section]: files
+    }));
+  };
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev =>
@@ -359,6 +371,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
+                         onFileDeleted={handleFileDeleted}
                        />
                      )}
                      {section.id === "predictive" && (
@@ -367,6 +380,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
+                         onFileDeleted={handleFileDeleted}
                        />
                      )}
                      {section.id === "repository" && (
@@ -375,6 +389,7 @@ const KnowledgeVaultConfig = () => {
                          uploadFile={uploadFile}
                          deleteFile={deleteFile}
                          uploading={uploading}
+                         onFileDeleted={handleFileDeleted}
                        />
                      )}
                   </CardContent>
@@ -631,12 +646,14 @@ const BehavioralIntelligenceSection = ({
   sectionFiles,
   uploadFile,
   deleteFile,
-  uploading 
+  uploading,
+  onFileDeleted
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
+  onFileDeleted?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'behavioral');
@@ -721,6 +738,7 @@ const BehavioralIntelligenceSection = ({
           files={sectionFiles} 
           onDelete={deleteFile}
           section="behavioral"
+          onFileDeleted={onFileDeleted}
         />
       </div>
     </div>
@@ -731,12 +749,14 @@ const PredictiveIntelligenceSection = ({
   sectionFiles,
   uploadFile,
   deleteFile,
-  uploading 
+  uploading,
+  onFileDeleted
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
+  onFileDeleted?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'predictive');
@@ -793,6 +813,7 @@ const PredictiveIntelligenceSection = ({
           files={sectionFiles} 
           onDelete={deleteFile}
           section="predictive"
+          onFileDeleted={onFileDeleted}
         />
       </div>
 
@@ -830,12 +851,14 @@ const KnowledgeRepositorySection = ({
   sectionFiles,
   uploadFile,
   deleteFile,
-  uploading 
+  uploading,
+  onFileDeleted
 }: { 
   sectionFiles: any[];
   uploadFile: (file: File, section: string) => Promise<any>;
   deleteFile: (id: string, path: string) => Promise<any>;
   uploading: boolean;
+  onFileDeleted?: (section: string) => void;
 }) => {
   const handleFileUpload = async (file: File) => {
     await uploadFile(file, 'repository');
@@ -885,9 +908,10 @@ const KnowledgeRepositorySection = ({
               </CardContent>
             </Card>
             <UploadedFilesList 
-              files={sectionFiles.filter(f => f.storage_path.includes('strategy'))} 
+              files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
+              onFileDeleted={onFileDeleted}
             />
           </TabsContent>
 
@@ -920,9 +944,10 @@ const KnowledgeRepositorySection = ({
               </CardContent>
             </Card>
             <UploadedFilesList 
-              files={sectionFiles.filter(f => f.storage_path.includes('research'))} 
+              files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
+              onFileDeleted={onFileDeleted}
             />
           </TabsContent>
 
@@ -955,9 +980,10 @@ const KnowledgeRepositorySection = ({
               </CardContent>
             </Card>
             <UploadedFilesList 
-              files={sectionFiles.filter(f => f.storage_path.includes('technical'))} 
+              files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
+              onFileDeleted={onFileDeleted}
             />
           </TabsContent>
 
@@ -993,6 +1019,7 @@ const KnowledgeRepositorySection = ({
               files={sectionFiles} 
               onDelete={deleteFile}
               section="repository"
+              onFileDeleted={onFileDeleted}
             />
           </TabsContent>
         </Tabs>
