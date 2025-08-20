@@ -51,8 +51,22 @@ serve(async (req) => {
     const knowledgeVaultData = await gatherKnowledgeVaultData(supabase, workspaceId);
     console.log('Knowledge Vault data gathered:', knowledgeVaultData);
 
-    // Create context from Knowledge Vault
-    const context = createContextFromVault(knowledgeVaultData, projectId);
+    // Attempt to compute recent CVR summary from repository CSV
+    let summaryText = '' as string;
+    try {
+      const realFile = knowledgeVaultData.files.find((f: any) => f.config_section === 'repository' && f.file_name.includes('REAL 24-25'));
+      if (realFile?.storage_path) {
+        const summary = await computeCVRSummary(supabase, realFile.storage_path);
+        summaryText = summary.summaryText;
+        if (summary.yesterdayCVR && summary.yesterdayDate) {
+          summaryText += `\nCVR d'hier (${summary.yesterdayDate}): ${summary.yesterdayCVR.toFixed(2)}%`;
+        }
+      }
+    } catch (e) {
+      console.log('CVR summary compute failed', e);
+    }
+
+    const context = createContextFromVault(knowledgeVaultData, projectId) + (summaryText ? `\n${summaryText}\n` : '');
     console.log('Context created from vault');
 
     // Call Claude with the enriched context
@@ -186,6 +200,120 @@ async function gatherKnowledgeVaultData(supabase: any, workspaceId: string): Pro
       contentSquareData: contentSquareData || []
     }
   };
+}
+
+// Helpers for CSV parsing and CVR summary
+function csvSplit(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function normalizePercent(val?: string): number | null {
+  if (!val) return null;
+  let s = val.replace(/"/g, '').replace(/%/g, '').replace(/\u00A0/g, '').replace(/\s+/g, '');
+  if (s.includes(',') && !s.includes('.')) s = s.replace(/,/g, '.');
+  const num = parseFloat(s);
+  return Number.isFinite(num) ? num : null;
+}
+
+function parseDDMMYYYY(str: string): Date | null {
+  const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return null;
+  const d = parseInt(m[1], 10);
+  const mo = parseInt(m[2], 10) - 1;
+  const y = parseInt(m[3], 10);
+  const date = new Date(y, mo, d);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+function formatDDMMYYYY(d: Date): string {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+async function computeCVRSummary(
+  supabase: any,
+  storagePath: string
+): Promise<{ summaryText: string; yesterdayCVR?: number; yesterdayDate?: string }> {
+  try {
+    const { data, error } = await supabase.storage.from('knowledge-vault').download(storagePath);
+    if (error || !data) {
+      console.log('Failed to download CSV:', error);
+      return { summaryText: '' };
+    }
+
+    const text = await data.text();
+    const lines = text.split(/\r?\n/).filter((l: string) => l.trim().length > 0);
+
+    let headerIdx = lines.findIndex((l: string) => l.toLowerCase().includes('daynum') && l.toLowerCase().includes('dayweek'));
+    if (headerIdx === -1) {
+      headerIdx = lines.findIndex((l: string) => l.toLowerCase().includes('date') && l.toLowerCase().includes('cvr'));
+    }
+    if (headerIdx === -1) return { summaryText: '' };
+
+    const header = csvSplit(lines[headerIdx]).map((s) => s.trim());
+    const idxDate = header.findIndex((h) => h.toLowerCase() === 'date');
+    const idxCVR = header.findIndex((h) => h.toLowerCase() === 'cvr');
+    const idxWebCVR = header.findIndex((h) => h.toLowerCase().includes('web') && h.toLowerCase().includes('cvr'));
+    const idxAppCVR = header.findIndex((h) => h.toLowerCase().includes('app') && h.toLowerCase().includes('cvr'));
+
+    const entries: { date: Date; dateStr: string; cvr: number | null; web: number | null; app: number | null }[] = [];
+
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.toLowerCase().includes('daynum')) break; // stop at next header block if any
+      const cells = csvSplit(line);
+      if (idxDate < 0 || idxDate >= cells.length) continue;
+      const dateStr = cells[idxDate];
+      const d = parseDDMMYYYY(dateStr || '');
+      if (!d) continue;
+      const cvr = idxCVR >= 0 && idxCVR < cells.length ? normalizePercent(cells[idxCVR]) : null;
+      const web = idxWebCVR >= 0 && idxWebCVR < cells.length ? normalizePercent(cells[idxWebCVR]) : null;
+      const app = idxAppCVR >= 0 && idxAppCVR < cells.length ? normalizePercent(cells[idxAppCVR]) : null;
+      entries.push({ date: d, dateStr: formatDDMMYYYY(d), cvr, web, app });
+    }
+
+    if (entries.length === 0) return { summaryText: '' };
+
+    entries.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    const now = new Date();
+    const yd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const yesterdayOrLatest = entries.filter((e) => e.date.getTime() <= yd.getTime()).pop() || entries[entries.length - 1];
+
+    const lastN = entries.slice(-14);
+    let summary = 'RÉSUMÉ CVR (REAL 24-25 - 14 derniers jours):\n';
+    summary += 'Date | CVR | Web | App\n';
+    lastN.forEach((e) => {
+      const cvrStr = e.cvr != null ? `${e.cvr.toFixed(2)}%` : '-';
+      const webStr = e.web != null ? `${e.web.toFixed(2)}%` : '-';
+      const appStr = e.app != null ? `${e.app.toFixed(2)}%` : '-';
+      summary += `${e.dateStr} | ${cvrStr} | ${webStr} | ${appStr}\n`;
+    });
+
+    return { summaryText: summary, yesterdayCVR: yesterdayOrLatest.cvr ?? undefined, yesterdayDate: yesterdayOrLatest.dateStr };
+  } catch (e) {
+    console.log('Error computing CVR summary:', e);
+    return { summaryText: '' };
+  }
 }
 
 function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: string | null): string {
