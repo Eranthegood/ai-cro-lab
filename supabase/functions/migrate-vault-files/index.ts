@@ -62,23 +62,51 @@ Deno.serve(async (req) => {
         batch.map(async (file) => {
           try {
             console.log(`Processing file: ${file.file_name}`);
-            
-            const { error: parseError } = await supabase.functions.invoke('parse-vault-file', {
+
+            // Check if already parsed or currently processing
+            const { data: existing, error: existingErr } = await supabase
+              .from('knowledge_vault_parsed_content')
+              .select('parsing_status, token_count')
+              .eq('file_id', file.id)
+              .eq('workspace_id', workspaceId)
+              .maybeSingle();
+
+            if (existingErr) {
+              console.warn(`Check existing failed for ${file.file_name}:`, existingErr.message);
+            }
+
+            if (existing?.parsing_status === 'success') {
+              await supabase
+                .from('knowledge_vault_files')
+                .update({ is_processed: true })
+                .eq('id', file.id);
+              console.log(`Already parsed, skipping: ${file.file_name}`);
+              successCount++;
+              return;
+            }
+
+            if (existing?.parsing_status === 'processing') {
+              console.log(`Already processing, skipping: ${file.file_name}`);
+              return;
+            }
+
+            const { data: parsedResult, error: parseError } = await supabase.functions.invoke('parse-vault-file', {
               body: {
                 fileId: file.id,
-                workspaceId: workspaceId
+                workspaceId
               }
             });
             
-            if (parseError) {
-              console.error(`Error parsing ${file.file_name}:`, parseError);
-              errors.push(`${file.file_name}: ${parseError.message}`);
+            if (parseError || !parsedResult?.success) {
+              const message = parseError?.message || parsedResult?.error || 'Unknown error';
+              console.error(`Error parsing ${file.file_name}:`, message);
+              errors.push(`${file.file_name}: ${message}`);
               errorCount++;
             } else {
-              console.log(`✅ Successfully parsed: ${file.file_name}`);
+              console.log(`✅ Parsed: ${file.file_name}`);
               successCount++;
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error(`Failed to parse ${file.file_name}:`, err);
             errors.push(`${file.file_name}: ${err.message}`);
             errorCount++;

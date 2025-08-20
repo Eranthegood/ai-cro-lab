@@ -70,26 +70,42 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to download file: ${downloadError?.message}`);
     }
 
-    const fileContent = await fileBlob.text();
-    console.log('File downloaded, size:', fileContent.length);
-
-    // Parse based on file type
     let parsedContent: ParsedFileContent;
-    
-    if (fileData.file_type === 'text/csv') {
-      parsedContent = parseCSVContent(fileContent, fileData.file_name);
-    } else if (fileData.file_type === 'application/json') {
-      parsedContent = parseJSONContent(fileContent);
-    } else if (fileData.file_type.startsWith('text/')) {
-      parsedContent = parseTextContent(fileContent);
-    } else {
+
+    // If the file is an image, avoid reading it as text to prevent huge token counts
+    if (fileData.file_type && fileData.file_type.startsWith('image/')) {
+      const size = (fileBlob as Blob).size ?? 0;
       parsedContent = {
-        type: 'other',
-        data: { size: fileContent.length },
-        summary: `File: ${fileData.file_name} (${fileData.file_type})`,
-        metadata: { fileType: fileData.file_type },
-        tokenCount: Math.ceil(fileContent.length / 4)
+        type: 'image',
+        data: {
+          fileName: fileData.file_name,
+          path: fileData.storage_path,
+          sizeBytes: size,
+        },
+        summary: `Image file: ${fileData.file_name} (${fileData.file_type}), ~${Math.round(size / 1024)}KB`,
+        metadata: { fileType: fileData.file_type, sizeBytes: size },
+        tokenCount: 0,
       };
+    } else {
+      const fileContent = await (fileBlob as Blob).text();
+      console.log('File downloaded, size:', fileContent.length);
+
+      // Parse based on file type
+      if (fileData.file_type === 'text/csv') {
+        parsedContent = parseCSVContent(fileContent, fileData.file_name);
+      } else if (fileData.file_type === 'application/json') {
+        parsedContent = parseJSONContent(fileContent);
+      } else if (fileData.file_type && fileData.file_type.startsWith('text/')) {
+        parsedContent = parseTextContent(fileContent);
+      } else {
+        parsedContent = {
+          type: 'other',
+          data: { size: fileContent.length },
+          summary: `File: ${fileData.file_name} (${fileData.file_type})`,
+          metadata: { fileType: fileData.file_type },
+          tokenCount: Math.ceil(fileContent.length / 4),
+        };
+      }
     }
 
     console.log('File parsed successfully, tokens:', parsedContent.tokenCount);
