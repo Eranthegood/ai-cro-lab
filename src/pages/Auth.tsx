@@ -158,7 +158,11 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={8}
                 />
+                {!isLogin && password.length > 0 && password.length < 8 && (
+                  <p className="text-xs text-destructive">Password must be at least 8 characters</p>
+                )}
               </div>
 
               {isLogin && (

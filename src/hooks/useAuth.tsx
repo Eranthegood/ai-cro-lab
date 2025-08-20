@@ -74,24 +74,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
       setLoading(true);
+      
+      // Enhanced password validation
+      if (password.length < 8) {
+        const error = { message: "Password must be at least 8 characters long" };
+        toast({
+          variant: "destructive",
+          title: "Weak password",
+          description: error.message,
+        });
+        return { error };
+      }
+      
+      // Sanitize inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      const sanitizedFullName = fullName?.trim();
+      
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: fullName,
+            full_name: sanitizedFullName,
           }
         }
       });
 
       if (error) {
+        // Enhanced error handling with security-focused messaging
+        let errorMessage = "Registration failed. Please try again.";
+        
+        if (error.message.includes("User already registered")) {
+          errorMessage = "An account with this email already exists. Try signing in instead.";
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.message.includes("Password")) {
+          errorMessage = "Password does not meet security requirements.";
+        }
+        
         toast({
           variant: "destructive",
           title: "Sign up failed",
-          description: error.message,
+          description: errorMessage,
         });
         return { error };
       }
@@ -105,6 +132,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       return { error: null };
     } catch (error: any) {
+      // Generic error message for security
+      toast({
+        variant: "destructive",
+        title: "Registration error",
+        description: "An unexpected error occurred. Please try again later.",
+      });
       return { error };
     } finally {
       setLoading(false);
@@ -115,29 +148,70 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true);
       
+      // Sanitize inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      
+      // Clean up any existing auth state before new login
+      const cleanupAuthState = () => {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+            localStorage.removeItem(key);
+          }
+        });
+      };
+      
+      cleanupAuthState();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
 
       if (error) {
+        // Enhanced error handling with generic security messages
+        let errorMessage = "Sign in failed. Please check your credentials.";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password. Please try again.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Please confirm your email address before signing in.";
+        } else if (error.message.includes("Too many requests")) {
+          errorMessage = "Too many sign in attempts. Please wait and try again.";
+        }
+        
         toast({
           variant: "destructive",
           title: "Sign in failed",
-          description: error.message,
+          description: errorMessage,
         });
         return { error };
       }
 
       if (data.user) {
-        // Force page refresh to ensure clean state
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 100);
+        // Validate session before proceeding
+        if (data.session?.access_token) {
+          // Force page refresh to ensure clean state
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 100);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Authentication error",
+            description: "Session validation failed. Please try again.",
+          });
+          return { error: { message: "Session validation failed" } };
+        }
       }
 
       return { error: null };
     } catch (error: any) {
+      // Generic error message for security
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
+        description: "An unexpected error occurred. Please try again later.",
+      });
       return { error };
     } finally {
       setLoading(false);
