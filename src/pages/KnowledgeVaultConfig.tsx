@@ -762,10 +762,23 @@ const KnowledgeRepositorySection = ({
                 <p className="text-muted-foreground mb-4">
                   User research reports, market research, conversion audits, UX studies, industry reports
                 </p>
-                <Button className="mb-2">
+                <Button onClick={() => document.getElementById('research-upload')?.click()} className="mb-2">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Research Files
                 </Button>
+                <input
+                  id="research-upload"
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.md"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      Array.from(files).forEach(file => handleFileUpload(file));
+                    }
+                  }}
+                />
                 <p className="text-xs text-muted-foreground">+5 points for research documentation</p>
               </CardContent>
             </Card>
@@ -779,10 +792,23 @@ const KnowledgeRepositorySection = ({
                 <p className="text-muted-foreground mb-4">
                   API docs, technical specs, development guidelines, integration docs, performance reports
                 </p>
-                <Button className="mb-2">
+                <Button onClick={() => document.getElementById('technical-upload')?.click()} className="mb-2">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Technical Docs
                 </Button>
+                <input
+                  id="technical-upload"
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.md"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      Array.from(files).forEach(file => handleFileUpload(file));
+                    }
+                  }}
+                />
                 <p className="text-xs text-muted-foreground">+5 points for technical context</p>
               </CardContent>
             </Card>
@@ -796,10 +822,23 @@ const KnowledgeRepositorySection = ({
                 <p className="text-muted-foreground mb-4">
                   Monthly reports, KPI dashboards, financial reports, growth metrics, campaign results
                 </p>
-                <Button className="mb-2">
+                <Button onClick={() => document.getElementById('performance-upload')?.click()} className="mb-2">
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Performance Data
                 </Button>
+                <input
+                  id="performance-upload"
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.md"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      Array.from(files).forEach(file => handleFileUpload(file));
+                    }
+                  }}
+                />
                 <p className="text-xs text-muted-foreground">+5 points for performance insights</p>
               </CardContent>
             </Card>
