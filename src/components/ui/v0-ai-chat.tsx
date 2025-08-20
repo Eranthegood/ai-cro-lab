@@ -209,24 +209,12 @@ export function VercelV0Chat() {
 
                 <div className="flex items-center justify-center gap-3 mt-4">
                     <ActionButton
-                        icon={<ImageIcon className="w-4 h-4" />}
-                        label="Clone a Screenshot"
-                    />
-                    <ActionButton
                         icon={<Figma className="w-4 h-4" />}
                         label="Import from Figma"
                     />
                     <ActionButton
                         icon={<FileUp className="w-4 h-4" />}
                         label="Upload a Project"
-                    />
-                    <ActionButton
-                        icon={<MonitorIcon className="w-4 h-4" />}
-                        label="Landing Page"
-                    />
-                    <ActionButton
-                        icon={<CircleUserRound className="w-4 h-4" />}
-                        label="Sign Up Form"
                     />
                 </div>
                 
