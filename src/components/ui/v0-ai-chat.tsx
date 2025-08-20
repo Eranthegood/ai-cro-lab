@@ -279,7 +279,7 @@ export function VercelV0Chat() {
 
             {messages.length === 0 ? (
                 <div className="flex flex-col items-center space-y-8 flex-1 justify-center">
-                    <h1 className="text-4xl font-bold text-foreground">
+                    <h1 className="text-4xl font-bold text-foreground mb-6">
                         What can I help you ship?
                     </h1>
                 </div>
