@@ -529,13 +529,21 @@ const VisualIntelligenceSection = ({
           </div>
           <div>
             <Label>Style Guide Upload</Label>
-            <Card className="border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer mt-2">
-              <CardContent className="p-4 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm">Upload brand guidelines (PDF)</p>
-                <p className="text-xs text-muted-foreground">+2 points</p>
-              </CardContent>
-            </Card>
+            <div className="mt-2">
+              <FileUploadCard
+                title="Brand Guidelines"
+                description="Upload brand guidelines, style guide, or design system documentation"
+                points={2}
+                acceptedTypes={['.pdf', '.doc', '.docx', 'image/*']}
+                onFileUpload={handleFileUpload}
+                isUploading={uploading}
+                uploadedFile={sectionFiles.find(f => f.file_name.toLowerCase().includes('style') || f.file_name.toLowerCase().includes('brand') || f.file_name.toLowerCase().includes('guideline'))}
+                onRemoveFile={() => {
+                  const styleFile = sectionFiles.find(f => f.file_name.toLowerCase().includes('style') || f.file_name.toLowerCase().includes('brand') || f.file_name.toLowerCase().includes('guideline'));
+                  if (styleFile) handleFileDelete(styleFile);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
