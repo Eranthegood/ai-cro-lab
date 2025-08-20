@@ -11,6 +11,15 @@ interface KnowledgeVaultData {
   configurations: any[];
   files: any[];
   workspaceInfo: any;
+  parsedFiles: Record<string, any>;
+}
+
+interface ParsedFileContent {
+  type: 'csv' | 'json' | 'text' | 'image';
+  data: any;
+  summary: string;
+  metadata: Record<string, any>;
+  tokens: number;
 }
 
 serve(async (req) => {
@@ -47,27 +56,17 @@ serve(async (req) => {
       throw new Error('Access denied to workspace');
     }
 
-    // Gather Knowledge Vault data
+    // Gather Knowledge Vault data with smart parsing
     const knowledgeVaultData = await gatherKnowledgeVaultData(supabase, workspaceId);
     console.log('Knowledge Vault data gathered:', knowledgeVaultData);
 
-    // Attempt to compute recent CVR summary from repository CSV
-    let summaryText = '' as string;
-    try {
-      const realFile = knowledgeVaultData.files.find((f: any) => f.config_section === 'repository' && f.file_name.includes('REAL 24-25'));
-      if (realFile?.storage_path) {
-        const summary = await computeCVRSummary(supabase, realFile.storage_path);
-        summaryText = summary.summaryText;
-        if (summary.yesterdayCVR && summary.yesterdayDate) {
-          summaryText += `\nCVR d'hier (${summary.yesterdayDate}): ${summary.yesterdayCVR.toFixed(2)}%`;
-        }
-      }
-    } catch (e) {
-      console.log('CVR summary compute failed', e);
-    }
+    // Parse files based on user query for contextual relevance
+    const parsedFiles = await parseRelevantFiles(supabase, knowledgeVaultData.files, message);
+    knowledgeVaultData.parsedFiles = parsedFiles;
 
-    const context = createContextFromVault(knowledgeVaultData, projectId) + (summaryText ? `\n${summaryText}\n` : '');
-    console.log('Context created from vault');
+    // Create smart context based on query and available data
+    const context = await createSmartContext(knowledgeVaultData, message, projectId);
+    console.log('Smart context created, tokens:', context.length);
 
     // Call Claude with the enriched context
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -198,7 +197,8 @@ async function gatherKnowledgeVaultData(supabase: any, workspaceId: string): Pro
       knowledgeBase: knowledgeBase || [],
       abTests: abTests || [],
       contentSquareData: contentSquareData || []
-    }
+    },
+    parsedFiles: {}
   };
 }
 
@@ -316,96 +316,282 @@ async function computeCVRSummary(
   }
 }
 
-function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: string | null): string {
-  let context = "";
-
-  // Workspace info
-  if (vaultData.workspaceInfo.workspace) {
-    context += `INFORMATIONS WORKSPACE:\n`;
-    context += `- Nom: ${vaultData.workspaceInfo.workspace.name}\n`;
-    context += `- Plan: ${vaultData.workspaceInfo.workspace.plan}\n`;
-    
-    if (projectId) {
-      context += `- Mode: Projet spécifique (ID: ${projectId})\n`;
-    } else {
-      context += `- Mode: Analyse globale du workspace\n`;
+// Advanced file parsing with type detection and content extraction
+async function parseFileContent(supabase: any, file: any): Promise<ParsedFileContent> {
+  const fileExtension = file.file_name.split('.').pop()?.toLowerCase();
+  
+  try {
+    const { data, error } = await supabase.storage.from('knowledge-vault').download(file.storage_path);
+    if (error || !data) {
+      throw new Error(`Failed to download file: ${error?.message}`);
     }
-    context += '\n';
-  }
 
-  // Configuration sections - business context
-  const businessConfig = vaultData.configurations.find(c => c.config_section === 'business');
-  if (businessConfig && businessConfig.config_data) {
-    context += `CONTEXTE BUSINESS:\n`;
-    context += `- Score: ${businessConfig.completion_score}/20\n`;
-    const data = businessConfig.config_data;
-    if (data.industry) context += `- Secteur: ${data.industry}\n`;
-    if (data.businessModel) context += `- Modèle: ${data.businessModel}\n`;
-    if (data.revenueRange) context += `- CA: ${data.revenueRange}\n`;
-    if (data.challenges) context += `- Défis: ${data.challenges}\n`;
-    if (data.companyDescription) context += `- Description: ${data.companyDescription}\n`;
-    context += '\n';
-  }
+    const content = await data.text();
+    let parsedData: any = {};
+    let summary = '';
+    let tokens = 0;
 
-  // Files summary avec focus sur les données clés
-  const filesBySection = vaultData.files.reduce((acc: any, file) => {
-    if (!acc[file.config_section]) acc[file.config_section] = [];
-    acc[file.config_section].push(file);
-    return acc;
-  }, {});
-
-  // Section Repository - Focus sur les données CSV importantes
-  if (filesBySection.repository) {
-    context += `DONNÉES DISPONIBLES (Repository):\n`;
-    filesBySection.repository.forEach((file: any) => {
-      context += `- ${file.file_name} (${Math.round(file.file_size / 1024)}KB)\n`;
+    switch (fileExtension) {
+      case 'csv':
+        parsedData = await parseCSVContent(content, file.file_name);
+        summary = `CSV avec ${parsedData.rows?.length || 0} lignes et ${parsedData.columns?.length || 0} colonnes`;
+        tokens = Math.ceil(content.length / 4); // Rough token estimation
+        break;
       
-      // Détection spéciale pour le fichier REAL 24-25
-      if (file.file_name.includes('REAL 24-25')) {
-        context += `  → Données e-commerce quotidiennes 2024-2025\n`;
-        context += `  → Contient: CVR, Traffic, Commandes, AOV, Taux de retour\n`;
-        context += `  → Métriques: Conversion web/app, Add to cart, Funnel complet\n`;
-        context += `  → Format: Données journalières avec détail par canal\n`;
-      }
-      if (file.file_name.includes('Cockpit')) {
-        context += `  → Dashboard de pilotage 2025\n`;
-        context += `  → Données de suivi et KPIs\n`;
-      }
-    });
-    context += '\n';
+      case 'json':
+        parsedData = JSON.parse(content);
+        summary = `JSON avec ${Object.keys(parsedData).length} propriétés principales`;
+        tokens = Math.ceil(content.length / 4);
+        break;
+      
+      case 'txt':
+      case 'md':
+        parsedData = { text: content };
+        summary = `Document texte de ${content.length} caractères`;
+        tokens = Math.ceil(content.length / 4);
+        break;
+      
+      default:
+        // Binary files or unsupported formats
+        summary = `Fichier ${fileExtension?.toUpperCase() || 'binaire'} de ${Math.round(file.file_size / 1024)}KB`;
+        tokens = 50; // Minimal token count for metadata
+        break;
+    }
+
+    return {
+      type: fileExtension === 'csv' ? 'csv' : fileExtension === 'json' ? 'json' : 'text',
+      data: parsedData,
+      summary,
+      metadata: {
+        fileName: file.file_name,
+        fileSize: file.file_size,
+        section: file.config_section,
+        uploadedAt: file.created_at
+      },
+      tokens
+    };
+  } catch (error) {
+    console.error(`Error parsing file ${file.file_name}:`, error);
+    return {
+      type: 'text',
+      data: {},
+      summary: `Erreur lors de la lecture du fichier: ${error.message}`,
+      metadata: { fileName: file.file_name, error: error.message },
+      tokens: 20
+    };
+  }
+}
+
+// Enhanced CSV parsing with intelligent column detection
+async function parseCSVContent(content: string, fileName: string): Promise<any> {
+  const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length === 0) return { rows: [], columns: [], summary: 'CSV vide' };
+
+  // Find header line
+  let headerIdx = 0;
+  if (fileName.includes('REAL 24-25')) {
+    headerIdx = lines.findIndex(l => l.toLowerCase().includes('date') && l.toLowerCase().includes('cvr'));
+  }
+  
+  const header = csvSplit(lines[headerIdx]).map(h => h.trim());
+  const dataRows = [];
+  
+  // Parse data rows
+  for (let i = headerIdx + 1; i < Math.min(lines.length, headerIdx + 500); i++) { // Limit to 500 rows for token management
+    const cells = csvSplit(lines[i]);
+    if (cells.length >= header.length) {
+      const row: any = {};
+      header.forEach((col, idx) => {
+        row[col] = cells[idx]?.trim() || '';
+      });
+      dataRows.push(row);
+    }
   }
 
-  // Autres sections de fichiers (résumé)
-  ['behavioral', 'visual', 'predictive'].forEach(section => {
-    if (filesBySection[section]) {
-      context += `FICHIERS ${section.toUpperCase()} (${filesBySection[section].length} fichiers):\n`;
-      filesBySection[section].forEach((file: any) => {
-        context += `- ${file.file_name} (${file.file_type})\n`;
-      });
-      context += '\n';
+  // Detect important columns for CVR analysis
+  const dateColumns = header.filter(h => h.toLowerCase().includes('date'));
+  const cvrColumns = header.filter(h => h.toLowerCase().includes('cvr'));
+  const trafficColumns = header.filter(h => h.toLowerCase().includes('traffic') || h.toLowerCase().includes('visit'));
+  const revenueColumns = header.filter(h => h.toLowerCase().includes('revenue') || h.toLowerCase().includes('ca'));
+
+  return {
+    rows: dataRows,
+    columns: header,
+    totalRows: lines.length - headerIdx - 1,
+    keyColumns: {
+      dates: dateColumns,
+      cvr: cvrColumns,
+      traffic: trafficColumns,
+      revenue: revenueColumns
+    },
+    summary: `CSV avec ${dataRows.length} lignes analysées (${cvrColumns.length} colonnes CVR, ${dateColumns.length} colonnes dates)`
+  };
+}
+
+// Smart file parsing based on user query relevance
+async function parseRelevantFiles(supabase: any, files: any[], userQuery: string): Promise<Record<string, ParsedFileContent>> {
+  const queryLower = userQuery.toLowerCase();
+  const relevantFiles: any[] = [];
+  
+  // Score files based on query relevance
+  files.forEach(file => {
+    let relevanceScore = 0;
+    const fileName = file.file_name.toLowerCase();
+    
+    // CVR-related queries
+    if (queryLower.includes('cvr') || queryLower.includes('conversion')) {
+      if (fileName.includes('real') || fileName.includes('cvr')) relevanceScore += 10;
+    }
+    
+    // Date-related queries
+    if (queryLower.includes('hier') || queryLower.includes('yesterday') || queryLower.includes('today')) {
+      if (fileName.includes('real') || fileName.includes('daily')) relevanceScore += 8;
+    }
+    
+    // Section-specific queries
+    if (queryLower.includes('traffic') || queryLower.includes('audience')) {
+      if (file.config_section === 'behavioral') relevanceScore += 6;
+    }
+    
+    // Always include REAL 24-25 for analysis
+    if (fileName.includes('real 24-25')) relevanceScore += 15;
+    
+    // File type preferences
+    if (file.file_type.includes('csv')) relevanceScore += 3;
+    if (file.file_type.includes('json')) relevanceScore += 2;
+    
+    if (relevanceScore > 5) {
+      relevantFiles.push({ ...file, relevanceScore });
     }
   });
-
-  // Instructions spéciales pour l'analyse des données
-  const hasRealData = vaultData.files.some(file => file.file_name.includes('REAL 24-25'));
-  if (hasRealData) {
-    context += `CAPACITÉS D'ANALYSE:\n`;
-    context += `- Je peux analyser les données CVR quotidiennes du fichier REAL 24-25\n`;
-    context += `- Je peux calculer des moyennes, tendances, et comparaisons\n`;
-    context += `- Je peux identifier les métriques d'hier, de la semaine, du mois\n`;
-    context += `- Je peux analyser les canaux (web, app, paid, organic)\n`;
-    context += `- Questions supportées: CVR d'hier, performance par canal, tendances\n`;
-    context += '\n';
-  }
-
-  // Configuration scores pour référence
-  const completionScores = vaultData.configurations.map(c => 
-    `${c.config_section}: ${c.completion_score}/20`
-  ).join(', ');
   
-  if (completionScores) {
-    context += `SCORES DE COMPLÉTION: ${completionScores}\n\n`;
-  }
+  // Sort by relevance and limit to top 5 files to manage tokens
+  relevantFiles.sort((a, b) => b.relevanceScore - a.relevanceScore);
+  const topFiles = relevantFiles.slice(0, 5);
+  
+  const parsedFiles: Record<string, ParsedFileContent> = {};
+  
+  // Parse relevant files in parallel
+  await Promise.all(
+    topFiles.map(async (file) => {
+      const parsed = await parseFileContent(supabase, file);
+      parsedFiles[file.id] = parsed;
+    })
+  );
+  
+  return parsedFiles;
+}
 
+// Create smart context that adapts to user query and token limits
+async function createSmartContext(vaultData: KnowledgeVaultData, userQuery: string, projectId?: string | null): Promise<string> {
+  let context = "";
+  let totalTokens = 0;
+  const maxTokens = 180000; // Leave room for Claude's response
+  
+  // Always include workspace info (low token cost)
+  if (vaultData.workspaceInfo.workspace) {
+    const workspaceInfo = `WORKSPACE: ${vaultData.workspaceInfo.workspace.name} (${vaultData.workspaceInfo.workspace.plan})\n`;
+    context += workspaceInfo;
+    totalTokens += Math.ceil(workspaceInfo.length / 4);
+  }
+  
+  // Include business configuration if available
+  const businessConfig = vaultData.configurations.find(c => c.config_section === 'business');
+  if (businessConfig?.config_data) {
+    const businessInfo = `BUSINESS: ${businessConfig.config_data.industry || 'N/A'} - ${businessConfig.config_data.businessModel || 'N/A'}\n`;
+    context += businessInfo;
+    totalTokens += Math.ceil(businessInfo.length / 4);
+  }
+  
+  // Add parsed file data based on relevance and token budget
+  const queryLower = userQuery.toLowerCase();
+  let remainingTokens = maxTokens - totalTokens - 1000; // Reserve tokens for structure
+  
+  // Prioritize REAL 24-25 data if query is about CVR/metrics
+  if (queryLower.includes('cvr') || queryLower.includes('hier') || queryLower.includes('conversion')) {
+    const realFile = Object.values(vaultData.parsedFiles).find(
+      f => f.metadata.fileName.toLowerCase().includes('real 24-25')
+    );
+    
+    if (realFile && realFile.tokens < remainingTokens) {
+      context += await formatFileDataForContext(realFile, 'detailed');
+      remainingTokens -= realFile.tokens;
+    }
+  }
+  
+  // Add other relevant files within token budget
+  for (const [fileId, parsedFile] of Object.entries(vaultData.parsedFiles)) {
+    if (parsedFile.tokens < remainingTokens && !parsedFile.metadata.fileName.toLowerCase().includes('real 24-25')) {
+      const formatLevel = parsedFile.tokens > 5000 ? 'summary' : 'detailed';
+      context += await formatFileDataForContext(parsedFile, formatLevel);
+      remainingTokens -= formatLevel === 'summary' ? 1000 : parsedFile.tokens;
+    }
+    
+    if (remainingTokens < 1000) break; // Stop if running low on tokens
+  }
+  
+  // Add file listing for non-parsed files
+  const nonParsedFiles = vaultData.files.filter(f => !vaultData.parsedFiles[f.id]);
+  if (nonParsedFiles.length > 0) {
+    context += `\nAUTRES FICHIERS DISPONIBLES:\n`;
+    nonParsedFiles.slice(0, 10).forEach(file => {
+      context += `- ${file.file_name} (${file.config_section})\n`;
+    });
+  }
+  
   return context || "Aucune donnée disponible dans la Knowledge Vault.";
+}
+
+// Format file data for context with different detail levels
+async function formatFileDataForContext(parsedFile: ParsedFileContent, level: 'summary' | 'detailed'): Promise<string> {
+  let formatted = `\n=== ${parsedFile.metadata.fileName.toUpperCase()} ===\n`;
+  formatted += `Type: ${parsedFile.type} | ${parsedFile.summary}\n`;
+  
+  if (level === 'summary') {
+    formatted += `Résumé: ${parsedFile.summary}\n\n`;
+    return formatted;
+  }
+  
+  // Detailed formatting based on file type
+  switch (parsedFile.type) {
+    case 'csv':
+      if (parsedFile.data.rows && parsedFile.data.keyColumns) {
+        formatted += `Colonnes clés: ${Object.entries(parsedFile.data.keyColumns)
+          .filter(([_, cols]: any) => cols.length > 0)
+          .map(([type, cols]: any) => `${type}(${cols.join(', ')})`)
+          .join(' | ')}\n`;
+        
+        // Include recent data samples for CVR analysis
+        if (parsedFile.metadata.fileName.includes('REAL 24-25')) {
+          const recentRows = parsedFile.data.rows.slice(-7); // Last 7 days
+          formatted += `\nDONNÉES RÉCENTES (7 derniers jours):\n`;
+          recentRows.forEach((row: any) => {
+            const date = row.Date || row.date || 'N/A';
+            const cvr = row.CVR || row.cvr || row['CVR Total'] || 'N/A';
+            const webCvr = row['CVR Web'] || row.cvr_web || 'N/A';
+            const appCvr = row['CVR App'] || row.cvr_app || 'N/A';
+            formatted += `${date}: CVR=${cvr}%, Web=${webCvr}%, App=${appCvr}%\n`;
+          });
+        }
+      }
+      break;
+      
+    case 'json':
+      const keys = Object.keys(parsedFile.data).slice(0, 10);
+      formatted += `Propriétés: ${keys.join(', ')}\n`;
+      break;
+      
+    case 'text':
+      const preview = parsedFile.data.text?.substring(0, 500) || '';
+      formatted += `Aperçu: ${preview}${preview.length >= 500 ? '...' : ''}\n`;
+      break;
+  }
+  
+  formatted += '\n';
+  return formatted;
+}
+
+function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: string | null): string {
+  // Legacy function - now using createSmartContext instead
+  return "Context généré par createSmartContext";
 }
