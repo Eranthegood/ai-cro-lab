@@ -126,6 +126,30 @@ export const useKnowledgeVault = () => {
     }
   }, [currentWorkspace?.id, user, fetchVaultData]);
 
+  // Get uploaded files for a section
+  const getFiles = useCallback(async (section?: string) => {
+    if (!currentWorkspace?.id) return { error: new Error('Missing workspace'), files: [] };
+
+    try {
+      let query = supabase
+        .from('knowledge_vault_files')
+        .select('*')
+        .eq('workspace_id', currentWorkspace.id)
+        .order('created_at', { ascending: false });
+
+      if (section) {
+        query = query.eq('config_section', section);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return { error: null, files: data || [] };
+    } catch (error: any) {
+      return { error, files: [] };
+    }
+  }, [currentWorkspace?.id]);
+
   // Upload file to storage
   const uploadFile = useCallback(async (
     file: File,
@@ -174,10 +198,36 @@ export const useKnowledgeVault = () => {
 
       if (dbError) throw dbError;
 
+      // Update points for sections based on uploaded files
+      if (section === 'repository') {
+        const { files } = await getFiles('repository');
+        const repositoryScore = Math.min(files.length, 20); // Max 20 points, 1 point per file
+        
+        await updateConfiguration('repository', { files_count: files.length }, repositoryScore);
+      } else if (section === 'behavioral') {
+        const { files } = await getFiles('behavioral');
+        const behavioralScore = Math.min(files.length * 3, 20); // Max 20 points, 3 points per file
+        
+        await updateConfiguration('behavioral', { files_count: files.length }, behavioralScore);
+      } else if (section === 'predictive') {
+        const { files } = await getFiles('predictive');
+        const predictiveScore = Math.min(files.length * 4, 20); // Max 20 points, 4 points per file
+        
+        await updateConfiguration('predictive', { files_count: files.length }, predictiveScore);
+      } else if (section === 'visual') {
+        const { files } = await getFiles('visual');
+        const visualScore = Math.min(files.length * 2, 20); // Max 20 points, 2 points per file
+        
+        await updateConfiguration('visual', { files_count: files.length }, visualScore);
+      }
+
       toast({
         title: "File uploaded",
         description: `${file.name} uploaded successfully`,
       });
+
+      // Refresh data to update UI
+      await fetchVaultData();
 
       return { error: null, file: data };
     } catch (error: any) {
@@ -190,31 +240,7 @@ export const useKnowledgeVault = () => {
     } finally {
       setUploading(false);
     }
-  }, [currentWorkspace?.id, user]);
-
-  // Get uploaded files for a section
-  const getFiles = useCallback(async (section?: string) => {
-    if (!currentWorkspace?.id) return { error: new Error('Missing workspace'), files: [] };
-
-    try {
-      let query = supabase
-        .from('knowledge_vault_files')
-        .select('*')
-        .eq('workspace_id', currentWorkspace.id)
-        .order('created_at', { ascending: false });
-
-      if (section) {
-        query = query.eq('config_section', section);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return { error: null, files: data || [] };
-    } catch (error: any) {
-      return { error, files: [] };
-    }
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, user, getFiles, updateConfiguration, fetchVaultData]);
 
   // Delete file
   const deleteFile = useCallback(async (fileId: string, storagePath: string) => {
@@ -228,6 +254,13 @@ export const useKnowledgeVault = () => {
 
       if (storageError) throw storageError;
 
+      // Get file info before deletion to know the section
+      const { data: fileInfo } = await supabase
+        .from('knowledge_vault_files')
+        .select('config_section')
+        .eq('id', fileId)
+        .single();
+
       // Delete from database
       const { error: dbError } = await supabase
         .from('knowledge_vault_files')
@@ -236,6 +269,41 @@ export const useKnowledgeVault = () => {
         .eq('workspace_id', currentWorkspace.id);
 
       if (dbError) throw dbError;
+
+      // Update points for sections based on remaining files
+      if (fileInfo?.config_section === 'repository') {
+        const { files } = await getFiles('repository');
+        const repositoryScore = Math.max(files.length, 0);
+        
+        await updateConfiguration('repository', { files_count: files.length }, repositoryScore);
+        
+        // Refresh data to update UI
+        await fetchVaultData();
+      } else if (fileInfo?.config_section === 'behavioral') {
+        const { files } = await getFiles('behavioral');
+        const behavioralScore = Math.max(files.length * 3, 0);
+        
+        await updateConfiguration('behavioral', { files_count: files.length }, behavioralScore);
+        
+        // Refresh data to update UI
+        await fetchVaultData();
+      } else if (fileInfo?.config_section === 'predictive') {
+        const { files } = await getFiles('predictive');
+        const predictiveScore = Math.max(files.length * 4, 0);
+        
+        await updateConfiguration('predictive', { files_count: files.length }, predictiveScore);
+        
+        // Refresh data to update UI
+        await fetchVaultData();
+      } else if (fileInfo?.config_section === 'visual') {
+        const { files } = await getFiles('visual');
+        const visualScore = Math.max(files.length * 2, 0);
+        
+        await updateConfiguration('visual', { files_count: files.length }, visualScore);
+        
+        // Refresh data to update UI
+        await fetchVaultData();
+      }
 
       toast({
         title: "File deleted",
@@ -251,7 +319,7 @@ export const useKnowledgeVault = () => {
       });
       return { error };
     }
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, getFiles, updateConfiguration, fetchVaultData]);
 
   // Get download URL for file
   const getFileUrl = useCallback(async (storagePath: string) => {
