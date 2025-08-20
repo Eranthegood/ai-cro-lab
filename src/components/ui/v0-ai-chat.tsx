@@ -224,58 +224,6 @@ export function VercelV0Chat() {
 
     return (
         <div className="flex flex-col w-full max-w-6xl mx-auto p-4 h-full">
-            {/* Top Toolbar */}
-            <div className="flex items-center justify-between mb-4 p-4 bg-card rounded-lg border border-border">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={toggleMode}
-                            className={cn(
-                                "px-3 py-1.5 rounded-lg text-sm transition-colors border border-dashed hover:bg-muted flex items-center gap-2",
-                                isGlobalMode 
-                                    ? "border-primary text-primary bg-primary/10" 
-                                    : "border-border text-muted-foreground"
-                            )}
-                        >
-                            {isGlobalMode ? (
-                                <Globe className="w-4 h-4" />
-                            ) : (
-                                <FolderIcon className="w-4 h-4" />
-                            )}
-                            {isGlobalMode ? "Global Mode" : "Project Mode"}
-                        </button>
-                        
-                        {!isGlobalMode && (
-                            <>
-                                <Separator orientation="vertical" className="h-6" />
-                                <ProjectSelector />
-                            </>
-                        )}
-                    </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleFileUpload}
-                        className="flex items-center gap-2"
-                    >
-                        <Upload className="w-4 h-4" />
-                        Add Documents
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleDataUpload}
-                        className="flex items-center gap-2"
-                    >
-                        <Database className="w-4 h-4" />
-                        Add Data
-                    </Button>
-                </div>
-            </div>
 
             {messages.length === 0 ? (
                 <div className="flex flex-col items-center space-y-8 flex-1 justify-center">
