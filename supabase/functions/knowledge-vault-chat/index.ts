@@ -32,8 +32,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { message, workspaceId, userId } = await req.json();
-    console.log('Request data:', { message, workspaceId, userId });
+    const { message, workspaceId, projectId, userId } = await req.json();
+    console.log('Request data:', { message, workspaceId, projectId, userId });
 
     // Verify workspace access
     const { data: workspaceAccess } = await supabase
@@ -52,7 +52,7 @@ serve(async (req) => {
     console.log('Knowledge Vault data gathered:', knowledgeVaultData);
 
     // Create context from Knowledge Vault
-    const context = createContextFromVault(knowledgeVaultData);
+    const context = createContextFromVault(knowledgeVaultData, projectId);
     console.log('Context created from vault');
 
     // Call Claude with the enriched context
@@ -70,6 +70,11 @@ serve(async (req) => {
           {
             role: 'user',
             content: `Tu es Claude, un assistant IA intégré à une Knowledge Vault intelligente. Tu as accès à toutes les données de configuration business, visuelles, comportementales, prédictives et aux documents de l'entreprise.
+
+${projectId ? 
+  `Tu travailles actuellement dans le contexte du projet ID: ${projectId}. Concentre ton analyse sur les données liées à ce projet quand c'est pertinent.` :
+  `Tu es en mode analyse globale du workspace. Analyse toutes les données disponibles sans restriction de projet.`
+}
 
 CONTEXTE DE LA KNOWLEDGE VAULT:
 ${context}
@@ -102,10 +107,13 @@ Instructions:
       p_workspace_id: workspaceId,
       p_action: 'ai_interaction',
       p_resource_type: 'chat',
+      p_resource_id: projectId || null,
       p_metadata: {
         message_length: message.length,
         response_length: data.content[0].text.length,
-        model: 'claude-sonnet-4-20250514'
+        model: 'claude-sonnet-4-20250514',
+        project_id: projectId || null,
+        mode: projectId ? 'project' : 'global'
       }
     });
 
@@ -180,7 +188,7 @@ async function gatherKnowledgeVaultData(supabase: any, workspaceId: string): Pro
   };
 }
 
-function createContextFromVault(vaultData: KnowledgeVaultData): string {
+function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: string | null): string {
   let context = "";
 
   // Workspace info
@@ -188,7 +196,14 @@ function createContextFromVault(vaultData: KnowledgeVaultData): string {
     context += `INFORMATIONS WORKSPACE:\n`;
     context += `- Nom: ${vaultData.workspaceInfo.workspace.name}\n`;
     context += `- Plan: ${vaultData.workspaceInfo.workspace.plan}\n`;
-    context += `- Paramètres: ${JSON.stringify(vaultData.workspaceInfo.workspace.settings)}\n\n`;
+    context += `- Paramètres: ${JSON.stringify(vaultData.workspaceInfo.workspace.settings)}\n`;
+    
+    if (projectId) {
+      context += `- Mode: Projet spécifique (ID: ${projectId})\n`;
+    } else {
+      context += `- Mode: Analyse globale du workspace\n`;
+    }
+    context += '\n';
   }
 
   // Configuration sections

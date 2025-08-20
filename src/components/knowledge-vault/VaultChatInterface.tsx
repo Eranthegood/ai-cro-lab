@@ -40,6 +40,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [useGlobalMode, setUseGlobalMode] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,7 +50,10 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !user || !currentWorkspace || !currentProject || loading) return;
+    if (!input.trim() || !user || !currentWorkspace || loading) return;
+    
+    // Check if we have a project or are in global mode
+    if (!currentProject && !useGlobalMode) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -64,8 +68,8 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
     setLoading(true);
 
     try {
-      // Create conversation if none exists
-      if (!currentConversationId) {
+      // Create conversation if we have a project and none exists
+      if (currentProject && !currentConversationId) {
         const { conversation, error: convError } = await createConversation(
           currentProject.id,
           `Conversation ${new Date().toLocaleDateString()}`
@@ -79,7 +83,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
         body: {
           message: userMessage.content,
           workspaceId: currentWorkspace.id,
-          projectId: currentProject.id,
+          projectId: currentProject?.id || null,
           userId: user.id
         }
       });
@@ -96,8 +100,8 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
       const updatedMessages = [...newMessages, assistantMessage];
       setMessages(updatedMessages);
 
-      // Save conversation
-      if (currentConversationId) {
+      // Save conversation only if we have a project
+      if (currentProject && currentConversationId) {
         await updateConversation(currentConversationId, updatedMessages);
       }
       
@@ -157,8 +161,17 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
             </Badge>
           </CardTitle>
         </div>
-        <div className="mt-3">
+        <div className="mt-3 flex items-center justify-between">
           <ProjectSelector />
+          <div className="flex items-center space-x-2">
+            <label className="text-xs text-muted-foreground">Mode global</label>
+            <input
+              type="checkbox"
+              checked={useGlobalMode}
+              onChange={(e) => setUseGlobalMode(e.target.checked)}
+              className="w-4 h-4 rounded border border-input"
+            />
+          </div>
         </div>
       </CardHeader>
 
@@ -187,7 +200,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
                     <span className="text-xs opacity-60">
                       {message.timestamp.toLocaleTimeString()}
                     </span>
-                    {message.type === 'assistant' && currentProject && (
+                    {message.type === 'assistant' && currentProject && !useGlobalMode && (
                       <SaveToVaultModal 
                         content={message.content}
                         messageContext={{
@@ -220,7 +233,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
         </ScrollArea>
 
         {/* Suggested Prompts */}
-        {messages.length <= 1 && currentProject && (
+        {messages.length <= 1 && (currentProject || useGlobalMode) && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground font-medium">Suggestions d'analyse :</p>
             <div className="flex flex-wrap gap-2">
@@ -240,10 +253,10 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
           </div>
         )}
 
-        {!currentProject && (
+        {!currentProject && !useGlobalMode && (
           <div className="text-center space-y-2 p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              Créez ou sélectionnez un projet pour commencer à utiliser Claude
+              Créez/sélectionnez un projet ou activez le mode global pour utiliser Claude
             </p>
           </div>
         )}
@@ -260,7 +273,7 @@ export const VaultChatInterface = ({ className }: VaultChatInterfaceProps) => {
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!input.trim() || loading || !currentProject}
+            disabled={!input.trim() || loading || (!currentProject && !useGlobalMode)}
             className="px-3 self-end"
           >
             <Send className="h-4 w-4" />
