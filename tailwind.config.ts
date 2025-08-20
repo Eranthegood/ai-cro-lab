@@ -40,6 +40,22 @@ export default {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				},
+				figma: {
+					DEFAULT: 'hsl(var(--figma))',
+					foreground: 'hsl(var(--figma-foreground))'
+				},
+				csv: {
+					DEFAULT: 'hsl(var(--csv))',
+					foreground: 'hsl(var(--csv-foreground))'
+				},
+				document: {
+					DEFAULT: 'hsl(var(--document))',
+					foreground: 'hsl(var(--document-foreground))'
+				},
+				content: {
+					DEFAULT: 'hsl(var(--content))',
+					foreground: 'hsl(var(--content-foreground))'
+				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'

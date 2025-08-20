@@ -37,6 +37,18 @@ All colors MUST be HSL.
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
 
+    --figma: 274 100% 60%;
+    --figma-foreground: 0 0% 98%;
+
+    --csv: 142 76% 36%;
+    --csv-foreground: 0 0% 98%;
+
+    --document: 221 100% 60%;
+    --document-foreground: 0 0% 98%;
+
+    --content: 30 100% 60%;
+    --content-foreground: 0 0% 98%;
+
     --border: 0 0% 91%;
     --input: 0 0% 91%;
     --ring: 0 0% 8%;
@@ -87,6 +99,18 @@ All colors MUST be HSL.
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
+
+    --figma: 274 100% 60%;
+    --figma-foreground: 0 0% 98%;
+
+    --csv: 142 76% 36%;
+    --csv-foreground: 0 0% 98%;
+
+    --document: 221 100% 60%;
+    --document-foreground: 0 0% 98%;
+
+    --content: 30 100% 60%;
+    --content-foreground: 0 0% 98%;
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;

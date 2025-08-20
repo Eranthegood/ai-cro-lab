@@ -18,6 +18,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        figma: "bg-figma text-figma-foreground hover:bg-figma/90 shadow-sm",
+        csv: "bg-csv text-csv-foreground hover:bg-csv/90 shadow-sm",
+        document: "bg-document text-document-foreground hover:bg-document/90 shadow-sm",
+        content: "bg-content text-content-foreground hover:bg-content/90 shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",
