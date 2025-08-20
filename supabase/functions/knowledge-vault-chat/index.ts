@@ -196,7 +196,6 @@ function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: strin
     context += `INFORMATIONS WORKSPACE:\n`;
     context += `- Nom: ${vaultData.workspaceInfo.workspace.name}\n`;
     context += `- Plan: ${vaultData.workspaceInfo.workspace.plan}\n`;
-    context += `- Paramètres: ${JSON.stringify(vaultData.workspaceInfo.workspace.settings)}\n`;
     
     if (projectId) {
       context += `- Mode: Projet spécifique (ID: ${projectId})\n`;
@@ -206,77 +205,78 @@ function createContextFromVault(vaultData: KnowledgeVaultData, projectId?: strin
     context += '\n';
   }
 
-  // Configuration sections
-  const sections = ['business', 'visual', 'behavioral', 'predictive', 'repository'];
-  
-  sections.forEach(section => {
-    const config = vaultData.configurations.find(c => c.config_section === section);
-    if (config && config.config_data) {
-      context += `CONFIGURATION ${section.toUpperCase()}:\n`;
-      context += `- Score de completion: ${config.completion_score}/20\n`;
-      
-      const data = config.config_data;
-      if (typeof data === 'object') {
-        Object.entries(data).forEach(([key, value]) => {
-          if (value && value !== '') {
-            context += `- ${key}: ${JSON.stringify(value)}\n`;
-          }
-        });
-      }
-      context += '\n';
-    }
-  });
+  // Configuration sections - business context
+  const businessConfig = vaultData.configurations.find(c => c.config_section === 'business');
+  if (businessConfig && businessConfig.config_data) {
+    context += `CONTEXTE BUSINESS:\n`;
+    context += `- Score: ${businessConfig.completion_score}/20\n`;
+    const data = businessConfig.config_data;
+    if (data.industry) context += `- Secteur: ${data.industry}\n`;
+    if (data.businessModel) context += `- Modèle: ${data.businessModel}\n`;
+    if (data.revenueRange) context += `- CA: ${data.revenueRange}\n`;
+    if (data.challenges) context += `- Défis: ${data.challenges}\n`;
+    if (data.companyDescription) context += `- Description: ${data.companyDescription}\n`;
+    context += '\n';
+  }
 
-  // Files summary
+  // Files summary avec focus sur les données clés
   const filesBySection = vaultData.files.reduce((acc: any, file) => {
     if (!acc[file.config_section]) acc[file.config_section] = [];
     acc[file.config_section].push(file);
     return acc;
   }, {});
 
-  Object.entries(filesBySection).forEach(([section, files]: [string, any[]]) => {
-    context += `FICHIERS ${section.toUpperCase()}:\n`;
-    files.forEach(file => {
-      context += `- ${file.file_name} (${file.file_type}, ${Math.round(file.file_size / 1024)}KB)\n`;
+  // Section Repository - Focus sur les données CSV importantes
+  if (filesBySection.repository) {
+    context += `DONNÉES DISPONIBLES (Repository):\n`;
+    filesBySection.repository.forEach((file: any) => {
+      context += `- ${file.file_name} (${Math.round(file.file_size / 1024)}KB)\n`;
+      
+      // Détection spéciale pour le fichier REAL 24-25
+      if (file.file_name.includes('REAL 24-25')) {
+        context += `  → Données e-commerce quotidiennes 2024-2025\n`;
+        context += `  → Contient: CVR, Traffic, Commandes, AOV, Taux de retour\n`;
+        context += `  → Métriques: Conversion web/app, Add to cart, Funnel complet\n`;
+        context += `  → Format: Données journalières avec détail par canal\n`;
+      }
+      if (file.file_name.includes('Cockpit')) {
+        context += `  → Dashboard de pilotage 2025\n`;
+        context += `  → Données de suivi et KPIs\n`;
+      }
     });
     context += '\n';
+  }
+
+  // Autres sections de fichiers (résumé)
+  ['behavioral', 'visual', 'predictive'].forEach(section => {
+    if (filesBySection[section]) {
+      context += `FICHIERS ${section.toUpperCase()} (${filesBySection[section].length} fichiers):\n`;
+      filesBySection[section].forEach((file: any) => {
+        context += `- ${file.file_name} (${file.file_type})\n`;
+      });
+      context += '\n';
+    }
   });
 
-  // A/B Tests
-  if (vaultData.workspaceInfo.abTests && vaultData.workspaceInfo.abTests.length > 0) {
-    context += `TESTS A/B:\n`;
-    vaultData.workspaceInfo.abTests.forEach((test: any) => {
-      context += `- ${test.name} (${test.status}): ${test.hypothesis}\n`;
-      if (test.metrics) {
-        context += `  Métriques: ${JSON.stringify(test.metrics)}\n`;
-      }
-    });
+  // Instructions spéciales pour l'analyse des données
+  const hasRealData = vaultData.files.some(file => file.file_name.includes('REAL 24-25'));
+  if (hasRealData) {
+    context += `CAPACITÉS D'ANALYSE:\n`;
+    context += `- Je peux analyser les données CVR quotidiennes du fichier REAL 24-25\n`;
+    context += `- Je peux calculer des moyennes, tendances, et comparaisons\n`;
+    context += `- Je peux identifier les métriques d'hier, de la semaine, du mois\n`;
+    context += `- Je peux analyser les canaux (web, app, paid, organic)\n`;
+    context += `- Questions supportées: CVR d'hier, performance par canal, tendances\n`;
     context += '\n';
   }
 
-  // ContentSquare data
-  if (vaultData.workspaceInfo.contentSquareData && vaultData.workspaceInfo.contentSquareData.length > 0) {
-    context += `DONNÉES CONTENTSQUARE:\n`;
-    vaultData.workspaceInfo.contentSquareData.forEach((data: any) => {
-      context += `- ${data.filename} (${data.file_type})\n`;
-      if (data.analysis_results) {
-        context += `  Analyses: ${JSON.stringify(data.analysis_results)}\n`;
-      }
-    });
-    context += '\n';
-  }
-
-  // Knowledge base
-  if (vaultData.workspaceInfo.knowledgeBase && vaultData.workspaceInfo.knowledgeBase.length > 0) {
-    context += `BASE DE CONNAISSANCES:\n`;
-    vaultData.workspaceInfo.knowledgeBase.forEach((item: any) => {
-      context += `- ${item.name} (${item.type})\n`;
-      if (item.content && typeof item.content === 'object') {
-        const contentSummary = JSON.stringify(item.content).substring(0, 200);
-        context += `  Contenu: ${contentSummary}...\n`;
-      }
-    });
-    context += '\n';
+  // Configuration scores pour référence
+  const completionScores = vaultData.configurations.map(c => 
+    `${c.config_section}: ${c.completion_score}/20`
+  ).join(', ');
+  
+  if (completionScores) {
+    context += `SCORES DE COMPLÉTION: ${completionScores}\n\n`;
   }
 
   return context || "Aucune donnée disponible dans la Knowledge Vault.";
