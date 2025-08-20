@@ -2,7 +2,6 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ProjectInstructionsPanel } from './ProjectInstructionsPanel';
 import { ProjectFilesPanel } from './ProjectFilesPanel';
-import { ProjectUrlsPanel } from './ProjectUrlsPanel';
 import { ProjectHistoryPanel } from './ProjectHistoryPanel';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +22,6 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
         <div className="p-4 space-y-6">
           <ProjectInstructionsPanel projectId={projectId} />
           <ProjectFilesPanel projectId={projectId} />
-          <ProjectUrlsPanel projectId={projectId} />
           <ProjectHistoryPanel 
             projectId={projectId} 
             onConversationSelect={onConversationSelect}
