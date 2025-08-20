@@ -28,9 +28,18 @@ import {
     Database,
     Upload,
     Settings,
+    ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Message {
     id: string;
@@ -100,7 +109,7 @@ export function VercelV0Chat() {
     const [isGlobalMode, setIsGlobalMode] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const { currentProject, projects, createProject } = useProjects();
+    const { currentProject, projects, createProject, switchProject } = useProjects();
     const { user } = useAuth();
     const { currentWorkspace } = useWorkspace();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -342,34 +351,72 @@ export function VercelV0Chat() {
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={toggleMode}
-                                className={cn(
-                                    "px-2 py-1 rounded-lg text-sm transition-colors border border-dashed hover:bg-muted flex items-center justify-between gap-1",
-                                    isGlobalMode 
-                                        ? "border-primary text-primary bg-primary/10" 
-                                        : "border-border text-muted-foreground"
-                                )}
-                            >
-                                {isGlobalMode ? (
-                                    <Globe className="w-4 h-4" />
-                                ) : (
-                                    <FolderIcon className="w-4 h-4" />
-                                )}
-                                {isGlobalMode ? "Global" : "Project"}
-                            </button>
-                            
-                            {!isGlobalMode && !currentProject && (
-                                <button
-                                    type="button"
-                                    onClick={handleCreateProject}
-                                    className="px-2 py-1 rounded-lg text-sm text-muted-foreground transition-colors border border-dashed border-border hover:border-primary hover:bg-muted flex items-center justify-between gap-1"
-                                >
-                                    <PlusIcon className="w-4 h-4" />
-                                    Create Project
-                                </button>
-                            )}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button
+                                        type="button"
+                                        className={cn(
+                                            "px-2 py-1 rounded-lg text-sm transition-colors border border-dashed hover:bg-muted flex items-center justify-between gap-1 min-w-[100px]",
+                                            isGlobalMode 
+                                                ? "border-primary text-primary bg-primary/10" 
+                                                : currentProject
+                                                    ? "border-primary text-primary bg-primary/10"
+                                                    : "border-border text-muted-foreground"
+                                        )}
+                                    >
+                                        {isGlobalMode ? (
+                                            <Globe className="w-4 h-4" />
+                                        ) : currentProject ? (
+                                            <FolderIcon className="w-4 h-4" />
+                                        ) : (
+                                            <PlusIcon className="w-4 h-4" />
+                                        )}
+                                        <span className="truncate">
+                                            {isGlobalMode ? "Global" : currentProject?.name || "Create"}
+                                        </span>
+                                        <ChevronDown className="w-3 h-3" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuLabel>Mode & Project</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    
+                                    <DropdownMenuItem
+                                        onClick={() => setIsGlobalMode(true)}
+                                        className={isGlobalMode ? "bg-accent" : ""}
+                                    >
+                                        <Globe className="w-4 h-4 mr-2" />
+                                        Global Mode
+                                        {isGlobalMode && <div className="ml-auto w-2 h-2 bg-primary rounded-full" />}
+                                    </DropdownMenuItem>
+                                    
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel>Projects</DropdownMenuLabel>
+                                    
+                                    {projects.map((project) => (
+                                        <DropdownMenuItem
+                                            key={project.id}
+                                            onClick={() => {
+                                                setIsGlobalMode(false);
+                                                switchProject(project.id);
+                                            }}
+                                            className={!isGlobalMode && currentProject?.id === project.id ? "bg-accent" : ""}
+                                        >
+                                            <FolderIcon className="w-4 h-4 mr-2" />
+                                            <span className="truncate">{project.name}</span>
+                                            {!isGlobalMode && currentProject?.id === project.id && (
+                                                <div className="ml-auto w-2 h-2 bg-primary rounded-full" />
+                                            )}
+                                        </DropdownMenuItem>
+                                    ))}
+                                    
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleCreateProject}>
+                                        <PlusIcon className="w-4 h-4 mr-2" />
+                                        Create New Project
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             
                             <button
                                 type="button"
