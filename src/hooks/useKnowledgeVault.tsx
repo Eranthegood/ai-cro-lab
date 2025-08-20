@@ -44,12 +44,110 @@ export const useKnowledgeVault = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Get uploaded files for a section
+  const getFiles = useCallback(async (section?: string) => {
+    if (!currentWorkspace?.id) return { error: new Error('Missing workspace'), files: [] };
+
+    try {
+      let query = supabase
+        .from('knowledge_vault_files')
+        .select('*')
+        .eq('workspace_id', currentWorkspace.id)
+        .order('created_at', { ascending: false });
+
+      if (section) {
+        query = query.eq('config_section', section);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return { error: null, files: data || [] };
+    } catch (error: any) {
+      return { error, files: [] };
+    }
+  }, [currentWorkspace?.id]);
+
+  // Update configuration
+  const updateConfiguration = useCallback(async (
+    section: string,
+    configData: any,
+    completionScore: number
+  ) => {
+    if (!currentWorkspace?.id || !user) return { error: new Error('Missing workspace or user') };
+
+    try {
+      // Use the RPC function for proper validation and RLS
+      const { data, error } = await supabase.rpc('update_knowledge_vault_config', {
+        p_workspace_id: currentWorkspace.id,
+        p_section: section,
+        p_config_data: configData,
+        p_completion_score: completionScore
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Configuration saved",
+        description: `${section} section updated successfully`,
+      });
+
+      return { error: null, data };
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error saving configuration",
+        description: error.message,
+      });
+      return { error };
+    }
+  }, [currentWorkspace?.id, user]);
+
+  // Recalculate points for all sections based on existing files
+  const recalculateAllPoints = useCallback(async () => {
+    if (!currentWorkspace?.id || !user) return;
+
+    try {
+      const sections = ['repository', 'behavioral', 'predictive', 'visual'];
+      
+      for (const section of sections) {
+        const { files } = await getFiles(section);
+        
+        if (files.length > 0) {
+          let score = 0;
+          switch (section) {
+            case 'repository':
+              score = Math.min(files.length, 20); // 1 point per file, max 20
+              break;
+            case 'behavioral':
+              score = Math.min(files.length * 3, 20); // 3 points per file, max 20
+              break;
+            case 'predictive':
+              score = Math.min(files.length * 4, 20); // 4 points per file, max 20
+              break;
+            case 'visual':
+              score = Math.min(files.length * 2, 20); // 2 points per file, max 20
+              break;
+          }
+          
+          // Update configuration with calculated score
+          await updateConfiguration(section, { files_count: files.length }, score);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error recalculating points:', error);
+    }
+  }, [currentWorkspace?.id, user, getFiles, updateConfiguration]);
+
   // Fetch vault configurations and progress
   const fetchVaultData = useCallback(async () => {
     if (!currentWorkspace?.id) return;
 
     try {
       setLoading(true);
+
+      // First recalculate points for existing files
+      await recalculateAllPoints();
 
       // Fetch configurations
       const { data: configs, error: configError } = await supabase
@@ -83,72 +181,11 @@ export const useKnowledgeVault = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, recalculateAllPoints]);
 
   useEffect(() => {
     fetchVaultData();
   }, [fetchVaultData]);
-
-  // Update configuration
-  const updateConfiguration = useCallback(async (
-    section: string,
-    configData: any,
-    completionScore: number
-  ) => {
-    if (!currentWorkspace?.id || !user) return { error: new Error('Missing workspace or user') };
-
-    try {
-      // Use the RPC function for proper validation and RLS
-      const { data, error } = await supabase.rpc('update_knowledge_vault_config', {
-        p_workspace_id: currentWorkspace.id,
-        p_section: section,
-        p_config_data: configData,
-        p_completion_score: completionScore
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Configuration saved",
-        description: `${section} section updated successfully`,
-      });
-
-      // Refresh data
-      await fetchVaultData();
-      return { error: null, data };
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error saving configuration",
-        description: error.message,
-      });
-      return { error };
-    }
-  }, [currentWorkspace?.id, user, fetchVaultData]);
-
-  // Get uploaded files for a section
-  const getFiles = useCallback(async (section?: string) => {
-    if (!currentWorkspace?.id) return { error: new Error('Missing workspace'), files: [] };
-
-    try {
-      let query = supabase
-        .from('knowledge_vault_files')
-        .select('*')
-        .eq('workspace_id', currentWorkspace.id)
-        .order('created_at', { ascending: false });
-
-      if (section) {
-        query = query.eq('config_section', section);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return { error: null, files: data || [] };
-    } catch (error: any) {
-      return { error, files: [] };
-    }
-  }, [currentWorkspace?.id]);
 
   // Upload file to storage
   const uploadFile = useCallback(async (
