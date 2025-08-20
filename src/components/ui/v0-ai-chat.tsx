@@ -478,12 +478,11 @@ export function VercelV0Chat() {
                         className="gap-2"
                         onClick={() => toast({ title: "Document import", description: "Feature coming soon!" })}
                     >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14,2 14,8 20,8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <line x1="12" y1="9" x2="8" y2="9" />
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1"/>
+                            <polyline points="14,2 14,8 20,8" fill="#cbd5e1"/>
+                            <rect x="2" y="14" width="20" height="8" rx="2" fill="#3B82F6"/>
+                            <text x="12" y="19" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">DOCX</text>
                         </svg>
                         Add Document
                     </Button>
@@ -493,10 +492,10 @@ export function VercelV0Chat() {
                         className="gap-2"
                         onClick={() => toast({ title: "Text content import", description: "Feature coming soon!" })}
                     >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            <path d="M13 8H7" />
-                            <path d="M17 12H7" />
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 2L10 22H7.5L2.5 6L4 2Z" fill="#1a1a1a"/>
+                            <path d="M20 2L14 22H16.5L21.5 6L20 2Z" fill="#1a1a1a"/>
+                            <path d="M9 12H15V10H9V12Z" fill="#1a1a1a"/>
                         </svg>
                         Add Contenu textuel
                     </Button>
