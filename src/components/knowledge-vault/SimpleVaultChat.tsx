@@ -69,22 +69,37 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   useEffect(() => {
     const handleStreamUpdate = (event: CustomEvent) => {
       const { messageId, content } = event.detail;
+      console.log('📝 Stream update received:', { messageId, contentLength: content?.length });
       updateMessage(messageId, { content, isStreaming: true });
     };
 
     const handleStreamComplete = (event: CustomEvent) => {
-      const { messageId, content } = event.detail;
-      updateMessage(messageId, { content, isStreaming: false });
+      const { messageId } = event.detail;
+      console.log('✅ Stream completed for message:', messageId);
+      updateMessage(messageId, { isStreaming: false });
       setLoading(false);
+      
+      // Show success toast
+      toast({
+        title: "Analyse terminée",
+        description: "Votre réponse est prête !",
+      });
     };
 
     const handleStreamError = (event: CustomEvent) => {
       const { messageId, error } = event.detail;
+      console.error('❌ Stream error:', { messageId, error });
       updateMessage(messageId, { 
         content: "⚠️ **Erreur technique**\n\nProblème temporaire. Vérifiez votre connexion et réessayez.", 
         isStreaming: false 
       });
       setLoading(false);
+      
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: "Impossible de recevoir la réponse. Réessayez dans un moment.",
+      });
     };
 
     window.addEventListener('chatStreamUpdate', handleStreamUpdate as EventListener);
@@ -126,16 +141,25 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
       type: 'user',
       content: input.trim()
     });
+    console.log('💬 User message added:', userMessageId);
 
     const messageContent = input.trim();
     setInput('');
     setLoading(true);
     
-    // Add streaming placeholder
+    // Add streaming placeholder with slight delay to ensure unique ID
+    await new Promise(resolve => setTimeout(resolve, 1));
     const streamingMessageId = addMessage({
       type: 'assistant',
       content: '',
       isStreaming: true
+    });
+    console.log('🤖 Assistant message placeholder created:', streamingMessageId);
+    
+    // Show processing toast
+    toast({
+      title: "Analyse en cours...",
+      description: "Je traite votre demande avec les fichiers de votre vault.",
     });
 
     // Start background task for navigation

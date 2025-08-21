@@ -133,7 +133,10 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const addMessage = useCallback((message: Omit<ChatMessage, 'id' | 'conversationId' | 'timestamp'>): string => {
     if (!currentConversation) return '';
 
-    const messageId = `msg_${Date.now()}`;
+    // Generate truly unique ID with timestamp + random component
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🆔 Creating message with ID:', messageId, 'type:', message.type);
+    
     const newMessage: ChatMessage = {
       ...message,
       id: messageId,
