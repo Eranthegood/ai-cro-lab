@@ -19,6 +19,7 @@ import KnowledgeBase from "./pages/KnowledgeBase";
 import KnowledgeVaultConfig from "./pages/KnowledgeVaultConfig";
 import SimpleVault from "./pages/SimpleVault";
 import AIInsights from "./pages/AIInsights";
+import ABTestGenerator from "./pages/ABTestGenerator";
 import { JourneyMapper } from "./pages/JourneyMapper";
 import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
@@ -86,6 +87,11 @@ const App = () => (
                       <Route path="/dashboard/insights" element={
                         <ProtectedRoute>
                           <AIInsights />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/ab-testing" element={
+                        <ProtectedRoute>
+                          <ABTestGenerator />
                         </ProtectedRoute>
                       } />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
