@@ -8,7 +8,7 @@ import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
-import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider";
+// import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider"; // Disabled temporarily
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import DataAnalysis from "./pages/DataAnalysis";
@@ -25,7 +25,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LaunchDarklyProvider>
+    {/* LaunchDarkly disabled temporarily */}
+    {/* <LaunchDarklyProvider> */}
       <AuthProvider>
         <WorkspaceProvider>
           <ProjectsProvider>
@@ -100,7 +101,7 @@ const App = () => (
         </ProjectsProvider>
       </WorkspaceProvider>
     </AuthProvider>
-    </LaunchDarklyProvider>
+    {/* </LaunchDarklyProvider> */}
   </QueryClientProvider>
 );
 
