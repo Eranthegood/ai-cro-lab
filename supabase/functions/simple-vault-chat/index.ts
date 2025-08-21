@@ -57,29 +57,47 @@ serve(async (req) => {
 
     console.log(`📊 [${requestId}] Files found: ${files?.length || 0}`);
 
-    // Simple context building - just concatenate files
+    // Build context with support for images and text files
     let context = '';
+    const imageFiles: Array<{name: string, base64: string, mediaType: string}> = [];
+    
     if (files && files.length > 0) {
       context += 'FICHIERS DISPONIBLES:\n\n';
       
       for (const file of files.slice(0, 10)) { // Limit to 10 files max
         context += `📄 ${file.file_name} (${file.file_type})\n`;
         
-        // Try to get file content from storage
+        // Check if file is an image
+        const isImage = file.file_type.startsWith('image/') || 
+                       /\.(png|jpg|jpeg|gif|webp)$/i.test(file.file_name);
+        
         try {
           const { data: fileData } = await supabase.storage
             .from('knowledge-vault')
             .download(file.storage_path);
           
           if (fileData) {
-            const text = await fileData.text();
-            // Simple parsing - just include first 1000 characters
-            const preview = text.substring(0, 1000);
-            context += `Contenu: ${preview}${text.length > 1000 ? '...' : ''}\n\n`;
+            if (isImage) {
+              // Handle images - convert to base64 for Claude vision
+              const arrayBuffer = await fileData.arrayBuffer();
+              const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+              imageFiles.push({
+                name: file.file_name,
+                base64: base64,
+                mediaType: file.file_type
+              });
+              context += `Contenu: [Image incluse dans l'analyse visuelle]\n\n`;
+              console.log(`🖼️ [${requestId}] Image added: ${file.file_name} (${file.file_type})`);
+            } else {
+              // Handle text files as before
+              const text = await fileData.text();
+              const preview = text.substring(0, 1000);
+              context += `Contenu: ${preview}${text.length > 1000 ? '...' : ''}\n\n`;
+            }
           }
         } catch (fileError) {
           console.warn(`Failed to read file ${file.file_name}:`, fileError);
-          context += `Contenu: [Fichier non-textuel ou inaccessible]\n\n`;
+          context += `Contenu: [Fichier non accessible]\n\n`;
         }
       }
     } else {
@@ -111,21 +129,12 @@ serve(async (req) => {
     }
 
     // Call Claude with streaming
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-        'Accept': 'text/event-stream'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 2000,
-        stream: true,
-        messages: [{
-          role: 'user',
-          content: `Tu es Claude, assistant IA du Knowledge Vault - Mode Simple et Intelligent.
+    
+    // Build message content array to support both text and images
+    const messageContent = [
+      {
+        type: "text",
+        text: `Tu es Claude, assistant IA du Knowledge Vault - Mode Simple et Intelligent.
 
 ${projectId ? 
   `🎯 Contexte: Projet "${projectId}" - Analyse ciblée` :
@@ -144,11 +153,43 @@ ${context}
 - Sois concis, actionnable et pratique en français
 - Suggère des actions concrètes quand c'est pertinent
 - Si aucune donnée pertinente dans le vault, réponds quand même avec tes connaissances générales
+- Si tu vois des images, analyse-les en détail et explique ce qu'elles montrent
 
 Exemple de format de réponse:
 📄 **D'après vos fichiers:** [informations du vault]
 🧠 **Complément d'information:** [tes connaissances si utiles]
 ✅ **Recommandations:** [actions suggérées]`
+      }
+    ];
+
+    // Add images to message content if any
+    for (const imageFile of imageFiles) {
+      messageContent.push({
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: imageFile.mediaType,
+          data: imageFile.base64
+        }
+      });
+      console.log(`🖼️ [${requestId}] Added image to Claude request: ${imageFile.name}`);
+    }
+    
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01',
+        'Accept': 'text/event-stream'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 2000,
+        stream: true,
+        messages: [{
+          role: 'user',
+          content: messageContent
         }]
       })
     });
