@@ -324,6 +324,9 @@ async function callClaudeWithStreamingRetry(apiKey: string, payload: any, maxRet
   
   throw new Error('All streaming attempts failed');
 }
+
+// ========== PHASE 2 CORRECTIONS: CLAUDE FALLBACK API ==========
+async function callClaudeWithRetry(apiKey: string, payload: any, maxRetries = 3): Promise<any> {
   const delays = [1000, 2000, 4000, 8000]; // Backoff exponentiel: 1s, 2s, 4s, 8s
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
