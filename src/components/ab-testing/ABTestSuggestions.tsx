@@ -12,16 +12,40 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 interface Suggestion {
   id: string;
   title: string;
-  problem: string;
-  solution: string;
-  expectedImpact: string;
+  problem_detected?: {
+    issue: string;
+    evidence: string;
+    impact_scope: string;
+  };
+  problem?: string; // Legacy support
+  solution: {
+    approach: string;
+    psychological_rationale: string;
+    implementation_strategy: string;
+  } | string; // Legacy support
+  expected_impact?: {
+    primary_metric: string;
+    confidence_level: string;
+    timeline_to_significance: string;
+    secondary_benefits: string[];
+  };
+  expectedImpact?: string; // Legacy support
   confidence: number;
-  difficulty: 'Facile' | 'Moyen' | 'Avancé';
-  psychologyInsight: string;
-  uniqueness: string;
+  difficulty: string;
+  psychologyInsight?: string; // Legacy support
+  differentiation_factor?: string;
+  surprise_type?: string;
+  credibility_signals?: {
+    case_study_reference: string;
+    psychological_research: string;
+    industry_precedent?: string;
+  };
+  quality_score?: number;
+  uniqueness?: string; // Legacy support
   brandContext?: string;
   implementation: {
     platform: string;
+    difficulty?: string;
     code: string;
     setup: string[];
   };
@@ -35,428 +59,409 @@ interface ABTestSuggestionsProps {
   data: any;
   onSuggestionSelected: (suggestion: Suggestion) => void;
   onBack: () => void;
+  onRegenerateRequested?: (iterationCount: number) => void;
 }
 
-export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack }: ABTestSuggestionsProps) => {
+export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegenerateRequested }: ABTestSuggestionsProps) => {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [currentAnalysisStep, setCurrentAnalysisStep] = useState('');
+  const [iterationCount, setIterationCount] = useState(0);
+  const [engineVersion, setEngineVersion] = useState<string>('');
 
   const analyzePageContext = (url: string) => {
     const lowerUrl = url.toLowerCase();
     
-    // Detect page type
-    let pageType = 'homepage';
-    if (lowerUrl.includes('checkout') || lowerUrl.includes('cart')) pageType = 'checkout';
-    else if (lowerUrl.includes('product') || lowerUrl.includes('/p/')) pageType = 'product';
-    else if (lowerUrl.includes('pricing') || lowerUrl.includes('plans')) pageType = 'pricing';
-    else if (lowerUrl.includes('signup') || lowerUrl.includes('register')) pageType = 'signup';
-
-    // Detect brand
-    let brand = null;
-    if (lowerUrl.includes('decathlon')) brand = 'decathlon';
-    else if (lowerUrl.includes('nike')) brand = 'nike';
-    else if (lowerUrl.includes('amazon')) brand = 'amazon';
-    else if (lowerUrl.includes('booking')) brand = 'booking';
-
-    // Detect industry
-    let industry = 'general';
-    if (lowerUrl.includes('shop') || lowerUrl.includes('store')) industry = 'ecommerce';
-    else if (lowerUrl.includes('app') || lowerUrl.includes('saas')) industry = 'saas';
-    else if (lowerUrl.includes('hotel') || lowerUrl.includes('travel')) industry = 'travel';
-
-    return { pageType, brand, industry };
+    if (lowerUrl.includes('shop') || lowerUrl.includes('product') || lowerUrl.includes('cart')) {
+      return { pageType: 'ecommerce', brand: 'shop', industry: 'retail' };
+    } else if (lowerUrl.includes('app') || lowerUrl.includes('dashboard') || lowerUrl.includes('login')) {
+      return { pageType: 'saas', brand: 'app', industry: 'software' };
+    } else if (lowerUrl.includes('bank') || lowerUrl.includes('finance') || lowerUrl.includes('invest')) {
+      return { pageType: 'finance', brand: 'financial', industry: 'finance' };
+    } else {
+      return { pageType: 'homepage', brand: 'general', industry: 'business' };
+    }
   };
 
-  const generateSuggestions = async () => {
+  const generateSuggestions = async (iteration: number = 0) => {
+    setIsGenerating(true);
+    setAnalysisProgress(0);
+    setCurrentAnalysisStep('Initializing multi-layer analysis engine...');
+
     try {
-      setIsGenerating(true);
-      const context = analyzePageContext(data.pageUrl);
-      
-      // Simulate AI analysis with progress updates
+      // Enhanced progress updates for multi-layer system
       const steps = [
-        'Analyse de la page...',
-        'Extraction des insights des données...',
-        'Consultation du Knowledge Vault...',
-        'Génération des suggestions...',
-        'Calcul des impacts potentiels...'
+        { step: 'Loading user preferences and history...', progress: 15 },
+        { step: 'Analyzing competitive landscape...', progress: 30 },
+        { step: 'Processing vault knowledge...', progress: 45 },
+        { step: 'Generating intelligent insights with Claude Sonnet 4...', progress: 70 },
+        { step: 'Applying quality validation and enhancement...', progress: 85 },
+        { step: 'Personalizing recommendations...', progress: 95 },
+        { step: 'Complete!', progress: 100 }
       ];
 
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentAnalysisStep(steps[i]);
-        setAnalysisProgress((i + 1) / steps.length * 100);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      for (const { step, progress } of steps) {
+        setCurrentAnalysisStep(step);
+        setAnalysisProgress(progress);
+        await new Promise(resolve => setTimeout(resolve, 600));
       }
 
-      // Call AI service to generate suggestions
-      const { data: aiResponse, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
+      // Call enhanced Supabase function
+      const { data: result, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
         body: {
           pageUrl: data.pageUrl,
           goalType: data.goalType,
           businessContext: data.businessContext,
           currentPain: data.currentPain,
           useVaultKnowledge: data.useVaultKnowledge,
-          uploadedFiles: data.uploadedFiles,
-          workspaceId: data.workspaceId,
-          userId: data.userId,
-          context
+          uploadedFiles: data.selectedFiles,
+          workspaceId: currentWorkspace?.id,
+          userId: user?.id,
+          context: analyzePageContext(data.pageUrl),
+          iterationCount: iteration
         }
       });
 
       if (error) {
-        throw new Error(error.message);
-      }
-
-      if (aiResponse?.suggestions) {
-        setSuggestions(aiResponse.suggestions);
+        console.error('Error generating suggestions:', error);
+        setSuggestions(generateFallbackSuggestions());
+        toast({
+          title: "Using fallback suggestions",
+          description: "AI service temporarily unavailable, showing curated recommendations.",
+          variant: "default"
+        });
       } else {
-        // Fallback suggestions based on context
-        setSuggestions(generateFallbackSuggestions(context, data.goalType));
+        setSuggestions(result.suggestions || []);
+        setEngineVersion(result.meta?.engine_version || 'multi-layer-v2');
+        setIterationCount(iteration);
+        
+        toast({
+          title: iteration > 0 ? "Fresh suggestions generated!" : "AI suggestions generated!",
+          description: `Generated ${result.suggestions?.length || 0} ${iteration > 0 ? 'alternative' : 'personalized'} test recommendations.`,
+        });
       }
-
+    } catch (error) {
+      console.error('Error:', error);
+      setSuggestions(generateFallbackSuggestions());
       toast({
-        title: "Suggestions générées",
-        description: `${suggestions.length || 3} tests AB recommandés pour votre page`,
-      });
-
-    } catch (error: any) {
-      console.error('Error generating suggestions:', error);
-      
-      // Generate fallback suggestions
-      const context = analyzePageContext(data.pageUrl);
-      setSuggestions(generateFallbackSuggestions(context, data.goalType));
-      
-      toast({
-        title: "Suggestions générées (mode local)",
-        description: "Utilisation des suggestions par défaut en cas d'erreur IA",
-        variant: "destructive",
+        title: "Error generating suggestions",
+        description: "Showing fallback recommendations instead.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const generateFallbackSuggestions = (context: any, goalType: string): Suggestion[] => {
-    const baseSuggestions: Suggestion[] = [
+  const handleRegenerate = () => {
+    const nextIteration = iterationCount + 1;
+    generateSuggestions(nextIteration);
+    onRegenerateRequested?.(nextIteration);
+  };
+
+  const generateFallbackSuggestions = (): Suggestion[] => {
+    return [
       {
-        id: '1',
-        title: "Optimisation psychologique du CTA principal",
-        problem: "Le bouton principal manque d'urgence et de clarté sur la valeur. 73% des utilisateurs hésitent avant de cliquer.",
-        solution: "Tester des variations avec urgence temporelle, bénéfices explicites et couleurs contrastées pour maximiser l'attention.",
-        expectedImpact: "+25-35%",
-        confidence: 85,
-        difficulty: 'Moyen',
-        psychologyInsight: "L'urgence temporelle et la clarté des bénéfices réduisent l'anxiété décisionnelle et accélèrent l'action.",
-        uniqueness: "Combine psychologie comportementale et design persuasif pour créer un effet de conversion compound.",
+        id: "1",
+        title: "Micro-Commitment Psychology Ladder",
+        problem_detected: {
+          issue: "Users experience decision paralysis with large commitments",
+          evidence: "Behavioral psychology shows 67% higher completion with micro-steps",
+          impact_scope: "73% of hesitant visitors"
+        },
+        solution: {
+          approach: "Break main CTA into micro-commitment sequence with progress visualization",
+          psychological_rationale: "Commitment escalation + goal gradient effect reduces cognitive load and creates momentum",
+          implementation_strategy: "Multi-step progress bar with small victories at each stage"
+        },
+        expected_impact: {
+          primary_metric: "Conversion rate +28-35%",
+          confidence_level: "High (87%)",
+          timeline_to_significance: "12 days",
+          secondary_benefits: ["Reduced abandonment", "Higher engagement", "Better qualification"]
+        },
+        confidence: 87,
+        difficulty: "Medium",
+        differentiation_factor: "Uses gaming psychology principles rarely applied to conversion optimization",
+        surprise_type: "cross_industry",
+        credibility_signals: {
+          case_study_reference: "Similar implementation showed 31% improvement in e-commerce checkout",
+          psychological_research: "Research by Ariely confirms micro-commitment effectiveness"
+        },
+        quality_score: 0.92,
         implementation: {
-          platform: 'AB Tasty',
+          platform: "AB Tasty",
+          difficulty: "Medium",
           code: `
-.cta-button {
-  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%) !important;
-  color: white !important;
-  font-size: 18px !important;
-  padding: 16px 32px !important;
-  border-radius: 8px !important;
-  font-weight: 700 !important;
-  border: none !important;
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3) !important;
-  transition: all 0.3s ease !important;
+.progress-ladder {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.cta-button:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4) !important;
+.step {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin-right: 10px;
+  transition: all 0.3s ease;
 }
-.cta-button:before {
-  content: "⚡ " !important;
-}
-          `,
+.step.active {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  transform: scale(1.2);
+}`,
           setup: [
-            "Identifier le sélecteur CSS du bouton principal",
-            "Créer la variation dans AB Tasty",
-            "Configurer le tracking des clics",
-            "Définir la répartition de trafic 50/50"
+            "Add progress indicator to form",
+            "Break form into logical steps",
+            "Add micro-rewards at each completion",
+            "Track step completion rates"
           ]
         },
         metrics: {
-          primary: 'Taux de clic sur CTA',
-          secondary: ['Temps d\'hésitation', 'Taux de conversion', 'Engagement post-clic']
-        }
-      },
-      {
-        id: '2',
-        title: "Réduction friction cognitive formulaire",
-        problem: "Les formulaires créent 67% d'abandon par surcharge cognitive et manque de progression claire.",
-        solution: "Simplifier en étapes progressives avec indicateurs visuels, validation en temps réel et récupération intelligente.",
-        expectedImpact: "+40-55%",
-        confidence: 92,
-        difficulty: 'Avancé',
-        psychologyInsight: "La fragmentation cognitive réduit la charge mentale. La progression visible maintient la motivation.",
-        uniqueness: "Transforme un processus intimidant en parcours guidé avec feedback positif constant.",
-        implementation: {
-          platform: 'Optimizely',
-          code: `
-.form-step {
-  opacity: 0 !important;
-  transform: translateX(30px) !important;
-  transition: all 0.4s ease !important;
-}
-.form-step.active {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
-}
-.progress-bar {
-  background: linear-gradient(90deg, #28a745 0%, #20c997 100%) !important;
-  height: 6px !important;
-  border-radius: 3px !important;
-  transition: width 0.5s ease !important;
-}
-          `,
-          setup: [
-            "Segmenter le formulaire en étapes logiques",
-            "Ajouter une barre de progression",
-            "Implémenter la validation en temps réel",
-            "Configurer la sauvegarde automatique"
-          ]
-        },
-        metrics: {
-          primary: 'Taux de completion formulaire',
-          secondary: ['Temps de completion', 'Taux d\'abandon par étape', 'Erreurs de validation']
-        }
-      },
-      {
-        id: '3',
-        title: "Social proof intelligent et contextuel",
-        problem: "Les témoignages génériques ne créent pas de connexion personnelle. Manque de crédibilité relationnelle.",
-        solution: "Affichage dynamique de social proof basé sur le profil visiteur avec métriques temps réel et personas similaires.",
-        expectedImpact: "+30-45%",
-        confidence: 78,
-        difficulty: 'Avancé',
-        psychologyInsight: "Les neurones miroirs s'activent quand on voit des personnes similaires réussir. Crée un effet 'ça pourrait être moi'.",
-        uniqueness: "Personnalise la preuve sociale sans tracking invasif, utilise l'intelligence comportementale.",
-        implementation: {
-          platform: 'VWO',
-          code: `
-.social-proof {
-  background: rgba(40, 167, 69, 0.1) !important;
-  border-left: 4px solid #28a745 !important;
-  padding: 16px !important;
-  border-radius: 8px !important;
-  margin: 20px 0 !important;
-}
-.testimonial-avatar {
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 50% !important;
-  border: 2px solid #28a745 !important;
-}
-.live-counter {
-  color: #28a745 !important;
-  font-weight: 600 !important;
-  animation: pulse 2s infinite !important;
-}
-          `,
-          setup: [
-            "Observer les segments d'audience principaux",
-            "Créer des témoignages par persona",
-            "Implémenter la logique de matching",
-            "Ajouter des métriques temps réel"
-          ]
-        },
-        metrics: {
-          primary: 'Engagement avec social proof',
-          secondary: ['Temps passé sur la section', 'Clics sur témoignages', 'Conversion post-exposition']
+          primary: "Multi-step conversion completion rate",
+          secondary: ["Time per step", "Drop-off by stage", "Overall satisfaction"]
         }
       }
     ];
+  };
 
-    // Customize suggestions based on context
-    if (context.pageType === 'checkout') {
-      baseSuggestions[0].title = "Urgence checkout et réassurance sécurité";
-      baseSuggestions[0].problem = "67% d'abandon checkout par manque de confiance et coûts surprise.";
-    } else if (context.pageType === 'product') {
-      baseSuggestions[0].title = "Bouton d'achat avec proof de popularité";
-      baseSuggestions[0].problem = "Le CTA produit manque de social proof et d'urgence d'achat.";
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy':
+      case 'facile':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case 'medium':
+      case 'moyen':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'advanced':
+      case 'avancé':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
-
-    return baseSuggestions;
   };
 
   useEffect(() => {
-    generateSuggestions();
+    generateSuggestions(0);
   }, []);
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Facile': return 'bg-green-100 text-green-800';
-      case 'Moyen': return 'bg-yellow-100 text-yellow-800';
-      case 'Avancé': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   if (isGenerating) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardContent className="p-12">
-            <div className="text-center space-y-6">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <Brain className="h-8 w-8 text-primary animate-pulse" />
-              </div>
-              
-              <div className="space-y-3">
-                <h3 className="text-xl font-semibold">🧠 Analyse intelligente en cours...</h3>
-                <p className="text-muted-foreground">{currentAnalysisStep}</p>
-              </div>
-
-              <div className="max-w-sm mx-auto space-y-2">
-                <Progress value={analysisProgress} className="h-2" />
-                <p className="text-sm text-muted-foreground">{Math.round(analysisProgress)}% complété</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  <span>Analyse du contexte page</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>Insights comportementaux</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Prédictions d'impact</span>
-                </div>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">Multi-Layer AI Analysis Engine</span>
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl font-bold mb-2">Generating Intelligent Suggestions</h1>
+            <p className="text-muted-foreground">Our AI is analyzing your context and generating personalized test recommendations</p>
+          </div>
+
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="p-8">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <Brain className="w-16 h-16 mx-auto mb-4 text-primary animate-pulse" />
+                  <h3 className="text-lg font-semibold mb-2">{currentAnalysisStep}</h3>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Progress</span>
+                    <span>{analysisProgress}%</span>
+                  </div>
+                  <Progress value={analysisProgress} className="h-3" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Suggestions de tests AB</h2>
-          <p className="text-muted-foreground mt-1">
-            {suggestions.length} tests recommandés pour <span className="font-medium">{data.pageUrl}</span>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
+            <Target className="w-4 h-4" />
+            <span className="text-sm font-medium">AI-Generated Test Opportunities</span>
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Personalized AB Test Suggestions</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our multi-layer AI engine analyzed your context and generated these intelligent test opportunities
           </p>
         </div>
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour
-        </Button>
-      </div>
 
-      {/* Page Context */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4 text-sm">
-            <Badge variant="secondary">{analyzePageContext(data.pageUrl).pageType}</Badge>
-            <Badge variant="outline">{analyzePageContext(data.pageUrl).industry}</Badge>
-            <Badge variant="outline">Objectif: {data.goalType}</Badge>
-            {data.useVaultKnowledge && (
-              <Badge className="bg-primary/10 text-primary">
-                <Brain className="h-3 w-3 mr-1" />
-                Vault Intelligence
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        {/* Page Context */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          {data.pageUrl && (
+            <Badge variant="secondary" className="px-3 py-1">
+              📍 {data.pageUrl.split('/')[2]}
+            </Badge>
+          )}
+          <Badge variant="secondary" className="px-3 py-1">
+            🎯 {data.goalType}
+          </Badge>
+          {data.useVaultKnowledge && (
+            <Badge variant="secondary" className="px-3 py-1">
+              📚 Knowledge Vault Enhanced
+            </Badge>
+          )}
+          {engineVersion && (
+            <Badge variant="outline" className="px-3 py-1">
+              🤖 {engineVersion}
+            </Badge>
+          )}
+        </div>
 
-      {/* Suggestions Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        {suggestions.map((suggestion, index) => (
-          <Card key={suggestion.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">Test {index + 1}</Badge>
-                    <Badge className={getDifficultyColor(suggestion.difficulty)}>
-                      {suggestion.difficulty}
+        {/* Suggestions Grid */}
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mb-8">
+          {suggestions.map((suggestion) => (
+            <Card key={suggestion.id} className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
+              <CardHeader className="pb-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Badge variant="outline" className={getDifficultyColor(suggestion.difficulty)}>
+                      {suggestion.implementation?.difficulty || suggestion.difficulty}
                     </Badge>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <span>Confiance:</span>
-                      <span className="font-medium">{suggestion.confidence}%</span>
+                    <Badge variant="outline">
+                      Confidence: {suggestion.confidence}%
+                    </Badge>
+                    {suggestion.quality_score && (
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        Quality: {Math.round(suggestion.quality_score * 100)}%
+                      </Badge>
+                    )}
+                    {suggestion.surprise_type && (
+                      <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                        {suggestion.surprise_type.replace('_', ' ')}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">{suggestion.title}</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><span className="font-medium">Expected Impact:</span> {
+                        suggestion.expected_impact?.primary_metric || suggestion.expectedImpact
+                      }</p>
+                      {suggestion.expected_impact?.timeline_to_significance && (
+                        <p><span className="font-medium">Timeline:</span> {suggestion.expected_impact.timeline_to_significance}</p>
+                      )}
                     </div>
                   </div>
-                  <CardTitle className="text-xl">{suggestion.title}</CardTitle>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">{suggestion.expectedImpact}</div>
-                  <div className="text-sm text-muted-foreground">impact estimé</div>
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-6">
-              {/* Problem & Solution */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-red-600 mb-2 flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Problème identifié
-                  </h4>
-                  <p className="text-sm text-muted-foreground">{suggestion.problem}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-green-600 mb-2 flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Solution proposée
-                  </h4>
-                  <p className="text-sm text-muted-foreground">{suggestion.solution}</p>
-                </div>
-              </div>
+              </CardHeader>
 
-              {/* Insights */}
-              <div className="space-y-3 border-t pt-4">
-                <div>
-                  <span className="font-medium text-primary text-sm">🧠 Psychologie:</span>
-                  <span className="text-sm text-muted-foreground ml-2">{suggestion.psychologyInsight}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-primary text-sm">✨ Différenciateur:</span>
-                  <span className="text-sm text-muted-foreground ml-2">{suggestion.uniqueness}</span>
-                </div>
-              </div>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">🎯 Problem Identified</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {suggestion.problem_detected?.issue || suggestion.problem}
+                    </p>
+                    {suggestion.problem_detected?.evidence && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        Evidence: {suggestion.problem_detected.evidence}
+                      </p>
+                    )}
+                  </div>
 
-              {/* Metrics */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h5 className="font-medium text-sm mb-2">📊 Métriques à suivre</h5>
-                <div className="space-y-1 text-sm">
-                  <div><span className="font-medium">Principal:</span> {suggestion.metrics.primary}</div>
-                  <div><span className="font-medium">Secondaires:</span> {suggestion.metrics.secondary.join(', ')}</div>
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">💡 Proposed Solution</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {typeof suggestion.solution === 'object' 
+                        ? suggestion.solution.approach 
+                        : suggestion.solution}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">🧠 Psychology Insight</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {typeof suggestion.solution === 'object' 
+                        ? suggestion.solution.psychological_rationale 
+                        : suggestion.psychologyInsight}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-sm mb-1">✨ Why This Works</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {suggestion.differentiation_factor || suggestion.uniqueness}
+                    </p>
+                  </div>
+
+                  {suggestion.credibility_signals && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-1">🎖️ Credibility</h4>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        {suggestion.credibility_signals.case_study_reference && (
+                          <p>• {suggestion.credibility_signals.case_study_reference}</p>
+                        )}
+                        {suggestion.credibility_signals.psychological_research && (
+                          <p>• {suggestion.credibility_signals.psychological_research}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">📊 Metrics to Track</h4>
+                    <div className="text-sm text-muted-foreground">
+                      <p><span className="font-medium">Primary:</span> {suggestion.metrics.primary}</p>
+                      <p><span className="font-medium">Secondary:</span> {suggestion.metrics.secondary.join(', ')}</p>
+                      {suggestion.expected_impact?.secondary_benefits && (
+                        <p><span className="font-medium">Benefits:</span> {suggestion.expected_impact.secondary_benefits.join(', ')}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full mt-4" 
+                    onClick={() => onSuggestionSelected(suggestion)}
+                  >
+                    Select This Test
+                  </Button>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-              {/* Action Button */}
-              <Button 
-                onClick={() => onSuggestionSelected(suggestion)}
-                className="w-full"
-                size="lg"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Générer le code de ce test
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Regenerate Button */}
-      <div className="text-center">
-        <Button variant="outline" onClick={generateSuggestions}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Générer de nouvelles suggestions
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-4 pt-4 border-t">
+          <Button 
+            onClick={onBack}
+            variant="outline"
+            className="flex-1"
+          >
+            Back to Setup
+          </Button>
+          <Button 
+            onClick={handleRegenerate}
+            variant="outline"
+            className="flex-1"
+            disabled={isGenerating}
+          >
+            {isGenerating ? 'Generating...' : 
+             iterationCount > 0 ? `Regenerate (${iterationCount + 1})` : 'Generate New Suggestions'
+            }
+          </Button>
+        </div>
+        
+        {engineVersion && (
+          <div className="text-center text-xs text-muted-foreground mt-2">
+            Powered by {engineVersion} • Iteration {iterationCount + 1}
+          </div>
+        )}
       </div>
     </div>
   );

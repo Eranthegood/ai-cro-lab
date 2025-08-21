@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_suggestions_history: {
+        Row: {
+          created_at: string
+          goal_type: string | null
+          id: string
+          page_url: string | null
+          session_id: string | null
+          suggestion_data: Json
+          user_action: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_type?: string | null
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          suggestion_data?: Json
+          user_action?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_type?: string | null
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          suggestion_data?: Json
+          user_action?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      ab_test_user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          industry_context: string | null
+          scope_preference: string | null
+          successful_patterns: Json | null
+          technical_comfort: string | null
+          tone_preference: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          industry_context?: string | null
+          scope_preference?: string | null
+          successful_patterns?: Json | null
+          technical_comfort?: string | null
+          tone_preference?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          industry_context?: string | null
+          scope_preference?: string | null
+          successful_patterns?: Json | null
+          technical_comfort?: string | null
+          tone_preference?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       ab_tests: {
         Row: {
           business_impact: Json | null

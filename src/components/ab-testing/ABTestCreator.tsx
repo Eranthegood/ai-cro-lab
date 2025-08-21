@@ -115,11 +115,16 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
         businessContext,
         currentPain,
         useVaultKnowledge,
-        uploadedFiles: filesToAnalyze,
-        selectedFileIds: selectedFiles,
-        workspaceId: currentWorkspace.id,
-        userId: user.id,
-        timestamp: new Date().toISOString()
+        selectedFiles: filesToAnalyze,
+        context: {
+          pageType: determinePageType(pageUrl),
+          brand: extractBrandFromUrl(pageUrl),
+          industry: extractIndustryFromUrl(pageUrl)
+        },
+        workspace: currentWorkspace,
+        user: user,
+        timestamp: Date.now(),
+        iterationCount: 0
       };
 
       // Simulate analysis processing
