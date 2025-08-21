@@ -509,8 +509,17 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
   
   // Score files based on query relevance
   files.forEach(file => {
+    // Add safety checks for required fields
+    if (!file?.file_name || !file?.id) {
+      console.warn('⚠️ Skipping file with missing required fields:', file);
+      return;
+    }
+    
     let relevanceScore = 0;
     const fileName = file.file_name.toLowerCase();
+    const fileType = (file.file_type || '').toLowerCase();
+    
+    console.log(`🔍 Analyzing file: ${file.file_name} (type: ${fileType})`);
     
     // CVR-related queries
     if (queryLower.includes('cvr') || queryLower.includes('conversion')) {
@@ -535,9 +544,9 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
     // Always include REAL 24-25 for analysis
     if (fileName.includes('real 24-25')) relevanceScore += 15;
     
-    // File type preferences
-    if (file.file_type.includes('csv')) relevanceScore += 3;
-    if (file.file_type.includes('json')) relevanceScore += 2;
+    // File type preferences (with null safety)
+    if (fileType && fileType.includes('csv')) relevanceScore += 3;
+    if (fileType && fileType.includes('json')) relevanceScore += 2;
     
     if (relevanceScore > 5) {
       relevantFiles.push({ ...file, relevanceScore });
@@ -566,11 +575,17 @@ async function parseRelevantFiles(supabase: any, files: any[], userQuery: string
       if (parsedContent) {
         console.log(`✅ Pre-parsed content found for file: ${file.file_name}`);
         parsedFiles[file.id] = {
-          type: parsedContent.content_type,
-          data: parsedContent.structured_data,
+          type: parsedContent.content_type || 'text',
+          data: parsedContent.structured_data || {},
           summary: parsedContent.summary || `File: ${file.file_name}`,
-          metadata: parsedContent.columns_metadata || {},
-          tokenCount: parsedContent.token_count || 0
+          metadata: {
+            fileName: file.file_name,
+            fileSize: file.file_size,
+            section: file.config_section,
+            uploadedAt: file.created_at,
+            ...(parsedContent.columns_metadata || {})
+          },
+          tokens: parsedContent.token_count || 0
         };
         preParseHits++;
       } else {
@@ -625,10 +640,11 @@ async function createSmartContext(vaultData: KnowledgeVaultData, userQuery: stri
   // Prioritize REAL 24-25 data if query is about CVR/metrics
   if (queryLower.includes('cvr') || queryLower.includes('hier') || queryLower.includes('conversion')) {
     const realFile = Object.values(vaultData.parsedFiles).find(
-      f => f.metadata.fileName.toLowerCase().includes('real 24-25')
+      f => f.metadata?.fileName?.toLowerCase().includes('real 24-25')
     );
     
     if (realFile && realFile.tokens < remainingTokens) {
+      console.log(`📊 Prioritizing REAL 24-25 file: ${realFile.metadata?.fileName}`);
       context += await formatFileDataForContext(realFile, 'detailed');
       remainingTokens -= realFile.tokens;
     }
@@ -636,10 +652,14 @@ async function createSmartContext(vaultData: KnowledgeVaultData, userQuery: stri
   
   // Add other relevant files within token budget
   for (const [fileId, parsedFile] of Object.entries(vaultData.parsedFiles)) {
-    if (parsedFile.tokens < remainingTokens && !parsedFile.metadata.fileName.toLowerCase().includes('real 24-25')) {
-      const formatLevel = parsedFile.tokens > 5000 ? 'summary' : 'detailed';
+    const fileName = parsedFile.metadata?.fileName?.toLowerCase() || '';
+    const tokens = parsedFile.tokens || 0;
+    
+    if (tokens < remainingTokens && !fileName.includes('real 24-25')) {
+      const formatLevel = tokens > 5000 ? 'summary' : 'detailed';
+      console.log(`📎 Adding file to context: ${parsedFile.metadata?.fileName} (${formatLevel})`);
       context += await formatFileDataForContext(parsedFile, formatLevel);
-      remainingTokens -= formatLevel === 'summary' ? 1000 : parsedFile.tokens;
+      remainingTokens -= formatLevel === 'summary' ? 1000 : tokens;
     }
     
     if (remainingTokens < 1000) break; // Stop if running low on tokens
@@ -659,8 +679,20 @@ async function createSmartContext(vaultData: KnowledgeVaultData, userQuery: stri
 
 // Format file data for context with different detail levels
 async function formatFileDataForContext(parsedFile: ParsedFileContent, level: 'summary' | 'detailed'): Promise<string> {
-  let formatted = `\n=== ${parsedFile.metadata.fileName.toUpperCase()} ===\n`;
-  formatted += `Type: ${parsedFile.type} | ${parsedFile.summary}\n`;
+  const fileName = parsedFile.metadata?.fileName || 'Fichier inconnu';
+  const fileType = parsedFile.type || 'unknown';
+  const summary = parsedFile.summary || 'Aucun résumé disponible';
+  
+  let formatted = `\n=== ${fileName.toUpperCase()} ===\n`;
+  formatted += `Type: ${fileType} | ${summary}\n`;
+  
+  console.log(`📝 Formatting file for context: ${fileName} (${level})`);
+  
+  // Safety check for metadata
+  if (!parsedFile.metadata) {
+    console.warn('⚠️ Missing metadata for file, using fallback format');
+    return formatted + 'Données limitées disponibles.\n\n';
+  }
   
   if (level === 'summary') {
     formatted += `Résumé: ${parsedFile.summary}\n\n`;
