@@ -223,9 +223,13 @@ async function callClaudeWithStreamingRetry(apiKey: string, payload: any, maxRet
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
+          'Accept': 'text/event-stream'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          ...payload,
+          stream: true
+        })
       });
 
       if (response.ok && response.body) {
