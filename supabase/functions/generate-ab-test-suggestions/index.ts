@@ -814,6 +814,7 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
       psychology_insight: "Quantified superiority reduces price sensitivity",
       code_complexity: "Complex Integration", 
       unique_factor: "Direct competitive positioning with proof points"
+    }
   ];
 
   return { 
