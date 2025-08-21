@@ -36,70 +36,70 @@ const App = () => (
             <NotificationProvider>
               <ChatProvider>
                 <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <BackgroundTaskPanel />
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/analysis" element={
-                <ProtectedRoute>
-                  <DataAnalysis />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/generator" element={
-                <ProtectedRoute>
-                  <CodeGenerator />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/knowledge" element={
-                <ProtectedRoute>
-                  <KnowledgeBase />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/knowledge/config" element={
-                <ProtectedRoute>
-                  <KnowledgeVaultConfig />
-                </ProtectedRoute>
-              } />
-              <Route path="/vault-simple" element={
-                <ProtectedRoute>
-                  <SimpleVault />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/knowledge/journey-mapper" element={
-                <ProtectedRoute>
-                  <JourneyMapper />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/analytics" element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/insights" element={
-                <ProtectedRoute>
-                  <AIInsights />
-                </ProtectedRoute>
-              } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </TooltipProvider>
-        </ChatProvider>
-      </NotificationProvider>
-      </ProjectsProvider>
-    </WorkspaceProvider>
-  </AuthProvider>
-  {/* </LaunchDarklyProvider> */}
-</QueryClientProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <BackgroundTaskPanel />
+                    <Routes>
+                      <Route path="/" element={<Landing />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/analysis" element={
+                        <ProtectedRoute>
+                          <DataAnalysis />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/generator" element={
+                        <ProtectedRoute>
+                          <CodeGenerator />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/knowledge" element={
+                        <ProtectedRoute>
+                          <KnowledgeBase />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/knowledge/config" element={
+                        <ProtectedRoute>
+                          <KnowledgeVaultConfig />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/vault-simple" element={
+                        <ProtectedRoute>
+                          <SimpleVault />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/knowledge/journey-mapper" element={
+                        <ProtectedRoute>
+                          <JourneyMapper />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/analytics" element={
+                        <ProtectedRoute>
+                          <Analytics />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/dashboard/insights" element={
+                        <ProtectedRoute>
+                          <AIInsights />
+                        </ProtectedRoute>
+                      } />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ChatProvider>
+            </NotificationProvider>
+          </ProjectsProvider>
+        </WorkspaceProvider>
+      </AuthProvider>
+    {/* </LaunchDarklyProvider> */}
+  </QueryClientProvider>
 );
 
 export default App;
