@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ProjectSelector } from '@/components/project/ProjectSelector';
 import { useNotifications } from '@/context/NotificationContext';
+import { useRateLimit } from '@/hooks/useRateLimit';
 
 interface Message {
   id: string;
@@ -34,6 +35,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   const { currentProject } = useProjects();
   const { files, uploading, uploadFile, deleteFile } = useSimpleVault();
   const { startBackgroundTask, startPersistentStream } = useNotifications();
+  const { canMakeRequest, incrementCount } = useRateLimit();
   const { 
     messages, 
     addMessage, 
@@ -98,6 +100,26 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
 
   const handleSendMessage = async () => {
     if (!input.trim() || !user || !currentWorkspace || loading || !currentConversation) return;
+
+    // Check rate limit before proceeding
+    if (!canMakeRequest()) {
+      toast({
+        title: "Limite quotidienne atteinte",
+        description: "Vous avez atteint votre limite de 50 interactions par jour. Passez au plan premium pour un accès illimité.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Increment rate limit counter
+    if (!incrementCount()) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'incrémenter le compteur d'interactions.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Add user message to conversation
     const userMessageId = addMessage({
