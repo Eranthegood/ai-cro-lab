@@ -5,8 +5,8 @@ import { Loader2, Brain } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 
 export const BackgroundTaskPanel = () => {
-  const { backgroundTasks } = useNotifications();
-  const activeTasks = backgroundTasks.filter(task => task.status === 'processing');
+  const { backgroundTasks: tasks } = useNotifications();
+  const activeTasks = tasks.filter(task => task.status === 'processing');
   
   // Only show panel if user is NOT on the vault-simple page
   const isOnVaultPage = typeof window !== 'undefined' && window.location.pathname === '/vault-simple';
