@@ -166,22 +166,34 @@ serve(async (req) => {
 
     console.log(`🧠 [${requestId}] Context built: ${context.length} chars`);
 
-    // Simple rate limiting (50/day for free users)
+    // Authoritative server-side rate limiting (50/day for free users)
     const today = new Date().toISOString().split('T')[0];
-    const { data: interactions } = await supabase
+    const { data: interactions, error: auditError } = await supabase
       .from('knowledge_vault_audit')
-      .select('id')
+      .select('id, created_at')
       .eq('workspace_id', workspaceId)
       .eq('user_id', userId)
       .eq('action', 'ai_interaction')
       .gte('created_at', today + 'T00:00:00Z')
-      .lt('created_at', today + 'T23:59:59Z');
+      .lt('created_at', today + 'T23:59:59Z')
+      .order('created_at', { ascending: false });
+
+    if (auditError) {
+      console.error(`❌ [${requestId}] Failed to check rate limit:`, auditError);
+      throw new Error('Unable to verify rate limit. Please try again.');
+    }
 
     const count = interactions?.length || 0;
+    console.log(`🎯 [${requestId}] Rate limit check: ${count}/50 interactions today`);
+    
     if (count >= 50) {
+      console.log(`⛔ [${requestId}] Rate limit exceeded for user ${userId?.substring(0, 8)}`);
       return new Response(JSON.stringify({ 
-        error: `Limite quotidienne atteinte (${count}/50). Revenez demain.`,
-        rate_limit: true
+        error: `Limite quotidienne atteinte (${count}/50). Revenez demain à minuit.`,
+        rate_limit: true,
+        dailyCount: count,
+        limit: 50,
+        resetTime: today + 'T23:59:59Z'
       }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -310,10 +322,18 @@ Exemple de format de réponse:
 
     console.log(`✅ [${requestId}] Response completed: ${fullContent.length} chars, ${Date.now() - requestStart}ms`);
 
+    // Return response with updated rate limit info
+    const updatedCount = count + 1;
     return new Response(JSON.stringify({ 
       content: fullContent,
       request_id: requestId,
-      files_analyzed: files?.length || 0
+      files_analyzed: files?.length || 0,
+      rate_limit: {
+        dailyCount: updatedCount,
+        limit: 50,
+        remaining: Math.max(0, 50 - updatedCount),
+        canMakeRequest: updatedCount < 50
+      }
     }), {
       headers: { 
         ...corsHeaders, 

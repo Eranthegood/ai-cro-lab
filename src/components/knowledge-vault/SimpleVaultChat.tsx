@@ -37,7 +37,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   const { currentProject } = useProjects();
   const { files, uploading, uploadFile, deleteFile } = useSimpleVault();
   const { startBackgroundTask, startPersistentStream } = useNotifications();
-  const { canMakeRequest, incrementCount } = useRateLimit();
+  const { canMakeRequest, incrementCount, updateFromServerResponse } = useRateLimit();
   const isMobile = useIsMobile();
   const { 
     messages, 
@@ -185,11 +185,27 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
       console.log('✅ Function response received:', { dataType: typeof data, hasData: !!data });
       
       if (data?.error) {
+        if (data.rate_limit) {
+          // Update rate limit from server response
+          if (data.dailyCount !== undefined) {
+            updateFromServerResponse({
+              dailyCount: data.dailyCount,
+              limit: data.limit || 50,
+              remaining: Math.max(0, (data.limit || 50) - data.dailyCount),
+              canMakeRequest: data.dailyCount < (data.limit || 50)
+            });
+          }
+        }
         throw new Error(data.error);
       }
 
       // For non-streaming response, update message directly
       if (data && typeof data === 'object' && data.content) {
+        // Update rate limit from server response if available
+        if (data.rate_limit) {
+          updateFromServerResponse(data.rate_limit);
+        }
+        
         updateMessage(streamingMessageId, {
           content: data.content,
           isStreaming: false

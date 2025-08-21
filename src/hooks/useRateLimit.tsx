@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from './useWorkspace';
+import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RateLimitData {
   count: number;
   date: string;
 }
 
+interface ServerRateLimitData {
+  dailyCount: number;
+  limit: number;
+  remaining: number;
+  canMakeRequest: boolean;
+  resetTime?: string;
+}
+
 export const useRateLimit = () => {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const [dailyCount, setDailyCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState<number>(0);
 
   // Determine rate limit based on workspace plan
   const getRateLimit = (): number => {
@@ -93,16 +105,81 @@ export const useRateLimit = () => {
     return Math.round((dailyCount / limit) * 100);
   };
 
-  // Initialize count on mount or workspace change
+  // Fetch current count from server (authoritative)
+  const fetchServerCount = async (): Promise<void> => {
+    if (!currentWorkspace || !user || isUnlimited) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-daily-interactions', {
+        body: {
+          workspaceId: currentWorkspace.id,
+          userId: user.id
+        }
+      });
+
+      if (error) {
+        console.error('Failed to fetch server count:', error);
+        return;
+      }
+
+      if (data && typeof data.dailyCount === 'number') {
+        setDailyCount(data.dailyCount);
+        saveDailyCount(data.dailyCount);
+        setLastSyncTime(Date.now());
+        console.log('📊 Rate limit synced with server:', data.dailyCount);
+      }
+    } catch (error) {
+      console.error('Rate limit sync error:', error);
+      // Fallback to local storage in case of error
+      const localCount = loadDailyCount();
+      setDailyCount(localCount);
+    }
+  };
+
+  // Initialize count on mount or workspace/user change
   useEffect(() => {
-    // Don't initialize until we have workspace data (or confirmed there's no workspace)
-    if (currentWorkspace === undefined) return;
+    // Don't initialize until we have workspace and user data
+    if (currentWorkspace === undefined || !user) return;
     
     setLoading(true);
-    const count = loadDailyCount();
-    setDailyCount(count);
-    setLoading(false);
-  }, [currentWorkspace?.id]);
+    
+    // For unlimited users, just set to 0
+    if (isUnlimited) {
+      setDailyCount(0);
+      setLoading(false);
+      return;
+    }
+    
+    // Try to sync with server first, fallback to localStorage
+    const initializeCount = async () => {
+      const localCount = loadDailyCount();
+      setDailyCount(localCount); // Set local count immediately for UX
+      
+      // Then sync with server if it's been more than 5 minutes since last sync
+      const shouldSync = Date.now() - lastSyncTime > 5 * 60 * 1000;
+      if (shouldSync) {
+        await fetchServerCount();
+      }
+      
+      setLoading(false);
+    };
+    
+    initializeCount();
+  }, [currentWorkspace?.id, user?.id]);
+
+  // Update count from server response (when available)
+  const updateFromServerResponse = (serverData: ServerRateLimitData): void => {
+    if (serverData && typeof serverData.dailyCount === 'number') {
+      setDailyCount(serverData.dailyCount);
+      saveDailyCount(serverData.dailyCount);
+      setLastSyncTime(Date.now());
+    }
+  };
+
+  // Force refresh from server
+  const refreshFromServer = (): Promise<void> => {
+    return fetchServerCount();
+  };
 
   return {
     dailyCount,
@@ -112,5 +189,7 @@ export const useRateLimit = () => {
     incrementCount,
     canMakeRequest,
     getUsagePercentage,
+    updateFromServerResponse,
+    refreshFromServer,
   };
 };
