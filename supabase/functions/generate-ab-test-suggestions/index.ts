@@ -57,7 +57,9 @@ serve(async (req) => {
       workspaceId, 
       userId,
       context,
-      iterationCount = 0
+      iterationCount = 0,
+      // Phase 2: Screenshot integration
+      screenshot = null
     } = await req.json();
 
     console.log(`📋 [${requestId}] Advanced Request:`, { 
@@ -66,7 +68,8 @@ serve(async (req) => {
       filesCount: uploadedFiles?.length || 0,
       useVaultKnowledge,
       context,
-      iteration: iterationCount
+      iteration: iterationCount,
+      hasScreenshot: !!screenshot
     });
 
     // Verify workspace access
@@ -87,10 +90,10 @@ serve(async (req) => {
     // Get suggestion history for anti-repetition
     const suggestionMemory = await getSuggestionHistory(supabase, workspaceId, userId);
 
-    // Layer 1: Context Enrichment
+    // Layer 1: Context Enrichment (Enhanced with screenshot analysis)
     const enrichedContext = await generateEnrichedContext(
       supabase, pageUrl, goalType, businessContext, currentPain, 
-      useVaultKnowledge, uploadedFiles, requestId
+      useVaultKnowledge, uploadedFiles, requestId, screenshot
     );
 
     // Layer 2: Multi-Angle Analysis with rotation
@@ -287,7 +290,8 @@ function getSuccessfulApproaches(history: any[]) {
 
 async function generateEnrichedContext(
   supabase: any, pageUrl: string, goalType: string, businessContext: string, 
-  currentPain: string, useVaultKnowledge: boolean, uploadedFiles: any[], requestId: string
+  currentPain: string, useVaultKnowledge: boolean, uploadedFiles: any[], 
+  requestId: string, screenshot: any = null
 ) {
   let context = `
 CONTEXT ANALYSIS FOR CRO OPTIMIZATION
@@ -297,6 +301,67 @@ Business Goal: ${goalType}
 Business Context: ${businessContext || 'Not specified'}
 Current Pain Point: ${currentPain || 'Not specified'}
 `;
+
+  // Phase 2: Visual Analysis from Screenshot
+  if (screenshot) {
+    console.log(`📸 [${requestId}] Integrating visual analysis from screenshot`);
+    
+    context += '\n🎨 VISUAL ANALYSIS FROM SCREENSHOT:\n';
+    context += `Device Type: ${screenshot.metadata?.deviceType || 'desktop'}\n`;
+    
+    if (screenshot.visualAnalysis) {
+      const analysis = screenshot.visualAnalysis;
+      
+      // Color analysis
+      if (analysis.colors && analysis.colors.length > 0) {
+        context += `Primary Colors: ${analysis.colors.slice(0, 5).join(', ')}\n`;
+      }
+      
+      // Element analysis  
+      if (analysis.elements && analysis.elements.length > 0) {
+        context += `Key Interactive Elements Detected:\n`;
+        analysis.elements.slice(0, 8).forEach((element, index) => {
+          context += `- ${element.type.toUpperCase()}: "${element.text || 'No text'}" (${element.clickable ? 'Clickable' : 'Non-clickable'})\n`;
+          if (element.styles.backgroundColor) {
+            context += `  Background: ${element.styles.backgroundColor}\n`;
+          }
+        });
+      }
+      
+      // Layout analysis
+      if (analysis.layout) {
+        context += `Layout Structure: Header: ${analysis.layout.hasHeader ? 'Yes' : 'No'}, `;
+        context += `Footer: ${analysis.layout.hasFooter ? 'Yes' : 'No'}, `;
+        context += `Sidebar: ${analysis.layout.hasSidebar ? 'Yes' : 'No'}\n`;
+        context += `Content Width: ${analysis.layout.contentWidth}px, Scroll Height: ${analysis.layout.scrollHeight}px\n`;
+      }
+      
+      // Performance insights
+      if (analysis.performance) {
+        context += `Performance: Load Time ${Math.round(analysis.performance.loadTime)}ms, `;
+        context += `Images: ${analysis.performance.imageCount}\n`;
+        if (analysis.performance.largestContentfulPaint) {
+          context += `LCP: ${Math.round(analysis.performance.largestContentfulPaint)}ms\n`;
+        }
+      }
+    }
+    
+    context += `Screenshot URL: ${screenshot.imageUrl}\n`;
+    context += `\n📊 VISUAL OPTIMIZATION OPPORTUNITIES:\n`;
+    context += `Based on the screenshot analysis, consider these specific visual elements for AB testing:\n`;
+    
+    if (screenshot.visualAnalysis?.elements) {
+      const buttons = screenshot.visualAnalysis.elements.filter(el => el.type === 'button');
+      if (buttons.length > 0) {
+        context += `- ${buttons.length} button(s) detected - test colors, sizes, positioning\n`;
+      }
+      
+      const forms = screenshot.visualAnalysis.elements.filter(el => el.type === 'form' || el.type === 'input');
+      if (forms.length > 0) {
+        context += `- ${forms.length} form element(s) detected - test field order, labels, validation\n`;
+      }
+    }
+  }
 
   // Analyze uploaded data if available
   if (useVaultKnowledge && uploadedFiles && uploadedFiles.length > 0) {

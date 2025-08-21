@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles, Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -107,21 +107,23 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
         await new Promise(resolve => setTimeout(resolve, 600));
       }
 
-      // Call enhanced Supabase function
-      const { data: result, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
-        body: {
-          pageUrl: data.pageUrl,
-          goalType: data.goalType,
-          businessContext: data.businessContext,
-          currentPain: data.currentPain,
-          useVaultKnowledge: data.useVaultKnowledge,
-          uploadedFiles: data.selectedFiles,
-          workspaceId: currentWorkspace?.id,
-          userId: user?.id,
-          context: analyzePageContext(data.pageUrl),
-          iterationCount: iteration
-        }
-      });
+          // Call enhanced Supabase function
+          const { data: result, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
+            body: {
+              pageUrl: data.pageUrl,
+              goalType: data.goalType,
+              businessContext: data.businessContext,
+              currentPain: data.currentPain,
+              useVaultKnowledge: data.useVaultKnowledge,
+              uploadedFiles: data.selectedFiles,
+              workspaceId: currentWorkspace?.id,
+              userId: user?.id,
+              context: analyzePageContext(data.pageUrl),
+              iterationCount: iteration,
+              // Phase 2: Enhanced with visual analysis
+              screenshot: data.screenshot || null
+            }
+          });
 
       if (error) {
         console.error('Error generating suggestions:', error);
