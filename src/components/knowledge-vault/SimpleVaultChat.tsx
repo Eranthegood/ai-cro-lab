@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ProjectSelector } from '@/components/project/ProjectSelector';
+import { useNotifications } from '@/context/NotificationContext';
 
 interface Message {
   id: string;
@@ -31,6 +32,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   const { currentWorkspace } = useWorkspace();
   const { currentProject } = useProjects();
   const { files, uploading, uploadFile, deleteFile } = useSimpleVault();
+  const { startBackgroundTask, updateTaskProgress, completeTask, errorTask } = useNotifications();
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -42,6 +44,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [canNavigate, setCanNavigate] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +68,17 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+    
+    // Start background task for navigation
+    const taskId = `analysis-${Date.now()}`;
+    startBackgroundTask({
+      id: taskId,
+      type: 'vault-analysis',
+      title: 'Analyse Knowledge Vault',
+      status: 'processing'
+    });
+    
+    setCanNavigate(true); // Allow navigation during processing
 
     // Add streaming placeholder
     const streamingMessage: Message = {
@@ -77,6 +91,8 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     setMessages([...newMessages, streamingMessage]);
 
     try {
+      updateTaskProgress(taskId, '🔍 Lecture des fichiers...');
+      
       // Call simplified endpoint
       const response = await fetch(`https://wtpmxuhkbwwiougblkki.supabase.co/functions/v1/simple-vault-chat`, {
         method: 'POST',
@@ -102,6 +118,8 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
 
       // Handle streaming response
       if (response.headers.get('content-type')?.includes('text/event-stream')) {
+        updateTaskProgress(taskId, '🧠 Claude analyse vos documents...');
+        
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let accumulatedContent = '';
@@ -122,6 +140,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
                 
                 if (data.type === 'content') {
                   accumulatedContent += data.content;
+                  updateTaskProgress(taskId, '✍️ Claude rédige sa réponse...');
                   
                   setMessages(prev => 
                     prev.map(msg => 
@@ -138,6 +157,8 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
                         : msg
                     )
                   );
+                  
+                  completeTask(taskId, { content: accumulatedContent });
                   
                   toast({
                     title: "Analyse terminée",
@@ -164,6 +185,8 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
           )
         );
 
+        completeTask(taskId, { content: data.response });
+
         toast({
           title: "Analyse terminée",
           description: "Claude a analysé vos fichiers avec succès",
@@ -172,6 +195,8 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
 
     } catch (error: any) {
       console.error('Error sending message:', error);
+      
+      errorTask(taskId, error.message || 'Erreur technique');
       
       setMessages(prev => 
         prev.map(msg => 

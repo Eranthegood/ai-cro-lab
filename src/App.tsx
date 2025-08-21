@@ -8,6 +8,7 @@ import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { BackgroundTaskPanel } from "@/components/notifications/BackgroundTaskPanel";
 // import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider"; // Disabled temporarily
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -31,74 +32,58 @@ const App = () => (
       <AuthProvider>
         <WorkspaceProvider>
           <ProjectsProvider>
-            <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+            <NotificationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BackgroundTaskPanel />
+                <BrowserRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <Dashboard />
-                  </NotificationProvider>
+                  <Dashboard />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/analysis" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <DataAnalysis />
-                  </NotificationProvider>
+                  <DataAnalysis />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/generator" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <CodeGenerator />
-                  </NotificationProvider>
+                  <CodeGenerator />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/knowledge" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <KnowledgeBase />
-                  </NotificationProvider>
+                  <KnowledgeBase />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/knowledge/config" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <KnowledgeVaultConfig />
-                  </NotificationProvider>
+                  <KnowledgeVaultConfig />
                 </ProtectedRoute>
               } />
               <Route path="/vault-simple" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <SimpleVault />
-                  </NotificationProvider>
+                  <SimpleVault />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/knowledge/journey-mapper" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <JourneyMapper />
-                  </NotificationProvider>
+                  <JourneyMapper />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/analytics" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <Analytics />
-                  </NotificationProvider>
+                  <Analytics />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/insights" element={
                 <ProtectedRoute>
-                  <NotificationProvider>
-                    <AIInsights />
-                  </NotificationProvider>
+                  <AIInsights />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -106,11 +91,12 @@ const App = () => (
             </Routes>
           </BrowserRouter>
           </TooltipProvider>
-        </ProjectsProvider>
-      </WorkspaceProvider>
-    </AuthProvider>
-    {/* </LaunchDarklyProvider> */}
-  </QueryClientProvider>
+        </NotificationProvider>
+      </ProjectsProvider>
+    </WorkspaceProvider>
+  </AuthProvider>
+  {/* </LaunchDarklyProvider> */}
+</QueryClientProvider>
 );
 
 export default App;

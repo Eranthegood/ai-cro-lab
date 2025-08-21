@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from "@/context/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
 
 const NotificationBell = () => {
   const { notifications } = useNotifications();

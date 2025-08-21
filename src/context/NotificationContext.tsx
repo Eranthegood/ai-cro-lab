@@ -1,17 +1,33 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
+interface BackgroundTask {
+  id: string;
+  type: 'vault-analysis';
+  title: string;
+  status: 'processing' | 'completed' | 'error';
+  progress?: string;
+  result?: any;
+  timestamp: Date;
+}
+
 interface NotificationContextType {
   hasDataFreshnessWarning: boolean;
   hasKnowledgeScoreWarning: boolean;
   notifications: Array<{
     id: string;
-    type: 'admin' | 'freshness' | 'knowledge';
+    type: 'admin' | 'freshness' | 'knowledge' | 'task-completed';
     title: string;
     message: string;
     timestamp: Date;
     read: boolean;
+    actionUrl?: string;
   }>;
+  backgroundTasks: BackgroundTask[];
   updateStatuses: (freshnessStatus: { status: string }, knowledgeStatus: { status: string }) => void;
+  startBackgroundTask: (task: Omit<BackgroundTask, 'timestamp'>) => void;
+  updateTaskProgress: (taskId: string, progress: string) => void;
+  completeTask: (taskId: string, result?: any) => void;
+  errorTask: (taskId: string, error: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -31,14 +47,70 @@ interface NotificationProviderProps {
 export const NotificationProvider = ({ children }: NotificationProviderProps) => {
   const [hasDataFreshnessWarning, setHasDataFreshnessWarning] = useState(false);
   const [hasKnowledgeScoreWarning, setHasKnowledgeScoreWarning] = useState(false);
+  const [backgroundTasks, setBackgroundTasks] = useState<BackgroundTask[]>([]);
+  const [dynamicNotifications, setDynamicNotifications] = useState<Array<{
+    id: string;
+    type: 'admin' | 'freshness' | 'knowledge' | 'task-completed';
+    title: string;
+    message: string;
+    timestamp: Date;
+    read: boolean;
+    actionUrl?: string;
+  }>>([]);
 
   const updateStatuses = (freshnessStatus: { status: string }, knowledgeStatus: { status: string }) => {
     setHasDataFreshnessWarning(freshnessStatus.status !== 'good');
     setHasKnowledgeScoreWarning(knowledgeStatus.status !== 'good');
   };
 
+  const startBackgroundTask = (task: Omit<BackgroundTask, 'timestamp'>) => {
+    const newTask: BackgroundTask = {
+      ...task,
+      timestamp: new Date()
+    };
+    setBackgroundTasks(prev => [...prev, newTask]);
+  };
+
+  const updateTaskProgress = (taskId: string, progress: string) => {
+    setBackgroundTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, progress } : task
+      )
+    );
+  };
+
+  const completeTask = (taskId: string, result?: any) => {
+    setBackgroundTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, status: 'completed' as const, result } : task
+      )
+    );
+
+    // Add completion notification
+    const completedTask = backgroundTasks.find(t => t.id === taskId);
+    if (completedTask) {
+      setDynamicNotifications(prev => [...prev, {
+        id: `completed-${taskId}`,
+        type: 'task-completed',
+        title: 'Analyse terminée',
+        message: `${completedTask.title} - Cliquez pour voir les résultats`,
+        timestamp: new Date(),
+        read: false,
+        actionUrl: '/vault-simple'
+      }]);
+    }
+  };
+
+  const errorTask = (taskId: string, error: string) => {
+    setBackgroundTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, status: 'error' as const, progress: error } : task
+      )
+    );
+  };
+
   // Mock notifications - in real app this would come from API/database
-  const notifications = [
+  const staticNotifications = [
     {
       id: '1',
       type: 'admin' as const,
@@ -65,12 +137,19 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     }] : [])
   ];
 
+  const notifications = [...staticNotifications, ...dynamicNotifications];
+
   return (
     <NotificationContext.Provider value={{
       hasDataFreshnessWarning,
       hasKnowledgeScoreWarning,
       notifications,
-      updateStatuses
+      backgroundTasks,
+      updateStatuses,
+      startBackgroundTask,
+      updateTaskProgress,
+      completeTask,
+      errorTask
     }}>
       {children}
     </NotificationContext.Provider>
