@@ -133,6 +133,9 @@ const AppSidebar = () => {
                             {item.title === "Knowledge Vault" && hasKnowledgeScoreWarning && (
                               <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></div>
                             )}
+                            {item.title === "Knowledge Vault" && hasActiveVaultTasks && (
+                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                            )}
                           </div>
                           {open && (
                             <>
@@ -160,9 +163,6 @@ const AppSidebar = () => {
                                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
                                      Alpha
                                    </Badge>
-                                 )}
-                                 {subItem.title === "Vault Simple" && hasActiveVaultTasks && (
-                                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                                  )}
                                </NavLink>
                             </SidebarMenuButton>

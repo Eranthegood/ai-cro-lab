@@ -93,13 +93,14 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     try {
       updateTaskProgress(taskId, '🔍 Lecture des fichiers...');
       
-      // Call simplified endpoint
+      // Call simplified endpoint with keepalive to persist request during navigation
       const response = await fetch(`https://wtpmxuhkbwwiougblkki.supabase.co/functions/v1/simple-vault-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cG14dWhrYnd3aW91Z2Jsa2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1NDk5NDMsImV4cCI6MjA3MTEyNTk0M30.aAHUQ-8vLmfOL9st7EGjC_SDD7kuzyqJx6ZiiY1Rw2A`,
         },
+        keepalive: true, // Keep request alive during navigation
         body: JSON.stringify({
           message: userMessage.content,
           workspaceId: currentWorkspace.id,

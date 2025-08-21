@@ -86,18 +86,23 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       )
     );
 
-    // Add completion notification
+    // Add completion notification with improved messaging
     const completedTask = backgroundTasks.find(t => t.id === taskId);
     if (completedTask) {
       setDynamicNotifications(prev => [...prev, {
         id: `completed-${taskId}`,
         type: 'task-completed',
-        title: 'Analyse terminée',
-        message: `${completedTask.title} - Cliquez pour voir les résultats`,
+        title: '✅ Analyse Knowledge Vault terminée',
+        message: `Claude a fini d'analyser vos fichiers. Consultez les résultats dans la Knowledge Vault.`,
         timestamp: new Date(),
         read: false,
         actionUrl: '/vault-simple'
       }]);
+
+      // Auto-remove completed task after 30 seconds to keep UI clean
+      setTimeout(() => {
+        setBackgroundTasks(prev => prev.filter(task => task.id !== taskId));
+      }, 30000);
     }
   };
 
