@@ -95,6 +95,9 @@ export const useRateLimit = () => {
 
   // Initialize count on mount or workspace change
   useEffect(() => {
+    // Don't initialize until we have workspace data (or confirmed there's no workspace)
+    if (currentWorkspace === undefined) return;
+    
     setLoading(true);
     const count = loadDailyCount();
     setDailyCount(count);
