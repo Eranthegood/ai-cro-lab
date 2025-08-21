@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Brain, AlertCircle, FileText, BarChart3, Mouse } from 'lucide-react';
+import { Upload, Brain, AlertCircle, FileText, BarChart3, Mouse, CheckSquare, Square } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
   const [pageUrl, setPageUrl] = useState('');
   const [goalType, setGoalType] = useState('conversion');
   const [useVaultKnowledge, setUseVaultKnowledge] = useState(true);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [businessContext, setBusinessContext] = useState('');
   const [currentPain, setCurrentPain] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,6 +64,22 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
     }
   };
 
+  const toggleFileSelection = (fileId: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileId) 
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  const selectAllFiles = () => {
+    setSelectedFiles(files.map(file => file.id));
+  };
+
+  const clearFileSelection = () => {
+    setSelectedFiles([]);
+  };
+
   const handleAnalyze = async () => {
     if (!pageUrl.trim()) {
       toast({
@@ -82,6 +99,13 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
       return;
     }
 
+    // Filter selected files if vault knowledge is enabled
+    const filesToAnalyze = useVaultKnowledge && selectedFiles.length > 0 
+      ? files.filter(file => selectedFiles.includes(file.id))
+      : useVaultKnowledge 
+        ? files 
+        : [];
+
     setIsAnalyzing(true);
 
     try {
@@ -91,7 +115,8 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
         businessContext,
         currentPain,
         useVaultKnowledge,
-        uploadedFiles: files,
+        uploadedFiles: filesToAnalyze,
+        selectedFileIds: selectedFiles,
         workspaceId: currentWorkspace.id,
         userId: user.id,
         timestamp: new Date().toISOString()
@@ -104,7 +129,13 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
       
       toast({
         title: "Analyse terminée",
-        description: "Vos données ont été analysées avec succès",
+        description: `Vos données ont été analysées avec succès${
+          useVaultKnowledge && selectedFiles.length > 0 
+            ? ` (${selectedFiles.length} fichiers sélectionnés)` 
+            : useVaultKnowledge 
+              ? ` (${files.length} fichiers de la vault)` 
+              : ''
+        }`,
       });
     } catch (error: any) {
       console.error('Analysis failed:', error);
@@ -175,26 +206,6 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
             </label>
           </div>
 
-          {/* Show uploaded files */}
-          {files.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Fichiers dans votre vault ({files.length})</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                {files.slice(0, 6).map((file) => (
-                  <div key={file.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-sm">
-                    <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="truncate">{file.file_name}</span>
-                  </div>
-                ))}
-                {files.length > 6 && (
-                  <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
-                    +{files.length - 6} autres fichiers
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Knowledge Vault Integration */}
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -208,11 +219,84 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
             </Label>
           </div>
           
-          {useVaultKnowledge && (
+          {useVaultKnowledge && files.length > 0 && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-primary" />
+                  Sélection des fichiers à analyser
+                </CardTitle>
+                <div className="flex items-center gap-2 text-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={selectAllFiles}
+                    className="h-7 text-xs"
+                  >
+                    Tout sélectionner ({files.length})
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearFileSelection}
+                    className="h-7 text-xs"
+                  >
+                    Tout désélectionner
+                  </Button>
+                  <span className="text-muted-foreground">
+                    {selectedFiles.length > 0 
+                      ? `${selectedFiles.length} fichier(s) sélectionné(s)`
+                      : 'Aucune sélection = toute la vault sera analysée'
+                    }
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                  {files.map((file) => (
+                    <div 
+                      key={file.id} 
+                      className="flex items-center gap-3 p-3 bg-background rounded-lg border hover:border-primary/50 transition-colors cursor-pointer"
+                      onClick={() => toggleFileSelection(file.id)}
+                    >
+                      <div className="flex-shrink-0">
+                        {selectedFiles.includes(file.id) ? (
+                          <CheckSquare className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Square className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{file.file_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {file.file_type} • {(file.file_size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {useVaultKnowledge && files.length === 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Aucun fichier trouvé dans votre Knowledge Vault. Uploadez des fichiers pour utiliser l'intelligence de la vault.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {useVaultKnowledge && files.length > 0 && (
             <Alert>
               <Brain className="h-4 w-4" />
               <AlertDescription>
-                L'IA analysera vos données uploadées et vos connaissances stockées pour des recommandations personnalisées
+                {selectedFiles.length > 0 
+                  ? `L'IA analysera les ${selectedFiles.length} fichiers sélectionnés pour des recommandations personnalisées.`
+                  : `L'IA analysera tous les ${files.length} fichiers de votre vault pour des recommandations personnalisées.`
+                }
               </AlertDescription>
             </Alert>
           )}
