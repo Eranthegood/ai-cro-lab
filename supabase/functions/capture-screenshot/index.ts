@@ -30,7 +30,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, width = 1920, height = 1080, device = 'desktop', fullPage = true, delay = 2000 }: ScreenshotOptions = await req.json();
+    const { url, width = 1920, height = 1080, device = 'desktop', fullPage = true, delay = 5000 }: ScreenshotOptions = await req.json();
 
     console.log('Screenshot request:', { url, width, height, device, fullPage, delay });
 
@@ -203,6 +203,20 @@ async function tryURLBox(url: string, options: ScreenshotOptions) {
     throw new Error('URLBox API key not configured');
   }
 
+  // Detect key type and choose method
+  const isSecretKey = urlboxApiKey.startsWith('ubx_sk_');
+  const keyType = isSecretKey ? 'secret' : 'publishable';
+  
+  console.log(`URLBox: Using ${keyType} key for ${url}`);
+
+  if (isSecretKey) {
+    return await tryURLBoxREST(url, options, urlboxApiKey);
+  } else {
+    return await tryURLBoxRenderLink(url, options, urlboxApiKey);
+  }
+}
+
+async function tryURLBoxRenderLink(url: string, options: ScreenshotOptions, apiKey: string) {
   const params = new URLSearchParams({
     url: url,
     width: options.width.toString(),
@@ -210,19 +224,21 @@ async function tryURLBox(url: string, options: ScreenshotOptions) {
     full_page: options.fullPage.toString(),
     delay: options.delay.toString(),
     format: 'png',
+    force: 'true',
+    unique: '1',
     user_agent: options.device === 'mobile' 
       ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
       : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
   });
 
-  const response = await fetch(`https://api.urlbox.io/v1/${urlboxApiKey}/png?${params}`, {
+  const response = await fetch(`https://api.urlbox.io/v1/${apiKey}/png?${params}`, {
     method: 'GET',
     headers: { 'Accept': 'image/png' },
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`URLBox error: ${response.status} ${errorText}`);
+    throw new Error(`URLBox render link error: ${response.status} ${errorText}`);
   }
 
   const imageBuffer = await response.arrayBuffer();
@@ -238,7 +254,57 @@ async function tryURLBox(url: string, options: ScreenshotOptions) {
       url,
       viewport: { width: options.width, height: options.height },
       deviceType: options.device,
-      fallback: false
+      fallback: false,
+      urlboxMethod: 'render_link'
+    }
+  };
+}
+
+async function tryURLBoxREST(url: string, options: ScreenshotOptions, secretKey: string) {
+  const payload = {
+    url: url,
+    width: options.width,
+    height: options.height,
+    full_page: options.fullPage,
+    delay: options.delay,
+    format: 'png',
+    force: true,
+    unique: true,
+    user_agent: options.device === 'mobile' 
+      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  };
+
+  const response = await fetch('https://api.urlbox.io/v1/', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${secretKey}`,
+      'Accept': 'image/png'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`URLBox REST API error: ${response.status} ${errorText}`);
+  }
+
+  const imageBuffer = await response.arrayBuffer();
+  const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+  const imageDataUrl = `data:image/png;base64,${imageBase64}`;
+
+  return {
+    success: true,
+    imageUrl: imageDataUrl,
+    visualAnalysis: await generateVisualAnalysis(url, imageDataUrl),
+    metadata: {
+      timestamp: Date.now(),
+      url,
+      viewport: { width: options.width, height: options.height },
+      deviceType: options.device,
+      fallback: false,
+      urlboxMethod: 'rest_api'
     }
   };
 }
