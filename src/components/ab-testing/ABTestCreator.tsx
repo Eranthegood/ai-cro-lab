@@ -84,8 +84,32 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
   const handleAnalyze = async () => {
     if (!pageUrl.trim()) {
       toast({
-        title: "URL requise",
-        description: "Veuillez entrer l'URL de la page à analyser",
+        title: "URL manquante",
+        description: "Veuillez saisir une URL de page à analyser",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Enhanced URL validation
+    try {
+      const url = new URL(pageUrl);
+      if (!url.protocol.startsWith('http')) {
+        throw new Error('Invalid protocol');
+      }
+    } catch (error) {
+      toast({
+        title: "URL invalide",
+        description: "Veuillez saisir une URL valide (ex: https://example.com)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!goalType) {
+      toast({
+        title: "Objectif manquant", 
+        description: "Veuillez sélectionner un objectif pour votre test",
         variant: "destructive",
       });
       return;
@@ -94,27 +118,36 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
     if (!currentWorkspace || !user) {
       toast({
         title: "Erreur d'authentification",
-        description: "Workspace ou utilisateur non détecté",
+        description: "Workspace ou utilisateur non détecté. Veuillez vous reconnecter.",
         variant: "destructive",
       });
       return;
     }
 
-    // Filter selected files if vault knowledge is enabled
-    const filesToAnalyze = useVaultKnowledge && selectedFiles.length > 0 
-      ? files.filter(file => selectedFiles.includes(file.id))
-      : useVaultKnowledge 
-        ? files 
-        : [];
+    if (useVaultKnowledge && selectedFiles.length === 0 && files.length > 0) {
+      toast({
+        title: "Fichiers non sélectionnés",
+        description: "Choisissez au moins un fichier de votre Knowledge Vault ou désactivez cette option",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsAnalyzing(true);
 
     try {
+      // Filter selected files if vault knowledge is enabled
+      const filesToAnalyze = useVaultKnowledge && selectedFiles.length > 0 
+        ? files.filter(file => selectedFiles.includes(file.id))
+        : useVaultKnowledge 
+          ? files 
+          : [];
+
       const analysisData = {
-        pageUrl,
+        pageUrl: pageUrl.trim(),
         goalType,
-        businessContext,
-        currentPain,
+        businessContext: businessContext.trim(),
+        currentPain: currentPain.trim(),
         useVaultKnowledge,
         selectedFiles: filesToAnalyze,
         context: {
@@ -125,29 +158,25 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
         workspace: currentWorkspace,
         user: user,
         timestamp: Date.now(),
-        iterationCount: 0
+        iterationCount: 0,
+        analysisId: `analysis_${Date.now()}`
       };
 
-      // Simulate analysis processing
+      // Simulate analysis processing with progress updates
       await new Promise(resolve => setTimeout(resolve, 2000));
+
+      toast({
+        title: "Analyse initiée avec succès",
+        description: `Contexte: ${goalType} | Files: ${filesToAnalyze.length} | Vault: ${useVaultKnowledge ? 'Oui' : 'Non'}`,
+      });
 
       onDataUploaded(analysisData);
       
-      toast({
-        title: "Analyse terminée",
-        description: `Vos données ont été analysées avec succès${
-          useVaultKnowledge && selectedFiles.length > 0 
-            ? ` (${selectedFiles.length} fichiers sélectionnés)` 
-            : useVaultKnowledge 
-              ? ` (${files.length} fichiers de la vault)` 
-              : ''
-        }`,
-      });
     } catch (error: any) {
       console.error('Analysis failed:', error);
       toast({
         title: "Erreur d'analyse",
-        description: error.message || "Impossible d'analyser les données",
+        description: error.message || "Une erreur est survenue lors de l'analyse. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {

@@ -35,25 +35,112 @@ export const ABTestCodeGenerator = ({ suggestion, data, onCodeGenerated, onBack 
       name: 'AB Tasty',
       logo: '🅰️',
       code: currentCSS,
-      setup: defaultSetup
+      setup: [
+        "Créer un test dans AB Tasty",
+        "Utiliser l'éditeur visuel ou CSS",
+        "Cibler l'élément avec un sélecteur CSS",
+        "Coller le code CSS dans l'éditeur",
+        "Définir l'audience et lancer le test"
+      ]
     },
     'optimizely': {
       name: 'Optimizely',
       logo: '🔵',
       code: currentCSS.replace(/!important/g, ''),
-      setup: defaultSetup
+      setup: [
+        "Créer une expérience dans Optimizely Web",
+        "Utiliser l'éditeur de code JavaScript/CSS", 
+        "Appliquer les modifications via jQuery",
+        "Tester avec le mode Preview",
+        "Configurer l'audience et activer"
+      ]
     },
     'vwo': {
-      name: 'Visual Website Optimizer',
+      name: 'VWO',
       logo: '🟡',
       code: currentCSS,
-      setup: defaultSetup
+      setup: [
+        "Créer un nouveau test A/B dans VWO",
+        "Utiliser l'éditeur visuel ou code personnalisé",
+        "Appliquer le CSS via l'onglet 'Custom Code'",
+        "Prévisualiser les variations",
+        "Définir les objectifs et lancer"
+      ]
     },
     'google-optimize': {
       name: 'Google Optimize',
-      logo: '🔍',
+      logo: '🔍', 
       code: currentCSS.replace(/!important/g, ''),
-      setup: defaultSetup
+      setup: [
+        "Créer une expérience dans Google Optimize",
+        "Sélectionner 'Test A/B'",
+        "Utiliser l'éditeur CSS ou DOM",
+        "Connecter à Google Analytics",
+        "Définir les objectifs et publier"
+      ]
+    },
+    'convert': {
+      name: 'Convert.com',
+      logo: '🟢',
+      code: currentCSS,
+      setup: [
+        "Créer un projet dans Convert Experiences",
+        "Utiliser l'éditeur JavaScript/CSS",
+        "Appliquer via Custom JavaScript",
+        "Tester avec le Visual Editor",
+        "Configurer les segments et activer"
+      ]
+    },
+    'unbounce': {
+      name: 'Unbounce',
+      logo: '🚀',
+      code: currentCSS.replace(/\.cta-button/g, '.lp-pom-button'),
+      setup: [
+        "Ouvrir l'éditeur de landing page Unbounce",
+        "Aller dans 'Stylesheets' > Custom CSS",
+        "Ajouter le CSS personnalisé",
+        "Publier une nouvelle variante",
+        "Configurer le split-test à 50/50"
+      ]
+    },
+    'leadpages': {
+      name: 'Leadpages',
+      logo: '📄',
+      code: currentCSS.replace(/\.cta-button/g, '.btn'),
+      setup: [
+        "Éditer la page dans Leadpages",
+        "Aller dans Settings > Tracking Code",
+        "Ajouter le CSS dans le Head Code",
+        "Dupliquer la page pour créer la variante",
+        "Utiliser l'A/B Testing integré"
+      ]
+    },
+    'hotjar': {
+      name: 'Hotjar + Custom',
+      logo: '🔥',
+      code: `<!-- Ajoutez ce script avant </head> -->
+<script>
+  // Test AB avec Hotjar Tracking
+  const variant = Math.random() < 0.5 ? 'A' : 'B';
+  
+  if (variant === 'B') {
+    const style = document.createElement('style');
+    style.innerHTML = \`${currentCSS}\`;
+    document.head.appendChild(style);
+  }
+  
+  // Track variant avec Hotjar
+  if (typeof hj !== 'undefined') {
+    hj('identify', null, { ab_test_variant: variant });
+  }
+</script>`,
+      setup: [
+        "Implémenter le script de test AB sur votre site",
+        "Configurer le tracking Hotjar",
+        "Le script divise automatiquement le trafic 50/50",
+        "Les variants sont trackés dans Hotjar",
+        "Analyser les résultats via les heatmaps"
+      ]
     }
   };
 
@@ -323,14 +410,36 @@ export const ABTestCodeGenerator = ({ suggestion, data, onCodeGenerated, onBack 
           </CardHeader>
           <CardContent>
             <Tabs value={selectedPlatform} onValueChange={setSelectedPlatform}>
-              <TabsList className="grid grid-cols-2 lg:grid-cols-4">
-                {Object.entries(platforms).map(([key, platform]) => (
-                  <TabsTrigger key={key} value={key} className="text-xs">
-                    <span className="mr-1">{platform.logo}</span>
-                    {platform.name.split(' ')[0]}
+              <TabsList className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-1 h-auto p-1">
+                {Object.entries(platforms).slice(0, 8).map(([key, platform]) => (
+                  <TabsTrigger 
+                    key={key} 
+                    value={key} 
+                    className="text-xs p-2 h-auto flex flex-col gap-1 transition-all duration-200 hover:scale-105"
+                  >
+                    <span className="text-base">{platform.logo}</span>
+                    <span className="font-medium">{platform.name.split(' ')[0]}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
+              
+              {/* Secondary platforms in dropdown */}
+              {Object.keys(platforms).length > 8 && (
+                <div className="mt-2">
+                  <select 
+                    value={selectedPlatform}
+                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    className="w-full p-2 border rounded-lg text-sm bg-background"
+                  >
+                    <option value="">Plus de plateformes...</option>
+                    {Object.entries(platforms).slice(8).map(([key, platform]) => (
+                      <option key={key} value={key}>
+                        {platform.logo} {platform.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {Object.entries(platforms).map(([key, platform]) => (
                 <TabsContent key={key} value={key} className="space-y-4">

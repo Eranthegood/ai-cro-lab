@@ -186,8 +186,9 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
   suggestion: Suggestion;
   onSelect: (suggestion: Suggestion) => void;
 }) => (
-  <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
-    <CardHeader className="pb-4">
+  <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 border-border/50 hover:border-primary/30 hover:-translate-y-1 cursor-pointer">
+    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <CardHeader className="pb-4 relative z-10">
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <Badge variant="outline" className={getDifficultyColor(suggestion.difficulty || suggestion.code_complexity || 'medium')}>
@@ -239,9 +240,11 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
         </div>
 
         <Button 
-          className="w-full mt-4" 
+          className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200" 
           onClick={() => onSelect(suggestion)}
+          variant="outline"
         >
+          <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
           Select This Test
         </Button>
       </div>
