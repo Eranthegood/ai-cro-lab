@@ -113,7 +113,7 @@ serve(async (req) => {
       iterationCount
     );
 
-    console.log(`🧠 [${requestId}] Calling Claude 3.5 Sonnet for intelligent suggestions`);
+    console.log(`🧠 [${requestId}] Calling Claude Sonnet 4 for intelligent suggestions`);
 
     // Call Claude API with latest model
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -124,7 +124,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022', // Claude 3.5 Sonnet model
+        model: 'claude-sonnet-4-20250514', // Claude Sonnet 4 model
         max_tokens: 4000,
         messages: [
           { 
@@ -142,7 +142,7 @@ serve(async (req) => {
     }
 
     const aiResponse = await response.json();
-    console.log(`✅ [${requestId}] Claude 3.5 Sonnet response received: ${Date.now() - requestStart}ms`);
+    console.log(`✅ [${requestId}] Claude Sonnet 4 response received: ${Date.now() - requestStart}ms`);
 
     // Parse and enhance Claude's response
     let suggestions;
