@@ -113,7 +113,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     };
   }, [updateMessage]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (retryCount = 0) => {
     if (!input.trim() || !user || !currentWorkspace || loading || !currentConversation) return;
 
     // Check rate limit before proceeding
@@ -148,7 +148,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     setLoading(true);
     
     // Add streaming placeholder with slight delay to ensure unique ID
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise(resolve => setTimeout(resolve, 10));
     const streamingMessageId = addMessage({
       type: 'assistant',
       content: '',
@@ -159,35 +159,72 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     // Show processing toast
     toast({
       title: "Analyse en cours...",
-      description: "Je traite votre demande avec les fichiers de votre vault.",
-    });
-
-    // Start background task for navigation
-    const taskId = `analysis-${Date.now()}`;
-    startBackgroundTask({
-      id: taskId,
-      type: 'vault-analysis',
-      title: 'Analyse Knowledge Vault',
-      status: 'processing'
+      description: "Claude analyse vos données et ses connaissances...",
     });
 
     try {
-      // Start persistent stream that will continue even after navigation
-      await startPersistentStream({
-        taskId,
-        message: messageContent,
-        workspaceId: currentWorkspace.id,
-        projectId: currentProject?.id,
-        userId: user.id,
-        conversationId: currentConversation.id,
-        messageId: streamingMessageId
+      // Call simple-vault-chat edge function directly with SSE
+      const { data, error } = await supabase.functions.invoke('simple-vault-chat', {
+        body: {
+          message: messageContent,
+          workspaceId: currentWorkspace.id,
+          projectId: currentProject?.id,
+          userId: user.id
+        }
       });
 
+      if (error) {
+        console.error('📡 Supabase function error:', error);
+        throw new Error(error.message || 'Erreur de connexion');
+      }
+
+      // Handle successful response
+      console.log('✅ Function response received:', { dataType: typeof data, hasData: !!data });
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // For non-streaming response, update message directly
+      if (data && typeof data === 'object' && data.content) {
+        updateMessage(streamingMessageId, {
+          content: data.content,
+          isStreaming: false
+        });
+        setLoading(false);
+        toast({
+          title: "Réponse prête !",
+          description: "Claude a analysé votre demande.",
+        });
+      } else {
+        // This shouldn't happen with current setup, but fallback
+        throw new Error('Réponse inattendue du serveur');
+      }
+
     } catch (error: any) {
-      console.error('Error starting persistent stream:', error);
+      console.error('🚨 Error in handleSendMessage:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 2 && (error.message?.includes('network') || error.message?.includes('timeout'))) {
+        console.log(`🔄 Retrying request (attempt ${retryCount + 1}/3)`);
+        toast({
+          title: "Reconnexion...",
+          description: `Tentative ${retryCount + 1}/3`,
+        });
+        
+        setTimeout(() => {
+          // Restore input and retry
+          setInput(messageContent);
+          setLoading(false);
+          // Remove the failed streaming message
+          // Note: In a real implementation, we'd need a way to remove messages
+          handleSendMessage(retryCount + 1);
+        }, 1000 * (retryCount + 1));
+        return;
+      }
       
       updateMessage(streamingMessageId, {
-        content: "⚠️ **Erreur technique**\n\nProblème temporaire. Vérifiez votre connexion et réessayez.",
+        content: `⚠️ **Erreur technique**\n\n${error.message || 'Problème temporaire. Vérifiez votre connexion et réessayez.'}`,
         isStreaming: false
       });
 
@@ -347,7 +384,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
               disabled={loading}
             />
             <Button
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={!input.trim() || loading || !currentWorkspace}
               className="px-3 self-end"
             >

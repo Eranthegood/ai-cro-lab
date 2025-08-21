@@ -125,19 +125,30 @@ serve(async (req) => {
         stream: true,
         messages: [{
           role: 'user',
-          content: `Assistant IA Knowledge Vault - Mode Simple Claude-style.
+          content: `Tu es Claude, assistant IA du Knowledge Vault - Mode Simple et Intelligent.
 
 ${projectId ? 
-  `Projet: ${projectId} - Analyse ciblée` :
-  `Mode global - Vue d'ensemble workspace`
+  `🎯 Contexte: Projet "${projectId}" - Analyse ciblée` :
+  `🌐 Contexte: Vue d'ensemble workspace`
 }
 
-DONNÉES:
+📚 DONNÉES DU VAULT:
 ${context}
 
-QUESTION: ${message}
+❓ QUESTION DE L'UTILISATEUR: ${message}
 
-Réponds de manière concise et actionnable en français, en te basant uniquement sur les données fournies.`
+🧠 INSTRUCTIONS:
+- Si les données du vault contiennent des informations pertinentes, utilise-les EN PRIORITÉ
+- Si les données sont insuffisantes ou manquantes, complète avec tes connaissances générales
+- Indique clairement quelles informations viennent du vault (📄) vs tes connaissances (🧠)
+- Sois concis, actionnable et pratique en français
+- Suggère des actions concrètes quand c'est pertinent
+- Si aucune donnée pertinente dans le vault, réponds quand même avec tes connaissances générales
+
+Exemple de format de réponse:
+📄 **D'après vos fichiers:** [informations du vault]
+🧠 **Complément d'information:** [tes connaissances si utiles]
+✅ **Recommandations:** [actions suggérées]`
         }]
       })
     });
@@ -168,24 +179,25 @@ Réponds de manière concise et actionnable en français, en te basant uniquemen
       console.warn('Failed to log interaction:', logError);
     }
 
-    // Transform Claude's stream to Server-Sent Events
-    const transformStream = new TransformStream({
-      transform(chunk, controller) {
-        const decoder = new TextDecoder();
-        const text = decoder.decode(chunk);
+    // Collect the full response instead of streaming for simpler handling
+    let fullContent = '';
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
         
+        const text = decoder.decode(value);
         const lines = text.split('\n');
+        
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
               if (data.type === 'content_block_delta' && data.delta?.text) {
-                controller.enqueue(`data: ${JSON.stringify({ 
-                  type: 'content', 
-                  content: data.delta.text 
-                })}\n\n`);
-              } else if (data.type === 'message_stop') {
-                controller.enqueue(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+                fullContent += data.delta.text;
               }
             } catch (e) {
               // Ignore parse errors
@@ -193,14 +205,18 @@ Réponds de manière concise et actionnable en français, en te basant uniquemen
           }
         }
       }
-    });
+    }
 
-    return new Response(response.body!.pipeThrough(transformStream), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+    console.log(`✅ [${requestId}] Response completed: ${fullContent.length} chars, ${Date.now() - requestStart}ms`);
+
+    return new Response(JSON.stringify({ 
+      content: fullContent,
+      request_id: requestId,
+      files_analyzed: files?.length || 0
+    }), {
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
         'X-Request-ID': requestId
       },
     });
