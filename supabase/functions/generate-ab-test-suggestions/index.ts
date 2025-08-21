@@ -154,14 +154,19 @@ serve(async (req) => {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const rawSuggestions = JSON.parse(jsonMatch[0]);
+        console.log(`🔍 [${requestId}] Raw approaches from Claude:`, rawSuggestions.suggestions?.map(s => s.approach) || []);
+        
+        // Normalize approach names before validation
+        const normalizedSuggestions = normalizeSuggestionApproaches(rawSuggestions);
+        console.log(`🔧 [${requestId}] Normalized approaches:`, normalizedSuggestions.suggestions?.map(s => s.approach) || []);
         
         // Validate suggestions quality and count 
-        if (!validateSuggestions(rawSuggestions)) {
+        if (!validateSuggestions(normalizedSuggestions, requestId)) {
           console.warn(`⚠️ [${requestId}] Claude returned invalid or incomplete suggestions, using fallback`);
           suggestions = await generateIntelligentFallback(context, goalType, userPreferences);
         } else {
           // Apply quality validation and enhancement
-          suggestions = await enhanceSuggestions(rawSuggestions, userPreferences, suggestionMemory);
+          suggestions = await enhanceSuggestions(normalizedSuggestions, userPreferences, suggestionMemory);
         }
       } else {
         throw new Error('No valid JSON found in Claude response');
@@ -463,7 +468,7 @@ Based on ${pageType} page psychology, users typically experience:
 
 TASK: Generate exactly 9 AB test suggestions using 3 different methodological approaches:
 
-=== APPROACH 1: TECHNICAL UX OPTIMIZATION (3 suggestions) ===
+=== APPROACH 1: TECHNICAL UX (3 suggestions) ===
 Focus on implementable client-side solutions that improve user experience through:
 - Interface design improvements
 - Navigation optimization  
@@ -471,7 +476,7 @@ Focus on implementable client-side solutions that improve user experience throug
 - Mobile responsiveness
 - Form/interaction optimization
 
-=== APPROACH 2: PSYCHOLOGY & PERSUASION (3 suggestions) ===
+=== APPROACH 2: PSYCHOLOGY (3 suggestions) ===
 Focus on behavioral psychology and persuasion techniques:
 - Cognitive bias exploitation
 - Social proof optimization
@@ -520,9 +525,9 @@ CRITICAL REQUIREMENTS:
 4. **AVOID GENERIC SUGGESTIONS:** No basic "change button color" or "add trust badges" unless with innovative twist
 
 5. **PROGRESSIVE COMPLEXITY:** 
-   - Approach 1: Focus on CSS-heavy solutions
-   - Approach 2: Medium JavaScript complexity
-   - Approach 3: Advanced JavaScript with dynamic content
+   - Technical UX: Focus on CSS-heavy solutions
+   - Psychology: Medium JavaScript complexity
+   - Brand Differentiation: Advanced JavaScript with dynamic content
 
 6. **IMPLEMENTATION HINTS:** Include brief technical approach for each suggestion to prepare for code generation phase
 
@@ -674,29 +679,71 @@ function calculateQualityScore(suggestion: any) {
   return Math.min(score, 1.0);
 }
 
-function validateSuggestions(rawSuggestions: any): boolean {
+function normalizeSuggestionApproaches(rawSuggestions: any): any {
+  if (!rawSuggestions.suggestions) {
+    return rawSuggestions;
+  }
+
+  const normalizedSuggestions = { ...rawSuggestions };
+  normalizedSuggestions.suggestions = rawSuggestions.suggestions.map((suggestion: any) => {
+    const normalizedSuggestion = { ...suggestion };
+    
+    // Normalize approach names to exact values expected by validation
+    if (suggestion.approach) {
+      const approach = suggestion.approach.toLowerCase();
+      
+      // Map variations to exact names
+      if (approach.includes('technical') || approach.includes('ux')) {
+        normalizedSuggestion.approach = 'Technical UX';
+      } else if (approach.includes('psychology') || approach.includes('persuasion')) {
+        normalizedSuggestion.approach = 'Psychology';  
+      } else if (approach.includes('brand') || approach.includes('differentiation')) {
+        normalizedSuggestion.approach = 'Brand Differentiation';
+      }
+      // If no match, keep original
+    }
+    
+    return normalizedSuggestion;
+  });
+  
+  return normalizedSuggestions;
+}
+
+function validateSuggestions(rawSuggestions: any, requestId?: string): boolean {
   // Critical validation: must have exactly 9 suggestions
   if (!rawSuggestions.suggestions || rawSuggestions.suggestions.length !== 9) {
+    console.log(`❌ [${requestId}] Validation failed: Expected 9 suggestions, got ${rawSuggestions.suggestions?.length || 0}`);
     return false;
   }
   
-  // Check that we have 3 suggestions for each approach
+  // Check that we have 3 suggestions for each approach (exact match now)
   const approaches = rawSuggestions.suggestions.map(s => s.approach);
-  const technicalCount = approaches.filter(a => a?.includes('Technical') || a?.includes('UX')).length;
-  const psychologyCount = approaches.filter(a => a?.includes('Psychology') || a?.includes('Persuasion')).length;
-  const brandCount = approaches.filter(a => a?.includes('Brand') || a?.includes('Differentiation')).length;
+  const technicalCount = approaches.filter(a => a === 'Technical UX').length;
+  const psychologyCount = approaches.filter(a => a === 'Psychology').length;
+  const brandCount = approaches.filter(a => a === 'Brand Differentiation').length;
+  
+  console.log(`🔍 [${requestId}] Approach distribution - Technical UX: ${technicalCount}, Psychology: ${psychologyCount}, Brand Differentiation: ${brandCount}`);
   
   if (technicalCount !== 3 || psychologyCount !== 3 || brandCount !== 3) {
+    console.log(`❌ [${requestId}] Validation failed: Incorrect approach distribution`);
     return false;
   }
   
   // Each suggestion must have required fields from the prompt
-  return rawSuggestions.suggestions.every(suggestion => {
-    return suggestion.title && 
+  const isValid = rawSuggestions.suggestions.every(suggestion => {
+    const hasRequiredFields = suggestion.title && 
            suggestion.approach &&
            (suggestion.problem_detected || suggestion.solution_description) &&
            (suggestion.expected_impact || suggestion.impact);
+    
+    if (!hasRequiredFields) {
+      console.log(`❌ [${requestId}] Validation failed: Missing required fields in suggestion:`, suggestion.title || 'No title');
+    }
+    
+    return hasRequiredFields;
   });
+  
+  return isValid;
 }
 
 async function generateIntelligentFallback(context: any, goalType: string, userPreferences: any) {
