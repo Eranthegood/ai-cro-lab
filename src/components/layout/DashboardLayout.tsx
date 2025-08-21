@@ -28,12 +28,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background pt-10">
+    <div className="min-h-screen flex flex-col w-full bg-background">
       {/* Top Banner - Above everything */}
       <Banner message="Free Access for all, help us improve" />
       
       <SidebarProvider defaultOpen={true}>
-        <div className="flex flex-1 w-full">
+        <div className="flex flex-1 w-full pt-10">
           <AppSidebar />
           <main className="flex-1 flex flex-col min-w-0">
           {/* Header */}
