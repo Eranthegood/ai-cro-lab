@@ -815,46 +815,6 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
       psychology_insight: "Quantified superiority reduces price sensitivity",
       code_complexity: "Complex Integration", 
       unique_factor: "Direct competitive positioning with proof points"
-    }
-        code: `
-.quantity-selector {
-  display: flex;
-  gap: 12px;
-  margin: 16px 0;
-}
-.qty-option {
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  flex: 1;
-}
-.qty-option.highlight {
-  border-color: #28a745;
-  background: #f8fff9;
-}
-.qty-option:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.savings {
-  color: #28a745;
-  font-weight: bold;
-  font-size: 0.9em;
-}`,
-        setup: [
-          "Cibler la page produit avec AB Tasty",
-          "Masquer le bouton original avec CSS",
-          "Injecter le nouveau sélecteur avec JavaScript",
-          "Configurer le tracking des clics par quantité"
-        ]
-      },
-      metrics: {
-        primary: "Taux de conversion par quantité sélectionnée",
-        secondary: ["Valeur moyenne du panier", "Temps passé sur la page", "Taux de clics par option"]
-      }
     },
     {
       id: "2", 
