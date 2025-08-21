@@ -16,6 +16,12 @@ verify_jwt = false
 [functions.migrate-vault-files]
 verify_jwt = true
 
+[functions.semantic-cache]
+verify_jwt = false
+
+[functions.smart-alerts]
+verify_jwt = false
+
 [db]
 port = 54322
 
