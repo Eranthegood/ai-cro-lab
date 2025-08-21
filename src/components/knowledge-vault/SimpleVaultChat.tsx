@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '@/context/ChatContext';
-import { Send, Brain, Loader2, File, Upload, X } from 'lucide-react';
+import { Send, Brain, Loader2, File, Upload, X, Files } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { useProjects } from '@/hooks/useProjects';
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { ProjectSelector } from '@/components/project/ProjectSelector';
 import { useNotifications } from '@/context/NotificationContext';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Message {
   id: string;
@@ -36,6 +38,7 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   const { files, uploading, uploadFile, deleteFile } = useSimpleVault();
   const { startBackgroundTask, startPersistentStream } = useNotifications();
   const { canMakeRequest, incrementCount } = useRateLimit();
+  const isMobile = useIsMobile();
   const { 
     messages, 
     addMessage, 
@@ -271,6 +274,215 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Mobile Layout with Tabs
+  if (isMobile) {
+    return (
+      <div className={cn("h-[calc(100vh-8rem)] flex flex-col", className)}>
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <Files className="h-4 w-4" />
+              Fichiers ({files.length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="flex-1 flex flex-col mt-2">
+            <Card className="flex-1 flex flex-col">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+                    <Brain className="h-5 w-5 text-primary" />
+                  </div>
+                  Knowledge Vault
+                </CardTitle>
+                <ProjectSelector />
+              </CardHeader>
+
+              <CardContent className="flex flex-col flex-1 p-4 gap-4">
+                {/* Messages */}
+                <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          "flex gap-3",
+                          message.type === 'user' ? 'justify-end' : 'justify-start'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "rounded-lg px-4 py-3 max-w-[90%] break-words",
+                            message.type === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : message.type === 'system'
+                              ? 'bg-gradient-to-r from-primary/10 to-secondary/10 text-foreground border border-primary/20'
+                              : 'bg-muted text-foreground'
+                          )}
+                        >
+                          <div className="text-sm whitespace-pre-wrap">
+                            {message.content}
+                            {message.isStreaming && (
+                              <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs opacity-60">
+                              {message.timestamp.toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {loading && messages[messages.length - 1]?.type !== 'assistant' && (
+                      <div className="space-y-3">
+                        <div className="flex gap-3 justify-start">
+                          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg px-4 py-3 max-w-[90%]">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                <span className="text-sm font-medium">Claude analyse...</span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="w-full bg-muted rounded-full h-1.5">
+                                  <div className="bg-gradient-to-r from-primary to-primary/80 h-1.5 rounded-full transition-all duration-1000 animate-pulse" style={{width: '60%'}}></div>
+                                </div>
+                              </div>
+
+                              <div className="bg-background/50 rounded-md p-2 border border-border/50">
+                                <p className="text-xs text-muted-foreground">
+                                  💡 Vous pouvez consulter vos fichiers pendant l'analyse
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {!currentWorkspace && (
+                  <div className="text-center space-y-2 p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Sélectionnez un workspace pour commencer
+                    </p>
+                  </div>
+                )}
+
+                {/* Input */}
+                <div className="flex gap-2">
+                  <Textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Posez votre question..."
+                    className="min-h-[60px] resize-none text-sm"
+                    disabled={loading}
+                  />
+                  <Button
+                    onClick={() => handleSendMessage()}
+                    disabled={!input.trim() || loading || !currentWorkspace}
+                    className="px-3 self-end"
+                    size="sm"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="files" className="flex-1 mt-2">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  Fichiers ({files.length})
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    Upload
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="p-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept=".pdf,.csv,.txt,.json,.png,.jpg,.jpeg"
+                />
+                
+                {uploading && (
+                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mb-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Upload en cours...</span>
+                  </div>
+                )}
+                
+                <ScrollArea className="h-[calc(100vh-16rem)]">
+                  <div className="space-y-2">
+                    {files.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <File className="h-4 w-4 text-primary flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate" title={file.file_name}>
+                              {file.file_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatFileSize(file.file_size)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          <Badge variant="secondary" className="text-xs">
+                            {file.file_type.split('/')[1]?.toUpperCase() || 'FILE'}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteFile(file.id, file.storage_path)}
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {files.length === 0 && (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <File className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Aucun fichier</p>
+                        <p className="text-xs">Cliquez sur Upload pour commencer</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className={cn("h-[700px] flex gap-4", className)}>
       {/* Main Chat Interface */}
