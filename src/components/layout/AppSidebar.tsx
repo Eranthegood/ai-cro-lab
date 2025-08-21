@@ -133,16 +133,18 @@ const AppSidebar = () => {
                             {item.title === "Knowledge Vault" && hasKnowledgeScoreWarning && (
                               <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></div>
                             )}
-                            {item.title === "Knowledge Vault" && hasActiveVaultTasks && (
-                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                            )}
                           </div>
-                          {open && (
-                            <>
-                              <span className="text-sm flex-1">{item.title}</span>
-                              <ChevronDown className={cn("h-4 w-4 transition-transform", knowledgeExpanded && "rotate-180")} />
-                            </>
-                          )}
+                           {open && (
+                             <>
+                               <span className="text-sm flex-1 flex items-center gap-2">
+                                 {item.title}
+                                 {item.title === "Knowledge Vault" && hasActiveVaultTasks && (
+                                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                                 )}
+                               </span>
+                               <ChevronDown className={cn("h-4 w-4 transition-transform", knowledgeExpanded && "rotate-180")} />
+                             </>
+                           )}
                         </div>
                       </SidebarMenuButton>
                       {knowledgeExpanded && open && (
