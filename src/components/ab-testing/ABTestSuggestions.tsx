@@ -12,27 +12,25 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 interface Suggestion {
   id: string;
   title: string;
-  problem_detected?: {
-    issue: string;
-    evidence: string;
-    impact_scope: string;
-  };
-  problem?: string; // Legacy support
-  solution: {
+  approach?: string; // New field for approach categorization
+  problem_detected?: string;
+  solution_description?: string;
+  implementation_method?: string;
+  expected_impact?: string;
+  psychology_insight?: string;
+  code_complexity?: string;
+  unique_factor?: string;
+  confidence?: number;
+  difficulty?: string;
+  // Legacy fields for backward compatibility
+  problem?: string;
+  solution?: {
     approach: string;
     psychological_rationale: string;
     implementation_strategy: string;
-  } | string; // Legacy support
-  expected_impact?: {
-    primary_metric: string;
-    confidence_level: string;
-    timeline_to_significance: string;
-    secondary_benefits: string[];
-  };
-  expectedImpact?: string; // Legacy support
-  confidence: number;
-  difficulty: string;
-  psychologyInsight?: string; // Legacy support
+  } | string;
+  expectedImpact?: string;
+  psychologyInsight?: string;
   differentiation_factor?: string;
   surprise_type?: string;
   credibility_signals?: {
@@ -41,15 +39,15 @@ interface Suggestion {
     industry_precedent?: string;
   };
   quality_score?: number;
-  uniqueness?: string; // Legacy support
+  uniqueness?: string;
   brandContext?: string;
-  implementation: {
+  implementation?: {
     platform: string;
     difficulty?: string;
     code: string;
     setup: string[];
   };
-  metrics: {
+  metrics?: {
     primary: string;
     secondary: string[];
   };
@@ -127,28 +125,27 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
 
       if (error) {
         console.error('Error generating suggestions:', error);
-        setSuggestions(generateFallbackSuggestions());
         toast({
-          title: "Using fallback suggestions",
-          description: "AI service temporarily unavailable, showing curated recommendations.",
-          variant: "default"
+          title: "Error generating suggestions",
+          description: "Unable to generate AI suggestions. Please try again.",
+          variant: "destructive"
         });
+        return;
       } else {
         setSuggestions(result.suggestions || []);
-        setEngineVersion(result.meta?.engine_version || 'multi-layer-v2');
+        setEngineVersion(result.meta?.engine_version || 'comprehensive-v3');
         setIterationCount(iteration);
         
         toast({
           title: iteration > 0 ? "Fresh suggestions generated!" : "AI suggestions generated!",
-          description: `Generated ${result.suggestions?.length || 0} ${iteration > 0 ? 'alternative' : 'personalized'} test recommendations.`,
+          description: `Generated ${result.suggestions?.length || 0} ${iteration > 0 ? 'alternative' : 'personalized'} test recommendations across 3 approaches.`,
         });
       }
     } catch (error) {
       console.error('Error:', error);
-      setSuggestions(generateFallbackSuggestions());
       toast({
         title: "Error generating suggestions",
-        description: "Showing fallback recommendations instead.",
+        description: "Unable to connect to suggestion engine. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -163,86 +160,77 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
   };
 
   const generateFallbackSuggestions = (): Suggestion[] => {
-    return [
-      {
-        id: "1",
-        title: "Micro-Commitment Psychology Ladder",
-        problem_detected: {
-          issue: "Users experience decision paralysis with large commitments",
-          evidence: "Behavioral psychology shows 67% higher completion with micro-steps",
-          impact_scope: "73% of hesitant visitors"
-        },
-        solution: {
-          approach: "Break main CTA into micro-commitment sequence with progress visualization",
-          psychological_rationale: "Commitment escalation + goal gradient effect reduces cognitive load and creates momentum",
-          implementation_strategy: "Multi-step progress bar with small victories at each stage"
-        },
-        expected_impact: {
-          primary_metric: "Conversion rate +28-35%",
-          confidence_level: "High (87%)",
-          timeline_to_significance: "12 days",
-          secondary_benefits: ["Reduced abandonment", "Higher engagement", "Better qualification"]
-        },
-        confidence: 87,
-        difficulty: "Medium",
-        differentiation_factor: "Uses gaming psychology principles rarely applied to conversion optimization",
-        surprise_type: "cross_industry",
-        credibility_signals: {
-          case_study_reference: "Similar implementation showed 31% improvement in e-commerce checkout",
-          psychological_research: "Research by Ariely confirms micro-commitment effectiveness"
-        },
-        quality_score: 0.92,
-        implementation: {
-          platform: "AB Tasty",
-          difficulty: "Medium",
-          code: `
-.progress-ladder {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.step {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #e0e0e0;
-  margin-right: 10px;
-  transition: all 0.3s ease;
-}
-.step.active {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  transform: scale(1.2);
-}`,
-          setup: [
-            "Add progress indicator to form",
-            "Break form into logical steps",
-            "Add micro-rewards at each completion",
-            "Track step completion rates"
-          ]
-        },
-        metrics: {
-          primary: "Multi-step conversion completion rate",
-          secondary: ["Time per step", "Drop-off by stage", "Overall satisfaction"]
-        }
-      }
-    ];
+    // No hardcoded fallbacks - all data comes from the API
+    return [];
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty?.toLowerCase()) {
-      case 'easy':
-      case 'facile':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'medium':
-      case 'moyen':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'advanced':
-      case 'avancé':
-        return 'bg-red-50 text-red-700 border-red-200';
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
+const SuggestionCard = ({ suggestion, onSelect, getDifficultyColor }: {
+  suggestion: Suggestion;
+  onSelect: (suggestion: Suggestion) => void;
+  getDifficultyColor: (difficulty: string) => string;
+}) => (
+  <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
+    <CardHeader className="pb-4">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+          <Badge variant="outline" className={getDifficultyColor(suggestion.difficulty || suggestion.code_complexity || 'medium')}>
+            {suggestion.code_complexity || suggestion.difficulty || 'Medium'}
+          </Badge>
+          {suggestion.approach && (
+            <Badge variant="secondary">
+              {suggestion.approach}
+            </Badge>
+          )}
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold mb-2">{suggestion.title}</h3>
+          <div className="space-y-2 text-sm">
+            <p><span className="font-medium">Expected Impact:</span> {
+              suggestion.expected_impact || suggestion.expectedImpact || 'Analysis pending'
+            }</p>
+          </div>
+        </div>
+      </div>
+    </CardHeader>
+
+    <CardContent>
+      <div className="space-y-3">
+        <div>
+          <h4 className="font-medium text-sm mb-1">🎯 Problem Identified</h4>
+          <p className="text-sm text-muted-foreground">
+            {suggestion.problem_detected || suggestion.problem || 'User behavior analysis in progress'}
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-sm mb-1">💡 Proposed Solution</h4>
+          <p className="text-sm text-muted-foreground">
+            {suggestion.solution_description || 
+             (typeof suggestion.solution === 'object' ? suggestion.solution.approach : suggestion.solution) ||
+             'Solution details being generated'}
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-sm mb-1">🧠 Psychology Insight</h4>
+          <p className="text-sm text-muted-foreground">
+            {suggestion.psychology_insight || 
+             (typeof suggestion.solution === 'object' ? suggestion.solution.psychological_rationale : suggestion.psychologyInsight) ||
+             'Behavioral analysis pending'}
+          </p>
+        </div>
+
+        <Button 
+          className="w-full mt-4" 
+          onClick={() => onSelect(suggestion)}
+        >
+          Select This Test
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
 
   useEffect(() => {
     generateSuggestions(0);
@@ -321,119 +309,82 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
           )}
         </div>
 
-        {/* Suggestions Grid */}
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mb-8">
-          {suggestions.map((suggestion) => (
-            <Card key={suggestion.id} className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
-              <CardHeader className="pb-4">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Badge variant="outline" className={getDifficultyColor(suggestion.difficulty)}>
-                      {suggestion.implementation?.difficulty || suggestion.difficulty}
-                    </Badge>
-                    <Badge variant="outline">
-                      Confidence: {suggestion.confidence}%
-                    </Badge>
-                    {suggestion.quality_score && (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        Quality: {Math.round(suggestion.quality_score * 100)}%
-                      </Badge>
-                    )}
-                    {suggestion.surprise_type && (
-                      <Badge variant="secondary" className="bg-purple-50 text-purple-700">
-                        {suggestion.surprise_type.replace('_', ' ')}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">{suggestion.title}</h3>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="font-medium">Expected Impact:</span> {
-                        suggestion.expected_impact?.primary_metric || suggestion.expectedImpact
-                      }</p>
-                      {suggestion.expected_impact?.timeline_to_significance && (
-                        <p><span className="font-medium">Timeline:</span> {suggestion.expected_impact.timeline_to_significance}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
+        {/* Suggestions by Approach */}
+        <div className="space-y-8 mb-8">
+          {/* Technical UX Optimization */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-semibold">Technical UX Optimization</h2>
+              <Badge variant="outline" className="ml-auto">
+                {suggestions.filter(s => s.approach === 'Technical UX').length} suggestions
+              </Badge>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {suggestions
+                .filter(suggestion => suggestion.approach === 'Technical UX')
+                .map((suggestion) => (
+                  <SuggestionCard 
+                    key={suggestion.id} 
+                    suggestion={suggestion} 
+                    onSelect={onSuggestionSelected}
+                    getDifficultyColor={getDifficultyColor}
+                  />
+                ))}
+            </div>
+          </div>
 
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">🎯 Problem Identified</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {suggestion.problem_detected?.issue || suggestion.problem}
-                    </p>
-                    {suggestion.problem_detected?.evidence && (
-                      <p className="text-xs text-muted-foreground mt-1 italic">
-                        Evidence: {suggestion.problem_detected.evidence}
-                      </p>
-                    )}
-                  </div>
+          {/* Psychology & Persuasion */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                <Brain className="w-4 h-4 text-purple-600" />
+              </div>
+              <h2 className="text-xl font-semibold">Psychology & Persuasion</h2>
+              <Badge variant="outline" className="ml-auto">
+                {suggestions.filter(s => s.approach === 'Psychology').length} suggestions
+              </Badge>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {suggestions
+                .filter(suggestion => suggestion.approach === 'Psychology')
+                .map((suggestion) => (
+                  <SuggestionCard 
+                    key={suggestion.id} 
+                    suggestion={suggestion} 
+                    onSelect={onSuggestionSelected}
+                    getDifficultyColor={getDifficultyColor}
+                  />
+                ))}
+            </div>
+          </div>
 
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">💡 Proposed Solution</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {typeof suggestion.solution === 'object' 
-                        ? suggestion.solution.approach 
-                        : suggestion.solution}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">🧠 Psychology Insight</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {typeof suggestion.solution === 'object' 
-                        ? suggestion.solution.psychological_rationale 
-                        : suggestion.psychologyInsight}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">✨ Why This Works</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {suggestion.differentiation_factor || suggestion.uniqueness}
-                    </p>
-                  </div>
-
-                  {suggestion.credibility_signals && (
-                    <div>
-                      <h4 className="font-medium text-sm mb-1">🎖️ Credibility</h4>
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        {suggestion.credibility_signals.case_study_reference && (
-                          <p>• {suggestion.credibility_signals.case_study_reference}</p>
-                        )}
-                        {suggestion.credibility_signals.psychological_research && (
-                          <p>• {suggestion.credibility_signals.psychological_research}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">📊 Metrics to Track</h4>
-                    <div className="text-sm text-muted-foreground">
-                      <p><span className="font-medium">Primary:</span> {suggestion.metrics.primary}</p>
-                      <p><span className="font-medium">Secondary:</span> {suggestion.metrics.secondary.join(', ')}</p>
-                      {suggestion.expected_impact?.secondary_benefits && (
-                        <p><span className="font-medium">Benefits:</span> {suggestion.expected_impact.secondary_benefits.join(', ')}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button 
-                    className="w-full mt-4" 
-                    onClick={() => onSuggestionSelected(suggestion)}
-                  >
-                    Select This Test
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Brand Differentiation */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+              </div>
+              <h2 className="text-xl font-semibold">Brand Differentiation</h2>
+              <Badge variant="outline" className="ml-auto">
+                {suggestions.filter(s => s.approach === 'Brand Differentiation').length} suggestions
+              </Badge>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {suggestions
+                .filter(suggestion => suggestion.approach === 'Brand Differentiation')
+                .map((suggestion) => (
+                  <SuggestionCard 
+                    key={suggestion.id} 
+                    suggestion={suggestion} 
+                    onSelect={onSuggestionSelected}
+                    getDifficultyColor={getDifficultyColor}
+                  />
+                ))}
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}

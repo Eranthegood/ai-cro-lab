@@ -96,12 +96,20 @@ serve(async (req) => {
     // Layer 2: Multi-Angle Analysis with rotation
     const currentAngles = getRotatedAngles(analysisAngles, iterationCount);
     
-    // Layer 3: Generate adaptive prompt based on user profile and history
-    const adaptivePrompt = generateAdaptivePrompt(
-      enrichedContext, 
+    // Layer 3: Generate comprehensive prompt for 9 suggestions
+    const comprehensivePrompt = generateAdaptivePrompt(
+      pageUrl, 
+      goalType,
+      businessContext,
+      currentPain,
+      useVaultKnowledge,
+      {
+        selectedFiles: uploadedFiles || [],
+        fullVaultMode: false,
+        selectedInsights: 'Processing uploaded files for insights'
+      },
       userPreferences, 
       suggestionMemory,
-      currentAngles,
       iterationCount
     );
 
@@ -117,11 +125,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514', // Latest Claude model
-        max_completion_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: adaptivePrompt
-        }]
+        max_tokens: 4000,
+        messages: [
+          { 
+            role: "user", 
+            content: comprehensivePrompt 
+          }
+        ]
       })
     });
 
@@ -376,119 +386,225 @@ function getRotatedAngles(angles: string[], iterationCount: number) {
 }
 
 function generateAdaptivePrompt(
-  context: string, 
-  userPreferences: any, 
+  pageUrl: string,
+  goalType: string,
+  businessContext: string,
+  currentPain: string,
+  useVaultKnowledge: boolean,
+  vaultData: any,
+  userPreferences: any,
   suggestionMemory: any,
-  currentAngles: string[],
   iterationCount: number
 ) {
-  return `
-${context}
+  // Analyze page context
+  const pageType = analyzePageType(pageUrl);
+  const industry = extractIndustryFromUrl(pageUrl);
+  const brandName = extractBrandFromUrl(pageUrl);
+  const region = 'Global'; // Could be enhanced with geo-detection
 
-ANALYSIS FRAMEWORK: Focus on ${currentAngles.join(', ')} perspectives
+  // Determine vault mode
+  let vaultMode = 'none';
+  if (useVaultKnowledge && vaultData?.selectedFiles?.length > 0) {
+    vaultMode = vaultData.fullVaultMode ? 'all' : 'selected';
+  }
 
-USER ADAPTATION LAYER:
-- Preferred tone: ${userPreferences.tone_preference} (conservative/balanced/aggressive)
-- Scope preference: ${userPreferences.scope_preference} (quick-wins/medium/ambitious) 
-- Technical comfort: ${userPreferences.technical_comfort}
-- Industry context: ${userPreferences.industry_context}
-- Past successful patterns: ${userPreferences.successful_patterns.join(', ')}
+  // Generate brand intelligence (mock for now)
+  const brandIntel = generateBrandIntelligence(pageUrl, industry);
 
-AVOID REPETITION:
-- Recent suggestion patterns: ${suggestionMemory.avoid_patterns.join(', ')}
-- Successful approaches to build on: ${suggestionMemory.successful_approaches.slice(0, 3).join(', ')}
+  return `COMPREHENSIVE CRO ANALYSIS: Generate 9 exceptional AB test suggestions across 3 methodological approaches
 
-=== TÂCHE CRITIQUE ===
-Génère EXACTEMENT 3 suggestions d'A/B test exceptionnelles et concrètes.
+CONTEXT ANALYSIS:
+Page URL: ${pageUrl}
+Page Type: ${pageType} (detected)
+Industry: ${industry} (detected)
+Brand: ${brandName} (detected)
+Region: ${region} (detected)
+Business Goal: ${goalType}
 
-REQUIS POUR CHAQUE SUGGESTION:
-1. SOLUTION ULTRA-CONCRÈTE: Pas de description vague. Explique exactement quoi changer, où et comment.
-2. ÉTAPES D'IMPLÉMENTATION DÉTAILLÉES: Code CSS/JS précis, sélecteurs exacts, instructions pas-à-pas
-3. EXEMPLES DE COPY CONCRETS: Texte exact "avant" vs "après" 
-4. WIREFRAME TEXTUEL: Description précise de l'apparence visuelle
-5. INNOVATION AUTHENTIQUE: Approche créative qui surprend vraiment
+VAULT KNOWLEDGE INTEGRATION:
+${vaultMode === 'all' ? `
+FULL VAULT CONTEXT ACTIVE:
+- Previous test results: ${vaultData.previousTests || 'No previous tests available'}
+- Brand guidelines: ${vaultData.brandGuidelines || 'No brand guidelines available'}
+- Technical constraints: ${vaultData.technicalConstraints || 'No technical constraints specified'}
+- Business objectives: ${vaultData.businessObjectives || 'No business objectives specified'}
+- User research insights: ${vaultData.userResearch || 'No user research available'}
+- Competitor analysis: ${vaultData.competitorData || 'No competitor data available'}
+- Performance benchmarks: ${vaultData.benchmarks || 'No benchmarks available'}
+` : vaultMode === 'selected' ? `
+SELECTED VAULT FILES ACTIVE:
+${vaultData.selectedFiles.map(file => `- ${file.file_name}: ${file.summary || 'Analysis pending'}`).join('\n')}
 
-EXEMPLE DE SOLUTION CONCRÈTE:
-"Remplacer le bouton 'Acheter maintenant' par un selector de quantité interactif avec preview de remise volume:
-- Sélecteur: .checkout-button
-- Code: <div class='quantity-selector'>1× 29€ | 2× 55€ (-5%) | 3× 78€ (-10%)</div>
-- Copy: 'Économisez jusqu'à 10% - Choisissez votre quantité'
-- Apparence: 3 cartes horizontales avec highlighting de l'économie"
+Key insights from selected documents:
+${vaultData.selectedInsights || 'Analysis in progress'}
+` : `
+NO VAULT KNOWLEDGE:
+Analysis based on URL context and brand intelligence database only.
+`}
 
-FORMAT DE RETOUR OBLIGATOIRE (JSON valide):
-{
-  "suggestions": [
-    {
-      "id": "1",
-      "title": "Titre spécifique et intriguant",
-      "problem_detected": {
-        "issue": "Problème spécifique avec preuves",
-        "evidence": "Données qui le prouvent",
-        "impact_scope": "% d'utilisateurs affectés"
-      },
-      "solution": {
-        "approach": "Description de la solution innovante",
-        "what_to_change": "EXACTEMENT quoi modifier sur la page (sélecteurs CSS, éléments)",
-        "how_to_implement": [
-          "Étape 1: Action précise avec code",
-          "Étape 2: Modification CSS/HTML exacte", 
-          "Étape 3: Test de validation",
-          "Étape 4: Mesure des résultats"
-        ],
-        "visual_description": "Description précise de l'apparence finale",
-        "copy_examples": {
-          "before": "Texte actuel",
-          "after": "Nouveau texte proposé"
-        },
-        "psychological_rationale": "Pourquoi ça marche psychologiquement"
-      },
-      "expected_impact": {
-        "primary_metric": "Taux de conversion +15-22%",
-        "confidence_level": "Élevé (85%)",
-        "timeline_to_significance": "14 jours",
-        "secondary_benefits": ["Bénéfice 1", "Bénéfice 2"]
-      },
-      "differentiation_factor": "Ce qui rend cette idée unique/non-évidente",
-      "implementation": {
-        "platform": "AB Tasty",
-        "difficulty": "Facile|Moyen|Avancé",
-        "code": "Code CSS/JS prêt à utiliser en production",
-        "setup": ["Étape concrète 1", "Étape concrète 2", "Étape concrète 3"]
-      },
-      "metrics": {
-        "primary": "Métrique de succès principale",
-        "secondary": ["Métriques additionnelles"]
-      }
-    },
-    {
-      "id": "2",
-      "title": "Deuxième suggestion...",
-      // ... structure identique
-    },
-    {
-      "id": "3", 
-      "title": "Troisième suggestion...",
-      // ... structure identique
-    }
-  ],
-  "meta": {
-    "iteration": ${iterationCount},
-    "angles_used": ${JSON.stringify(currentAngles)},
-    "total_suggestions": 3,
-    "personalization_applied": true
+BRAND INTELLIGENCE:
+${brandIntel ? `
+- Brand Positioning: ${brandIntel.positioning}
+- Target Personas: ${brandIntel.primaryPersonas.map(p => p.name).join(', ')}
+- Key Pain Points: ${brandIntel.painPoints.join(', ')}
+- Core Motivations: ${brandIntel.motivations.join(', ')}
+- Competitive Context: vs ${brandIntel.competitiveContext.join(', ')}
+- Price Segment: ${brandIntel.priceSegment}
+- Brand Promise: ${brandIntel.brandPromise}
+` : 'Generic brand analysis - no specific brand intelligence available'}
+
+USER BEHAVIORAL CONTEXT:
+Based on ${pageType} page psychology, users typically experience:
+- Primary emotional state when arriving on this page
+- Main decision blockers and friction points  
+- Trust-building requirements
+- Cognitive load challenges
+- Social proof needs
+
+TASK: Generate exactly 9 AB test suggestions using 3 different methodological approaches:
+
+=== APPROACH 1: TECHNICAL UX OPTIMIZATION (3 suggestions) ===
+Focus on implementable client-side solutions that improve user experience through:
+- Interface design improvements
+- Navigation optimization  
+- Performance enhancements
+- Mobile responsiveness
+- Form/interaction optimization
+
+=== APPROACH 2: PSYCHOLOGY & PERSUASION (3 suggestions) ===
+Focus on behavioral psychology and persuasion techniques:
+- Cognitive bias exploitation
+- Social proof optimization
+- Urgency and scarcity psychology
+- Trust and credibility building
+- Emotional trigger activation
+
+=== APPROACH 3: BRAND DIFFERENTIATION (3 suggestions) ===
+Focus on leveraging unique brand positioning and competitive advantages:
+- Brand-specific user psychology
+- Competitive moat creation
+- Cultural/regional adaptation
+- Brand promise amplification
+- Unique value proposition enhancement
+
+OUTPUT FORMAT:
+For EACH of the 9 suggestions, provide:
+
+**SUGGESTION [X.Y]: [Compelling Title]**
+- **Approach:** [Technical UX / Psychology / Brand Differentiation]
+- **Problem Detected:** [Specific user behavior issue with data/evidence]
+- **Solution Description:** [Clear, implementable solution]
+- **Implementation Method:** [CSS, HTML, JavaScript - be specific about code requirements]
+- **Expected Impact:** [Quantified improvement estimate with confidence]
+- **Psychology Insight:** [Why this works on human decision-making]
+- **Code Complexity:** [Simple CSS / Medium JS / Complex Integration]
+- **Unique Factor:** [What makes this insight non-obvious]
+
+CRITICAL REQUIREMENTS:
+
+1. **CODE-READY SOLUTIONS:** Each suggestion must be implementable with client-side code (HTML/CSS/JavaScript only - no backend required)
+
+2. **SPECIFIC SELECTORS:** Hint at likely CSS selectors and DOM elements that would be targeted (e.g., ".product-title", ".add-to-cart-button", ".price-display")
+
+3. **VAULT INTEGRATION:** 
+   ${vaultMode === 'all' ? `- Leverage ALL vault insights to create personalized suggestions
+   - Reference previous test results to avoid repetition and build on learnings
+   - Respect brand guidelines and technical constraints
+   - Align with documented business objectives` : 
+   vaultMode === 'selected' ? `- Integrate insights from selected documents where relevant
+   - Reference specific vault findings to enhance suggestions
+   - Build upon documented learnings and constraints` :
+   `- Focus on URL analysis and brand intelligence database
+   - Create generic but high-quality suggestions without internal context`}
+
+4. **AVOID GENERIC SUGGESTIONS:** No basic "change button color" or "add trust badges" unless with innovative twist
+
+5. **PROGRESSIVE COMPLEXITY:** 
+   - Approach 1: Focus on CSS-heavy solutions
+   - Approach 2: Medium JavaScript complexity
+   - Approach 3: Advanced JavaScript with dynamic content
+
+6. **IMPLEMENTATION HINTS:** Include brief technical approach for each suggestion to prepare for code generation phase
+
+7. **MEASURABLE OUTCOMES:** Each suggestion should target specific metrics (conversion rate, engagement time, click-through rate, etc.)
+
+${vaultMode !== 'none' ? `
+8. **VAULT-INFORMED INSIGHTS:** When vault knowledge is available, ensure suggestions:
+   - Don't repeat previously tested approaches (unless building upon them)
+   - Align with brand voice and guidelines
+   - Consider documented technical limitations
+   - Build upon user research findings
+   - Leverage competitive intelligence
+` : ''}
+
+QUALITY STANDARDS:
+- Each suggestion should create an "I never thought of that!" moment
+- Solutions should be psychology-driven, not just UI improvements  
+- Leverage brand context when available for competitive differentiation
+${vaultMode !== 'none' ? `- Integrate vault knowledge naturally to create personalized, context-aware suggestions` : ''}
+- Focus on insights that justify premium CRO tool pricing
+- Ensure implementability through AB testing tools (AB Tasty, Optimizely, etc.)
+
+${vaultMode === 'all' ? `
+VAULT-ENHANCED QUALITY:
+Generate suggestions that demonstrate clear value from having access to internal company data.
+Make it obvious that these insights wouldn't be possible without vault knowledge integration.
+` : vaultMode === 'selected' ? `
+SELECTED INSIGHTS INTEGRATION:
+Weave relevant findings from selected vault documents into suggestions where applicable.
+Show how internal context enhances the quality and relevance of recommendations.
+` : `
+STANDALONE QUALITY:
+Create exceptional suggestions based purely on URL analysis and brand intelligence.
+Demonstrate the tool's capability even without internal company data access.
+`}
+
+Generate 9 suggestions that would make a senior PM think: "This is exactly why we pay for premium CRO intelligence${vaultMode !== 'none' ? ' with vault integration' : ''}."
+
+Respond with valid JSON only, no additional text.`;
+}
+
+// Helper functions for the comprehensive prompt
+function analyzePageType(url: string): string {
+  const lowerUrl = url.toLowerCase();
+  if (lowerUrl.includes('/product/') || lowerUrl.includes('/p/')) return 'product_page';
+  if (lowerUrl.includes('/checkout') || lowerUrl.includes('/cart')) return 'checkout';
+  if (lowerUrl.includes('/category/') || lowerUrl.includes('/shop')) return 'category_listing';
+  if (lowerUrl.includes('/about') || lowerUrl.includes('/company')) return 'about_page';
+  if (lowerUrl.includes('/contact') || lowerUrl.includes('/support')) return 'contact_page';
+  if (lowerUrl.includes('/pricing') || lowerUrl.includes('/plans')) return 'pricing_page';
+  if (lowerUrl.includes('/signup') || lowerUrl.includes('/register')) return 'signup_page';
+  if (lowerUrl.includes('/login') || lowerUrl.includes('/signin')) return 'login_page';
+  if (lowerUrl.includes('/blog') || lowerUrl.includes('/article')) return 'content_page';
+  return 'landing_page';
+}
+
+function extractBrandFromUrl(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.replace('www.', '');
+    const parts = hostname.split('.');
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  } catch {
+    return 'Brand';
   }
 }
 
-INSPIRATION SOURCES:
-- Advanced CRO case studies from CXL, ConversionXL
-- Behavioral psychology research (Kahneman, Ariely, Cialdini)
-- Mobile UX patterns from top apps (Airbnb, Uber, Netflix)
-- Industry-specific conversion tactics for ${userPreferences.industry_context}
-- Counter-intuitive approaches that surprise experts
-
-PERSONALIZATION:
-Adapt suggestions to match user's ${userPreferences.tone_preference} tone and ${userPreferences.scope_preference} scope preference while maintaining high quality and innovation.
-`;
+function generateBrandIntelligence(pageUrl: string, industry: string) {
+  // Mock brand intelligence - could be enhanced with real data
+  const brandName = extractBrandFromUrl(pageUrl);
+  
+  return {
+    positioning: `${brandName} positions itself as a premium ${industry} solution`,
+    primaryPersonas: [
+      { name: 'Decision Maker', role: 'Primary buyer persona' },
+      { name: 'End User', role: 'Product user persona' }
+    ],
+    painPoints: ['High acquisition cost', 'User retention challenges', 'Market competition'],
+    motivations: ['Quality assurance', 'Time efficiency', 'Cost optimization'],
+    competitiveContext: ['Industry leader A', 'Emerging competitor B', 'Traditional provider C'],
+    priceSegment: 'Mid-to-premium',
+    brandPromise: `Delivering exceptional ${industry} experiences`
+  };
 }
 
 async function enhanceSuggestions(rawSuggestions: any, userPreferences: any, suggestionMemory: any) {
@@ -559,45 +675,146 @@ function calculateQualityScore(suggestion: any) {
 }
 
 function validateSuggestions(rawSuggestions: any): boolean {
-  // Critical validation: must have exactly 3 suggestions
-  if (!rawSuggestions.suggestions || rawSuggestions.suggestions.length !== 3) {
+  // Critical validation: must have exactly 9 suggestions
+  if (!rawSuggestions.suggestions || rawSuggestions.suggestions.length !== 9) {
+    return false;
+  }
+  
+  // Check that we have 3 suggestions for each approach
+  const approaches = rawSuggestions.suggestions.map(s => s.approach);
+  const technicalCount = approaches.filter(a => a === 'Technical UX').length;
+  const psychologyCount = approaches.filter(a => a === 'Psychology').length;
+  const brandCount = approaches.filter(a => a === 'Brand Differentiation').length;
+  
+  if (technicalCount !== 3 || psychologyCount !== 3 || brandCount !== 3) {
     return false;
   }
   
   // Each suggestion must have concrete implementation details
   return rawSuggestions.suggestions.every(suggestion => {
-    return suggestion.solution?.how_to_implement && 
-           Array.isArray(suggestion.solution.how_to_implement) &&
-           suggestion.solution.how_to_implement.length >= 3 &&
-           suggestion.solution.what_to_change &&
-           suggestion.implementation?.code;
+    return suggestion.title && 
+           suggestion.solution_description &&
+           suggestion.implementation_method &&
+           suggestion.expected_impact &&
+           suggestion.psychology_insight;
   });
 }
 
 async function generateIntelligentFallback(context: any, goalType: string, userPreferences: any) {
-  // Enhanced fallback with exactly 3 concrete suggestions
+  // Enhanced fallback with exactly 9 concrete suggestions across 3 approaches
   const fallbackSuggestions = [
+    // Technical UX Optimization (3 suggestions)
     {
-      id: "1",
-      title: "Sélecteur de Quantité Dynamique avec Économies Visuelles",
-      problem_detected: {
-        issue: "70% des visiteurs partent sans voir les économies de volume disponibles",
-        evidence: "Analytics montrent que les utilisateurs cliquent une seule fois sur 'Ajouter au panier'",
-        impact_scope: "73% des acheteurs potentiels"
-      },
-      solution: {
-        approach: "Remplacer le bouton d'achat par un sélecteur interactif qui montre les économies en temps réel",
-        what_to_change: "Remplacer .add-to-cart-button par un widget de sélection de quantité",
-        how_to_implement: [
-          "Étape 1: Identifier le sélecteur .add-to-cart-button et le masquer avec CSS",
-          "Étape 2: Injecter le HTML : <div class='quantity-selector'><div class='qty-option' data-qty='1'>1× 29€</div><div class='qty-option highlight' data-qty='2'>2× 55€ <span class='savings'>(-5%)</span></div><div class='qty-option highlight' data-qty='3'>3× 78€ <span class='savings'>(-10%)</span></div></div>",
-          "Étape 3: Ajouter le CSS pour styling avec animations au hover",
-          "Étape 4: Implémenter le JavaScript pour la sélection et l'ajout au panier"
-        ],
-        visual_description: "3 cartes horizontales côte à côte, la quantité 1 en standard, les quantités 2 et 3 avec un badge vert montrant l'économie",
-        copy_examples: {
-          before: "Ajouter au panier - 29€",
-          after: "1× 29€ | 2× 55€ (-5%) | 3× 78€ (-10%)"
+      id: "1.1",
+      title: "Progressive Loading with Micro-Interactions",
+      approach: "Technical UX",
+      problem_detected: "68% of users abandon during loading states",
+      solution_description: "Replace static loading with progressive content reveal and skeleton screens",
+      implementation_method: "CSS animations + JavaScript content streaming",
+      expected_impact: "Conversion rate +18-25%",
+      psychology_insight: "Perceived performance reduces cognitive load and abandonment",
+      code_complexity: "Medium JS",
+      unique_factor: "Uses gaming industry loading patterns"
+    },
+    {
+      id: "1.2", 
+      title: "Adaptive Mobile Navigation Based on Scroll Behavior",
+      approach: "Technical UX",
+      problem_detected: "Mobile users lose 40% of navigation context when scrolling",
+      solution_description: "Dynamic navigation that adapts based on user scroll patterns and intent",
+      implementation_method: "JavaScript scroll detection + CSS transitions",
+      expected_impact: "Mobile engagement +22-30%",
+      psychology_insight: "Contextual navigation reduces decision fatigue",
+      code_complexity: "Medium JS",
+      unique_factor: "Predictive UX based on behavior analysis"
+    },
+    {
+      id: "1.3",
+      title: "Smart Form Field Sequencing with Success Momentum",
+      approach: "Technical UX", 
+      problem_detected: "Form abandonment occurs at 73% completion rate",
+      solution_description: "Reorder form fields by completion likelihood with visual progress rewards",
+      implementation_method: "Dynamic form restructuring + progress visualization",
+      expected_impact: "Form completion +35-42%",
+      psychology_insight: "Early wins create completion momentum (goal gradient effect)",
+      code_complexity: "Medium JS",
+      unique_factor: "Data-driven field ordering optimization"
+    },
+    
+    // Psychology & Persuasion (3 suggestions)
+    {
+      id: "2.1",
+      title: "Social Proof Countdown with Real-time Activity",
+      approach: "Psychology",
+      problem_detected: "Users lack confidence in purchase decisions without social validation",
+      solution_description: "Live counter showing recent purchases with urgency timer",
+      implementation_method: "Real-time data display + scarcity psychology triggers", 
+      expected_impact: "Conversion rate +28-38%",
+      psychology_insight: "Combines social proof with scarcity bias for decision acceleration",
+      code_complexity: "Complex Integration",
+      unique_factor: "Multi-bias psychological approach"
+    },
+    {
+      id: "2.2",
+      title: "Loss Aversion Cart Abandonment Recovery",
+      approach: "Psychology",
+      problem_detected: "Cart abandonment at 69% without psychological intervention",
+      solution_description: "Exit-intent popup showing what user will lose vs. alternatives",
+      implementation_method: "Behavioral targeting + loss framing messaging",
+      expected_impact: "Cart recovery +45-55%", 
+      psychology_insight: "Loss aversion is 2x stronger than gain motivation",
+      code_complexity: "Medium JS",
+      unique_factor: "Frames decision as loss prevention vs. gain acquisition"
+    },
+    {
+      id: "2.3",
+      title: "Reciprocity-Triggered Micro-Commitments",
+      approach: "Psychology",
+      problem_detected: "Low engagement and conversion due to lack of investment",
+      solution_description: "Progressive value delivery with micro-commitment requests",
+      implementation_method: "Multi-step engagement with reciprocity triggers",
+      expected_impact: "Engagement +52% Conversion +33%",
+      psychology_insight: "Reciprocity principle increases commitment and loyalty",
+      code_complexity: "Medium JS", 
+      unique_factor: "Creates psychological debt that drives conversion"
+    },
+
+    // Brand Differentiation (3 suggestions)  
+    {
+      id: "3.1",
+      title: "Brand Story Integration with Interactive Timeline",
+      approach: "Brand Differentiation",
+      problem_detected: "Generic presentation fails to differentiate from competitors",
+      solution_description: "Interactive brand story that connects values to product benefits",
+      implementation_method: "Scroll-triggered storytelling with brand milestone reveals",
+      expected_impact: "Brand affinity +60% Premium perception +40%",
+      psychology_insight: "Narrative transportation creates emotional brand connection",
+      code_complexity: "Complex Integration",
+      unique_factor: "Transforms product pages into brand experience journeys"
+    },
+    {
+      id: "3.2",
+      title: "Cultural Localization with Regional Social Proof",
+      approach: "Brand Differentiation", 
+      problem_detected: "Global messaging lacks local market resonance",
+      solution_description: "Region-specific testimonials, cultural references, and local success stories",
+      implementation_method: "Geo-targeted content + culturally relevant social proof",
+      expected_impact: "Regional conversion +48-65%", 
+      psychology_insight: "Cultural similarity bias increases trust and relevance",
+      code_complexity: "Medium JS",
+      unique_factor: "Hyperlocalized brand positioning"
+    },
+    {
+      id: "3.3", 
+      title: "Competitive Advantage Calculator with Value Proof",
+      approach: "Brand Differentiation",
+      problem_detected: "Users can't quantify brand superiority vs. alternatives",
+      solution_description: "Interactive tool showing measurable advantages over competitors",
+      implementation_method: "Dynamic comparison calculator with ROI visualization",
+      expected_impact: "Premium sales +55% Price resistance -40%",
+      psychology_insight: "Quantified superiority reduces price sensitivity",
+      code_complexity: "Complex Integration", 
+      unique_factor: "Direct competitive positioning with proof points"
         },
         psychological_rationale: "Anchoring bias + loss aversion - les utilisateurs voient l'économie manquée comme une perte"
       },
@@ -826,7 +1043,7 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
     meta: {
       fallback: true,
       personalized: true,
-      total_suggestions: 3,
+      total_suggestions: 9,
       user_tone: userPreferences.tone_preference
     }
   };
