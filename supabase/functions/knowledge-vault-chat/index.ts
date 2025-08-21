@@ -68,51 +68,34 @@ serve(async (req) => {
     const context = await createSmartContext(knowledgeVaultData, message, projectId);
     console.log('Smart context created, tokens:', context.length);
 
-    // Call Claude with the enriched context
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
-        messages: [
-          {
-            role: 'user',
-            content: `Tu es Claude, un assistant IA intégré à une Knowledge Vault intelligente. Tu as accès à toutes les données de configuration business, visuelles, comportementales, prédictives et aux documents de l'entreprise.
+    // Call Claude with intelligent retry and optimization
+    const data = await callClaudeWithRetry(anthropicApiKey, {
+      model: 'claude-3-5-haiku-20241022', // Migration vers Haiku pour économie 20x
+      max_tokens: 2000, // Réduit pour optimiser les coûts
+      messages: [
+        {
+          role: 'user',
+          content: `Assistant IA Knowledge Vault - Analyse concise et précise.
 
 ${projectId ? 
-  `Tu travailles actuellement dans le contexte du projet ID: ${projectId}. Concentre ton analyse sur les données liées à ce projet quand c'est pertinent.` :
-  `Tu es en mode analyse globale du workspace. Analyse toutes les données disponibles sans restriction de projet.`
+  `Projet: ${projectId} - Focus sur données du projet.` :
+  `Mode global - Analyse complète workspace.`
 }
 
-CONTEXTE DE LA KNOWLEDGE VAULT:
+DONNÉES VAULT:
 ${context}
 
-QUESTION DE L'UTILISATEUR: ${message}
+QUESTION: ${message}
 
-Instructions:
-- Utilise TOUTES les informations de la Knowledge Vault pour enrichir ta réponse
-- Fais des liens entre les différentes sections (business, visual, behavioral, predictive, repository)
-- Donne des insights actionnables basés sur les données disponibles
-- Si tu manques d'informations spécifiques, suggère quelles données ajouter à la vault
-- Sois précis et concret en utilisant les données réelles de la vault
-- Réponds en français de manière professionnelle et perspicace`
-          }
-        ]
-      })
+Réponds de manière:
+- Concise mais complète
+- Actionnable avec insights précis  
+- Basée sur les données réelles
+- En français professionnel`
+        }
+      ]
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Anthropic API error:', errorText);
-      throw new Error(`Anthropic API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
     console.log('Claude response received');
 
     // Log the interaction for audit
@@ -124,7 +107,7 @@ Instructions:
       p_metadata: {
         message_length: message.length,
         response_length: data.content[0].text.length,
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-5-haiku-20241022', // Modèle optimisé
         project_id: projectId || null,
         mode: projectId ? 'project' : 'global'
       }
@@ -148,6 +131,102 @@ Instructions:
     });
   }
 });
+
+// Intelligent retry system with exponential backoff
+async function callClaudeWithRetry(apiKey: string, payload: any, maxRetries = 4): Promise<any> {
+  const delays = [1000, 2000, 4000, 8000]; // Backoff exponentiel: 1s, 2s, 4s, 8s
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Claude API attempt ${attempt + 1}/${maxRetries + 1}`);
+      
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Claude API success on attempt ${attempt + 1}`);
+        return data;
+      }
+
+      // Gérer les erreurs spécifiques
+      const status = response.status;
+      const errorText = await response.text();
+      
+      if (status === 429 || status === 529) {
+        // Rate limit ou surcharge - retry avec backoff
+        if (attempt < maxRetries) {
+          const delay = delays[attempt];
+          console.log(`⏳ Retry ${attempt + 1} in ${delay}ms - Status: ${status}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      } else if (status >= 400 && status < 500 && status !== 429) {
+        // Erreur client - ne pas retry
+        console.error(`❌ Client error ${status}:`, errorText);
+        throw new Error(`Claude API client error: ${status} - ${errorText}`);
+      }
+      
+      // Dernière tentative ou erreur serveur
+      if (attempt === maxRetries) {
+        console.error(`❌ Final attempt failed - Status: ${status}:`, errorText);
+        
+        // Fallback vers un modèle plus simple si disponible
+        if (payload.model === 'claude-3-5-haiku-20241022') {
+          console.log('🔄 Fallback: trying with reduced context...');
+          const fallbackPayload = {
+            ...payload,
+            max_tokens: Math.min(1000, payload.max_tokens),
+            messages: [{
+              role: 'user',
+              content: payload.messages[0].content.slice(0, 8000) + '\n\nRéponds de manière concise en te basant sur les données disponibles.'
+            }]
+          };
+          
+          try {
+            const fallbackResponse = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify(fallbackPayload)
+            });
+            
+            if (fallbackResponse.ok) {
+              console.log('✅ Fallback successful');
+              return await fallbackResponse.json();
+            }
+          } catch (fallbackError) {
+            console.error('❌ Fallback failed:', fallbackError);
+          }
+        }
+        
+        throw new Error(`Claude API error after ${maxRetries + 1} attempts: ${status} - ${errorText}`);
+      }
+      
+    } catch (error) {
+      if (attempt === maxRetries) {
+        console.error(`❌ Network error on final attempt:`, error);
+        throw new Error(`Network error after ${maxRetries + 1} attempts: ${error.message}`);
+      }
+      
+      const delay = delays[attempt] || 2000;
+      console.log(`⏳ Network error, retry ${attempt + 1} in ${delay}ms:`, error.message);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw new Error('Unexpected end of retry loop');
+}
 
 async function gatherKnowledgeVaultData(supabase: any, workspaceId: string): Promise<KnowledgeVaultData> {
   console.log('Gathering Knowledge Vault data for workspace:', workspaceId);
