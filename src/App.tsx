@@ -9,6 +9,7 @@ import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { BackgroundTaskPanel } from "@/components/notifications/BackgroundTaskPanel";
+import { ChatProvider } from "@/context/ChatContext";
 // import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider"; // Disabled temporarily
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -33,7 +34,8 @@ const App = () => (
         <WorkspaceProvider>
           <ProjectsProvider>
             <NotificationProvider>
-              <TooltipProvider>
+              <ChatProvider>
+                <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
@@ -91,7 +93,8 @@ const App = () => (
             </Routes>
           </BrowserRouter>
           </TooltipProvider>
-        </NotificationProvider>
+        </ChatProvider>
+      </NotificationProvider>
       </ProjectsProvider>
     </WorkspaceProvider>
   </AuthProvider>

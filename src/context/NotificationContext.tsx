@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { supabase } from '@/integrations/supabase/client';
 
 interface BackgroundTask {
   id: string;
@@ -8,6 +9,9 @@ interface BackgroundTask {
   progress?: string;
   result?: any;
   timestamp: Date;
+  streamReader?: ReadableStreamDefaultReader<Uint8Array>;
+  conversationId?: string;
+  messageId?: string;
 }
 
 interface NotificationContextType {
@@ -28,6 +32,15 @@ interface NotificationContextType {
   updateTaskProgress: (taskId: string, progress: string) => void;
   completeTask: (taskId: string, result?: any) => void;
   errorTask: (taskId: string, error: string) => void;
+  startPersistentStream: (params: {
+    taskId: string;
+    message: string;
+    workspaceId: string;
+    projectId?: string;
+    userId: string;
+    conversationId?: string;
+    messageId?: string;
+  }) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -114,6 +127,155 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     );
   };
 
+  const startPersistentStream = async (params: {
+    taskId: string;
+    message: string;
+    workspaceId: string;
+    projectId?: string;
+    userId: string;
+    conversationId?: string;
+    messageId?: string;
+  }) => {
+    try {
+      // Get fresh auth token
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
+        throw new Error('No active session');
+      }
+
+      updateTaskProgress(params.taskId, '🔍 Lecture des fichiers...');
+      
+      const response = await fetch(`https://wtpmxuhkbwwiougblkki.supabase.co/functions/v1/simple-vault-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.data.session.access_token}`,
+        },
+        body: JSON.stringify({
+          message: params.message,
+          workspaceId: params.workspaceId,
+          projectId: params.projectId || null,
+          userId: params.userId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 429) {
+          throw new Error(`Limite quotidienne atteinte. ${errorData.error || 'Revenez demain.'}`);
+        }
+        throw new Error(errorData.error || 'Erreur de communication');
+      }
+
+      // Handle streaming response
+      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+        updateTaskProgress(params.taskId, '🧠 Claude analyse vos documents...');
+        
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('No stream available');
+
+        // Store reader in task for potential cleanup
+        setBackgroundTasks(prev => 
+          prev.map(task => 
+            task.id === params.taskId 
+              ? { 
+                  ...task, 
+                  streamReader: reader,
+                  conversationId: params.conversationId,
+                  messageId: params.messageId
+                } 
+              : task
+          )
+        );
+
+        const decoder = new TextDecoder();
+        let accumulatedContent = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.type === 'content') {
+                  accumulatedContent += data.content;
+                  updateTaskProgress(params.taskId, '✍️ Claude rédige sa réponse...');
+                  
+                  // Notify components about streaming update
+                  if (params.conversationId && params.messageId) {
+                    // This would be handled by ChatContext if integrated
+                    const updateEvent = new CustomEvent('chatStreamUpdate', {
+                      detail: {
+                        conversationId: params.conversationId,
+                        messageId: params.messageId,
+                        content: accumulatedContent
+                      }
+                    });
+                    window.dispatchEvent(updateEvent);
+                  }
+                } else if (data.type === 'done') {
+                  // Notify about completion
+                  if (params.conversationId && params.messageId) {
+                    const completeEvent = new CustomEvent('chatStreamComplete', {
+                      detail: {
+                        conversationId: params.conversationId,
+                        messageId: params.messageId,
+                        content: accumulatedContent
+                      }
+                    });
+                    window.dispatchEvent(completeEvent);
+                  }
+                  
+                  completeTask(params.taskId, { content: accumulatedContent });
+                  return;
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e);
+              }
+            }
+          }
+        }
+      } else {
+        // Fallback to regular JSON response
+        const data = await response.json();
+        
+        if (params.conversationId && params.messageId) {
+          const completeEvent = new CustomEvent('chatStreamComplete', {
+            detail: {
+              conversationId: params.conversationId,
+              messageId: params.messageId,
+              content: data.response
+            }
+          });
+          window.dispatchEvent(completeEvent);
+        }
+
+        completeTask(params.taskId, { content: data.response });
+      }
+
+    } catch (error: any) {
+      console.error('Persistent stream error:', error);
+      errorTask(params.taskId, error.message || 'Erreur technique');
+      
+      if (params.conversationId && params.messageId) {
+        const errorEvent = new CustomEvent('chatStreamError', {
+          detail: {
+            conversationId: params.conversationId,
+            messageId: params.messageId,
+            error: error.message
+          }
+        });
+        window.dispatchEvent(errorEvent);
+      }
+    }
+  };
+
   // Mock notifications - in real app this would come from API/database
   const staticNotifications = [
     {
@@ -154,7 +316,8 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       startBackgroundTask,
       updateTaskProgress,
       completeTask,
-      errorTask
+      errorTask,
+      startPersistentStream
     }}>
       {children}
     </NotificationContext.Provider>

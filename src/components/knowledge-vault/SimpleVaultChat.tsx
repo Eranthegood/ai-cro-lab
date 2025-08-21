@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useChat } from '@/context/ChatContext';
 import { Send, Brain, Loader2, File, Upload, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,43 +33,89 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
   const { currentWorkspace } = useWorkspace();
   const { currentProject } = useProjects();
   const { files, uploading, uploadFile, deleteFile } = useSimpleVault();
-  const { startBackgroundTask, updateTaskProgress, completeTask, errorTask } = useNotifications();
+  const { startBackgroundTask, startPersistentStream } = useNotifications();
+  const { 
+    messages, 
+    addMessage, 
+    updateMessage, 
+    currentConversation, 
+    createConversation, 
+    setCurrentConversation 
+  } = useChat();
   
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'system',
-      content: '🚀 **Knowledge Vault Simple**\n\nInterface Claude-style : Upload vos fichiers → Posez vos questions\n\nJe peux analyser tous types de documents, données CSV, images, etc.',
-      timestamp: new Date()
-    }
-  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [canNavigate, setCanNavigate] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-scroll when messages change
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || !user || !currentWorkspace || loading) return;
+  // Create conversation if none exists for current workspace
+  useEffect(() => {
+    if (currentWorkspace && !currentConversation) {
+      const conversationId = createConversation(currentWorkspace.id, currentProject?.id);
+      setCurrentConversation(conversationId);
+    }
+  }, [currentWorkspace, currentProject, currentConversation, createConversation, setCurrentConversation]);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: input.trim(),
-      timestamp: new Date()
+  // Listen for persistent stream updates
+  useEffect(() => {
+    const handleStreamUpdate = (event: CustomEvent) => {
+      const { messageId, content } = event.detail;
+      updateMessage(messageId, { content, isStreaming: true });
     };
 
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const handleStreamComplete = (event: CustomEvent) => {
+      const { messageId, content } = event.detail;
+      updateMessage(messageId, { content, isStreaming: false });
+      setLoading(false);
+    };
+
+    const handleStreamError = (event: CustomEvent) => {
+      const { messageId, error } = event.detail;
+      updateMessage(messageId, { 
+        content: "⚠️ **Erreur technique**\n\nProblème temporaire. Vérifiez votre connexion et réessayez.", 
+        isStreaming: false 
+      });
+      setLoading(false);
+    };
+
+    window.addEventListener('chatStreamUpdate', handleStreamUpdate as EventListener);
+    window.addEventListener('chatStreamComplete', handleStreamComplete as EventListener);
+    window.addEventListener('chatStreamError', handleStreamError as EventListener);
+
+    return () => {
+      window.removeEventListener('chatStreamUpdate', handleStreamUpdate as EventListener);
+      window.removeEventListener('chatStreamComplete', handleStreamComplete as EventListener);
+      window.removeEventListener('chatStreamError', handleStreamError as EventListener);
+    };
+  }, [updateMessage]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || !user || !currentWorkspace || loading || !currentConversation) return;
+
+    // Add user message to conversation
+    const userMessageId = addMessage({
+      type: 'user',
+      content: input.trim()
+    });
+
+    const messageContent = input.trim();
     setInput('');
     setLoading(true);
     
+    // Add streaming placeholder
+    const streamingMessageId = addMessage({
+      type: 'assistant',
+      content: '',
+      isStreaming: true
+    });
+
     // Start background task for navigation
     const taskId = `analysis-${Date.now()}`;
     startBackgroundTask({
@@ -77,146 +124,33 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
       title: 'Analyse Knowledge Vault',
       status: 'processing'
     });
-    
-    setCanNavigate(true); // Allow navigation during processing
-
-    // Add streaming placeholder
-    const streamingMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: 'assistant',
-      content: '',
-      timestamp: new Date(),
-      isStreaming: true
-    };
-    setMessages([...newMessages, streamingMessage]);
 
     try {
-      updateTaskProgress(taskId, '🔍 Lecture des fichiers...');
-      
-      // Call simplified endpoint with keepalive to persist request during navigation
-      const response = await fetch(`https://wtpmxuhkbwwiougblkki.supabase.co/functions/v1/simple-vault-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cG14dWhrYnd3aW91Z2Jsa2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1NDk5NDMsImV4cCI6MjA3MTEyNTk0M30.aAHUQ-8vLmfOL9st7EGjC_SDD7kuzyqJx6ZiiY1Rw2A`,
-        },
-        keepalive: true, // Keep request alive during navigation
-        body: JSON.stringify({
-          message: userMessage.content,
-          workspaceId: currentWorkspace.id,
-          projectId: currentProject?.id || null,
-          userId: user.id
-        }),
+      // Start persistent stream that will continue even after navigation
+      await startPersistentStream({
+        taskId,
+        message: messageContent,
+        workspaceId: currentWorkspace.id,
+        projectId: currentProject?.id,
+        userId: user.id,
+        conversationId: currentConversation.id,
+        messageId: streamingMessageId
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 429) {
-          throw new Error(`Limite quotidienne atteinte. ${errorData.error || 'Revenez demain.'}`);
-        }
-        throw new Error(errorData.error || 'Erreur de communication');
-      }
-
-      // Handle streaming response
-      if (response.headers.get('content-type')?.includes('text/event-stream')) {
-        updateTaskProgress(taskId, '🧠 Claude analyse vos documents...');
-        
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let accumulatedContent = '';
-
-        if (!reader) throw new Error('No stream available');
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'content') {
-                  accumulatedContent += data.content;
-                  updateTaskProgress(taskId, '✍️ Claude rédige sa réponse...');
-                  
-                  setMessages(prev => 
-                    prev.map(msg => 
-                      msg.id === streamingMessage.id 
-                        ? { ...msg, content: accumulatedContent }
-                        : msg
-                    )
-                  );
-                } else if (data.type === 'done') {
-                  setMessages(prev => 
-                    prev.map(msg => 
-                      msg.id === streamingMessage.id 
-                        ? { ...msg, content: accumulatedContent, isStreaming: false }
-                        : msg
-                    )
-                  );
-                  
-                  completeTask(taskId, { content: accumulatedContent });
-                  
-                  toast({
-                    title: "Analyse terminée",
-                    description: "Claude a analysé vos fichiers avec succès",
-                  });
-                  
-                  return;
-                }
-              } catch (e) {
-                console.warn('Failed to parse SSE data:', e);
-              }
-            }
-          }
-        }
-      } else {
-        // Fallback to regular JSON response
-        const data = await response.json();
-        
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === streamingMessage.id 
-              ? { ...msg, content: data.response, isStreaming: false }
-              : msg
-          )
-        );
-
-        completeTask(taskId, { content: data.response });
-
-        toast({
-          title: "Analyse terminée",
-          description: "Claude a analysé vos fichiers avec succès",
-        });
-      }
-
     } catch (error: any) {
-      console.error('Error sending message:', error);
+      console.error('Error starting persistent stream:', error);
       
-      errorTask(taskId, error.message || 'Erreur technique');
-      
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === streamingMessage.id 
-            ? { 
-                ...msg, 
-                content: "⚠️ **Erreur technique**\n\nProblème temporaire. Vérifiez votre connexion et réessayez.", 
-                isStreaming: false 
-              }
-            : msg
-        )
-      );
+      updateMessage(streamingMessageId, {
+        content: "⚠️ **Erreur technique**\n\nProblème temporaire. Vérifiez votre connexion et réessayez.",
+        isStreaming: false
+      });
 
       toast({
         variant: "destructive",
         title: "Erreur d'analyse",
         description: error.message || "Impossible d'analyser les fichiers",
       });
-    } finally {
+      
       setLoading(false);
     }
   };
