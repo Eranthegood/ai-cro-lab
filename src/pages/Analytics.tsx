@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Popover,
   PopoverContent,
@@ -17,10 +18,11 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { CalendarIcon, Download, TrendingUp } from "lucide-react";
+import { CalendarIcon, Download, TrendingUp, FlaskConical } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { cn } from "@/lib/utils";
+import AbTestingPanel from "@/components/analytics/AbTestingPanel";
 
 const Analytics = () => {
   const [startDate, setStartDate] = useState<Date>(subMonths(new Date(), 5));
@@ -130,8 +132,19 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="performance" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="performance">Performance Analytics</TabsTrigger>
+            <TabsTrigger value="abtesting" className="flex items-center gap-2">
+              <FlaskConical className="w-4 h-4" />
+              A/B Testing
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="performance" className="space-y-6">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -190,8 +203,8 @@ const Analytics = () => {
           </Card>
         </div>
 
-        {/* Main Chart */}
-        <Card>
+            {/* Main Chart */}
+            <Card>
           <CardHeader>
             <CardTitle>Tests Performance Over Time</CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -244,8 +257,14 @@ const Analytics = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="abtesting">
+            <AbTestingPanel />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

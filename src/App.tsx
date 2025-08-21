@@ -8,6 +8,7 @@ import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import DataAnalysis from "./pages/DataAnalysis";
@@ -24,10 +25,11 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <WorkspaceProvider>
-        <ProjectsProvider>
-          <TooltipProvider>
+    <LaunchDarklyProvider>
+      <AuthProvider>
+        <WorkspaceProvider>
+          <ProjectsProvider>
+            <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -94,10 +96,11 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
-      </ProjectsProvider>
-    </WorkspaceProvider>
-  </AuthProvider>
+          </TooltipProvider>
+        </ProjectsProvider>
+      </WorkspaceProvider>
+    </AuthProvider>
+    </LaunchDarklyProvider>
   </QueryClientProvider>
 );
 

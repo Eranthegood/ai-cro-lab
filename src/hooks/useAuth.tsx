@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useIdentifyUser } from '@/hooks/useLaunchDarkly';
 
 interface AuthContextType {
   user: User | null;
@@ -32,6 +33,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Use try/catch for LaunchDarkly hook since it might not be available initially
+  let identifyUser: ((user: any) => Promise<any>) | null = null;
+  try {
+    identifyUser = useIdentifyUser();
+  } catch (error) {
+    // LaunchDarkly not available, continue without it
+    console.warn('LaunchDarkly provider not available:', error);
+  }
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -39,6 +49,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Identify user with LaunchDarkly when auth state changes
+        if (session?.user && identifyUser) {
+          setTimeout(() => {
+            identifyUser({
+              key: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.full_name || session.user.email,
+              custom: {
+                created_at: session.user.created_at,
+                provider: session.user.app_metadata?.provider
+              }
+            }).catch((error) => {
+              console.warn('LaunchDarkly user identification failed:', error);
+            });
+          }, 0);
+        }
         
         if (event === 'SIGNED_IN' && session?.user) {
           // Defer any additional data fetching to prevent deadlocks
