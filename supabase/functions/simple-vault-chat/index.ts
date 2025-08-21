@@ -67,9 +67,27 @@ serve(async (req) => {
       for (const file of files.slice(0, 10)) { // Limit to 10 files max
         context += `📄 ${file.file_name} (${file.file_type})\n`;
         
+        // Helper function to get MIME type from file extension
+        const getMimeType = (fileName: string, fileType: string | null): string => {
+          if (fileType) return fileType;
+          
+          const ext = fileName.toLowerCase().split('.').pop();
+          const mimeMap: Record<string, string> = {
+            'png': 'image/png',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'gif': 'image/gif',
+            'webp': 'image/webp',
+            'pdf': 'application/pdf',
+            'txt': 'text/plain',
+            'md': 'text/markdown'
+          };
+          return mimeMap[ext || ''] || 'application/octet-stream';
+        };
+        
         // Check if file is an image
-        const isImage = file.file_type.startsWith('image/') || 
-                       /\.(png|jpg|jpeg|gif|webp)$/i.test(file.file_name);
+        const mimeType = getMimeType(file.file_name, file.file_type);
+        const isImage = mimeType.startsWith('image/');
         
         try {
           const { data: fileData } = await supabase.storage
@@ -77,27 +95,69 @@ serve(async (req) => {
             .download(file.storage_path);
           
           if (fileData) {
+            const fileSize = fileData.size;
+            
             if (isImage) {
-              // Handle images - convert to base64 for Claude vision
-              const arrayBuffer = await fileData.arrayBuffer();
-              const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-              imageFiles.push({
-                name: file.file_name,
-                base64: base64,
-                mediaType: file.file_type
-              });
-              context += `Contenu: [Image incluse dans l'analyse visuelle]\n\n`;
-              console.log(`🖼️ [${requestId}] Image added: ${file.file_name} (${file.file_type})`);
+              // Limit images: max 3 images, max 5MB each
+              if (imageFiles.length >= 3) {
+                console.log(`⏭️ [${requestId}] Skipping image ${file.file_name}: already processed 3 images`);
+                context += `Contenu: [Image ignorée - limite de 3 images atteinte]\n\n`;
+                continue;
+              }
+              
+              if (fileSize > 5 * 1024 * 1024) { // 5MB limit
+                console.log(`⏭️ [${requestId}] Skipping image ${file.file_name}: file too large (${Math.round(fileSize / 1024 / 1024)}MB)`);
+                context += `Contenu: [Image ignorée - fichier trop volumineux (${Math.round(fileSize / 1024 / 1024)}MB)]\n\n`;
+                continue;
+              }
+              
+              try {
+                // Handle images - convert to base64 for Claude vision using safe chunked approach
+                const arrayBuffer = await fileData.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                // Use chunked processing to avoid stack overflow
+                let binary = '';
+                const chunkSize = 8192; // 8KB chunks
+                
+                for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                  const chunk = uint8Array.subarray(i, i + chunkSize);
+                  binary += String.fromCharCode.apply(null, Array.from(chunk));
+                }
+                
+                const base64 = btoa(binary);
+                
+                imageFiles.push({
+                  name: file.file_name,
+                  base64: base64,
+                  mediaType: mimeType
+                });
+                context += `Contenu: [Image incluse dans l'analyse visuelle - ${Math.round(fileSize / 1024)}KB]\n\n`;
+                console.log(`✅ [${requestId}] Image processed: ${file.file_name} (${Math.round(fileSize / 1024)}KB)`);
+              } catch (imageError) {
+                console.error(`❌ [${requestId}] Failed to process image ${file.file_name}:`, imageError.message);
+                context += `Contenu: [Image non lisible - ${imageError.message}]\n\n`;
+              }
+            } else if (mimeType === 'application/pdf') {
+              // For PDFs, just note their presence - don't try to read as text
+              context += `Contenu: [Document PDF détecté - ${Math.round(fileSize / 1024)}KB]\n\n`;
+              console.log(`📄 [${requestId}] PDF noted: ${file.file_name}`);
             } else {
-              // Handle text files as before
-              const text = await fileData.text();
-              const preview = text.substring(0, 1000);
-              context += `Contenu: ${preview}${text.length > 1000 ? '...' : ''}\n\n`;
+              // Handle text files
+              try {
+                const text = await fileData.text();
+                const preview = text.substring(0, 1000);
+                context += `Contenu: ${preview}${text.length > 1000 ? '...' : ''}\n\n`;
+                console.log(`✅ [${requestId}] Text file processed: ${file.file_name}`);
+              } catch (textError) {
+                console.error(`❌ [${requestId}] Failed to read text from ${file.file_name}:`, textError.message);
+                context += `Contenu: [Fichier texte non lisible - ${textError.message}]\n\n`;
+              }
             }
           }
         } catch (fileError) {
-          console.warn(`Failed to read file ${file.file_name}:`, fileError);
-          context += `Contenu: [Fichier non accessible]\n\n`;
+          console.error(`❌ [${requestId}] Failed to download file ${file.file_name}:`, fileError.message);
+          context += `Contenu: [Fichier non accessible - ${fileError.message}]\n\n`;
         }
       }
     } else {
