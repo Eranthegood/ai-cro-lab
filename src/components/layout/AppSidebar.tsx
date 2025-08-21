@@ -38,8 +38,12 @@ import { useNotifications } from "@/context/NotificationContext";
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { hasDataFreshnessWarning, hasKnowledgeScoreWarning } = useNotifications();
+  const { hasDataFreshnessWarning, hasKnowledgeScoreWarning, backgroundTasks } = useNotifications();
   const { open } = useSidebar();
+  
+  const hasActiveVaultTasks = backgroundTasks.some(task => 
+    task.status === 'processing' && task.type === 'vault-analysis'
+  );
   
   // Check if current route is in Knowledge Vault submenu
   const isKnowledgeRoute = (path: string) => {
@@ -149,15 +153,18 @@ const AppSidebar = () => {
                                 isActive(subItem.url) ? "bg-accent text-accent-foreground border-l-2 border-accent-foreground" : "text-muted-foreground hover:text-foreground"
                               )}
                             >
-                              <NavLink to={subItem.url} className="flex items-center gap-2">
-                                <subItem.icon className="h-3 w-3" />
-                                <span>{subItem.title}</span>
-                                {subItem.title === "Journey Mapper" && (
-                                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
-                                    Alpha
-                                  </Badge>
-                                )}
-                              </NavLink>
+                               <NavLink to={subItem.url} className="flex items-center gap-2">
+                                 <subItem.icon className="h-3 w-3" />
+                                 <span>{subItem.title}</span>
+                                 {subItem.title === "Journey Mapper" && (
+                                   <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
+                                     Alpha
+                                   </Badge>
+                                 )}
+                                 {subItem.title === "Vault Simple" && hasActiveVaultTasks && (
+                                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                 )}
+                               </NavLink>
                             </SidebarMenuButton>
                           ))}
                         </div>

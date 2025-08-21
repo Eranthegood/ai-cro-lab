@@ -308,11 +308,38 @@ export const SimpleVaultChat = ({ className }: SimpleVaultChatProps) => {
               ))}
               
               {loading && messages[messages.length - 1]?.type !== 'assistant' && (
-                <div className="flex gap-3 justify-start">
-                  <div className="bg-muted rounded-lg px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Analyse en cours...</span>
+                <div className="space-y-3">
+                  <div className="flex gap-3 justify-start">
+                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg px-4 py-3 max-w-[85%]">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                          <span className="text-sm font-medium">Claude analyse vos documents...</span>
+                        </div>
+                        
+                        {/* Progress indicator */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">Progression</span>
+                            <div className="flex items-center gap-1">
+                              <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
+                              <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                              <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                            </div>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-1.5">
+                            <div className="bg-gradient-to-r from-primary to-primary/80 h-1.5 rounded-full transition-all duration-1000 animate-pulse" style={{width: '60%'}}></div>
+                          </div>
+                        </div>
+
+                        {/* Navigation reminder */}
+                        <div className="bg-background/50 rounded-md p-2 border border-border/50">
+                          <p className="text-xs text-muted-foreground">
+                            💡 <span className="font-medium">Tip:</span> Vous pouvez naviguer ailleurs pendant l'analyse. 
+                            Vous recevrez une notification quand c'est prêt !
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

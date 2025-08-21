@@ -3,14 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle, Brain } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 export const BackgroundTaskPanel = () => {
   const { backgroundTasks } = useNotifications();
-
+  const location = useLocation();
+  
   const activeTasks = backgroundTasks.filter(task => task.status === 'processing');
-
-  if (activeTasks.length === 0) return null;
+  
+  // Only show panel if user is NOT on the vault-simple page
+  const isOnVaultPage = location.pathname === '/vault-simple';
+  
+  if (activeTasks.length === 0 || isOnVaultPage) return null;
 
   return (
     <div className="fixed bottom-4 right-4 w-80 z-50">
