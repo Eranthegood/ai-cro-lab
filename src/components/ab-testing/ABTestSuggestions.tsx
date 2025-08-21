@@ -341,7 +341,7 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
           <Card className="mb-8 border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Camera className="h-4 w-4 text-primary" />
+                <Sparkles className="h-4 w-4 text-primary" />
                 Analyse visuelle de la page
               </CardTitle>
             </CardHeader>
