@@ -78,55 +78,112 @@ export const StreamingChatInterface = ({ className }: StreamingChatInterfaceProp
     setMessages([...newMessages, streamingMessage]);
 
     try {
-      const { data, error } = await supabase.functions.invoke('knowledge-vault-chat', {
-        body: {
+      // ========== PHASE 3: STREAMING RÉEL CÔTÉ CLIENT ==========
+      const response = await fetch(`https://wtpmxuhkbwwiougblkki.supabase.co/functions/v1/knowledge-vault-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cG14dWhrYnd3aW91Z2Jsa2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU1NDk5NDMsImV4cCI6MjA3MTEyNTk0M30.aAHUQ-8vLmfOL9st7EGjC_SDD7kuzyqJx6ZiiY1Rw2A`,
+        },
+        body: JSON.stringify({
           message: userMessage.content,
           workspaceId: currentWorkspace.id,
           projectId: currentProject?.id || null,
           userId: user.id
-        }
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        if (response.status === 429) {
+          throw new Error(`Limite quotidienne atteinte. ${errorData.error || 'Revenez demain ou passez en premium.'}`);
+        }
+        
+        throw new Error(errorData.error || 'Erreur de communication');
+      }
 
-      // Simulate streaming effect for better UX
-      const fullResponse = data.response;
-      let currentContent = '';
-      const words = fullResponse.split(' ');
-      
-      for (let i = 0; i < words.length; i++) {
-        currentContent += words[i] + ' ';
+      // Handle streaming response
+      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedContent = '';
+
+        if (!reader) throw new Error('No stream available');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.type === 'content') {
+                  accumulatedContent += data.content;
+                  
+                  // Update streaming message in real-time
+                  setMessages(prev => 
+                    prev.map(msg => 
+                      msg.id === streamingMessage.id 
+                        ? { ...msg, content: accumulatedContent }
+                        : msg
+                    )
+                  );
+                } else if (data.type === 'done') {
+                  // Finalize message
+                  setMessages(prev => 
+                    prev.map(msg => 
+                      msg.id === streamingMessage.id 
+                        ? { 
+                            ...msg, 
+                            content: accumulatedContent, 
+                            isStreaming: false,
+                            metadata: { usage: data.usage }
+                          }
+                        : msg
+                    )
+                  );
+                  
+                  toast({
+                    title: "Analyse terminée",
+                    description: "Claude a analysé votre Knowledge Vault avec succès",
+                  });
+                  
+                  return; // Exit the function
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e);
+              }
+            }
+          }
+        }
+      } else {
+        // Fallback to regular JSON response for compatibility
+        const data = await response.json();
         
         setMessages(prev => 
           prev.map(msg => 
             msg.id === streamingMessage.id 
-              ? { ...msg, content: currentContent.trim() }
+              ? { 
+                  ...msg, 
+                  content: data.response, 
+                  isStreaming: false,
+                  metadata: { usage: data.usage }
+                }
               : msg
           )
         );
-        
-        // Small delay for streaming effect
-        await new Promise(resolve => setTimeout(resolve, 30));
+
+        toast({
+          title: "Analyse terminée",
+          description: "Claude a analysé votre Knowledge Vault avec succès",
+        });
       }
-
-      // Finalize message
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === streamingMessage.id 
-            ? { 
-                ...msg, 
-                content: fullResponse, 
-                isStreaming: false,
-                metadata: { usage: data.usage }
-              }
-            : msg
-        )
-      );
-
-      toast({
-        title: "Analyse terminée",
-        description: "Claude a analysé votre Knowledge Vault avec succès",
-      });
 
     } catch (error: any) {
       console.error('Error sending message:', error);

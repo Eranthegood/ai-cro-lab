@@ -80,10 +80,26 @@ serve(async (req) => {
     const contextTokens = Math.ceil(context.length / 4);
     console.log(`🧠 [${requestId}] Context created: ${contextTokens} tokens, ${Date.now() - contextStart}ms`);
 
-    // Call Claude with intelligent retry and optimization
-    const data = await callClaudeWithRetry(anthropicApiKey, {
-      model: 'claude-3-5-haiku-20241022', // Migration vers Haiku pour économie 20x
-      max_tokens: 2000, // Réduit pour optimiser les coûts
+    // ========== PHASE 3: STREAMING RÉEL CLAUDE ==========
+    
+    // Check rate limiting (50 messages/jour pour utilisateurs gratuits)
+    const rateLimitResult = await checkRateLimit(supabase, workspaceId, userId);
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({ 
+        error: `Limite quotidienne atteinte (${rateLimitResult.count}/50). Revenez demain ou passez en premium.`,
+        rate_limit: true
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Call Claude with intelligent retry and real streaming
+    const claudeStart = Date.now();
+    const stream = await callClaudeWithStreamingRetry(anthropicApiKey, {
+      model: 'claude-3-5-haiku-20241022',
+      max_tokens: 2000,
+      stream: true, // Enable real streaming
       messages: [
         {
           role: 'user',
@@ -108,35 +124,17 @@ Réponds de manière:
       ]
     });
 
-    const totalTime = Date.now() - requestStart;
-    const responseLength = data.content[0].text.length;
-    console.log(`✅ [${requestId}] Claude response: ${responseLength} chars, total time: ${totalTime}ms`);
-
-    // Log détaillé pour monitoring avancé
-    await supabase.rpc('log_knowledge_vault_action', {
-      p_workspace_id: workspaceId,
-      p_action: 'ai_interaction',
-      p_resource_type: 'chat',
-      p_resource_id: projectId || null,
-      p_metadata: {
-        request_id: requestId,
-        message_length: message.length,
-        response_length: responseLength,
-        context_tokens: contextTokens,
-        total_time_ms: totalTime,
-        files_parsed: Object.keys(parsedFiles).length,
-        model: 'claude-3-5-haiku-20241022',
-        project_id: projectId || null,
-        mode: projectId ? 'project' : 'global',
-        usage: data.usage || {}
-      }
-    });
-
-    return new Response(JSON.stringify({
-      response: data.content[0].text,
-      usage: data.usage
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    console.log(`🚀 [${requestId}] Claude streaming initiated: ${Date.now() - claudeStart}ms`);
+    
+    // Return streaming response
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Request-ID': requestId
+      },
     });
 
   } catch (error) {
@@ -172,8 +170,160 @@ Réponds de manière:
   }
 });
 
-// Intelligent retry system with exponential backoff
-async function callClaudeWithRetry(apiKey: string, payload: any, maxRetries = 4): Promise<any> {
+// ========== PHASE 3: RATE LIMITING INTELLIGENT ==========
+async function checkRateLimit(supabase: any, workspaceId: string, userId: string): Promise<{allowed: boolean, count: number}> {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check workspace plan
+    const { data: workspace } = await supabase
+      .from('workspaces')
+      .select('plan')
+      .eq('id', workspaceId)
+      .single();
+    
+    // Premium users have no limits
+    if (workspace?.plan === 'premium' || workspace?.plan === 'pro') {
+      return { allowed: true, count: 0 };
+    }
+    
+    // Count today's interactions for this user
+    const { data: interactions } = await supabase
+      .from('knowledge_vault_audit')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .eq('action', 'ai_interaction')
+      .gte('created_at', today + 'T00:00:00Z')
+      .lt('created_at', today + 'T23:59:59Z');
+    
+    const count = interactions?.length || 0;
+    const limit = 50; // Free tier limit
+    
+    return { 
+      allowed: count < limit, 
+      count 
+    };
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    return { allowed: true, count: 0 }; // Fail open
+  }
+}
+
+// ========== PHASE 3: STREAMING RÉEL CLAUDE ==========
+async function callClaudeWithStreamingRetry(apiKey: string, payload: any, maxRetries = 3): Promise<ReadableStream> {
+  const delays = [1000, 2000, 4000];
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🌊 Claude Streaming attempt ${attempt + 1}/${maxRetries + 1}`);
+      
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok && response.body) {
+        console.log(`✅ Claude streaming initiated successfully`);
+        
+        // Transform Claude's stream to Server-Sent Events
+        const transformStream = new TransformStream({
+          transform(chunk, controller) {
+            const decoder = new TextDecoder();
+            const text = decoder.decode(chunk);
+            
+            // Parse Claude streaming format and convert to SSE
+            const lines = text.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.type === 'content_block_delta' && data.delta?.text) {
+                    // Send as Server-Sent Event
+                    controller.enqueue(`data: ${JSON.stringify({ 
+                      type: 'content', 
+                      content: data.delta.text 
+                    })}\n\n`);
+                  } else if (data.type === 'message_stop') {
+                    controller.enqueue(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+                  }
+                } catch (e) {
+                  // Ignore parse errors for streaming
+                }
+              }
+            }
+          }
+        });
+
+        return response.body.pipeThrough(transformStream);
+      }
+
+      const status = response.status;
+      if (status === 429) {
+        const delay = delays[attempt] || 8000;
+        console.warn(`⚠️ Rate limited (429), retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      if (status >= 500) {
+        const delay = delays[attempt] || 4000;
+        console.warn(`⚠️ Server error (${status}), retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      throw new Error(`HTTP ${status}: ${await response.text()}`);
+
+    } catch (error) {
+      console.error(`❌ Claude streaming attempt ${attempt + 1} failed:`, error);
+      
+      if (attempt === maxRetries) {
+        // Fallback to non-streaming response
+        const fallbackPayload = { ...payload, stream: false };
+        const fallbackResponse = await callClaudeWithRetry(apiKey, fallbackPayload);
+        
+        // Convert to streaming format
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            const text = fallbackResponse.content[0].text;
+            const words = text.split(' ');
+            let i = 0;
+            
+            const sendNext = () => {
+              if (i < words.length) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                  type: 'content', 
+                  content: words[i] + ' ' 
+                })}\n\n`));
+                i++;
+                setTimeout(sendNext, 50); // 50ms delay between words
+              } else {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
+                controller.close();
+              }
+            };
+            
+            sendNext();
+          }
+        });
+        
+        return stream;
+      }
+      
+      const delay = delays[attempt] || 2000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw new Error('All streaming attempts failed');
+}
   const delays = [1000, 2000, 4000, 8000]; // Backoff exponentiel: 1s, 2s, 4s, 8s
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
