@@ -21,7 +21,7 @@ const Banner = ({ message, dismissible = true, variant = "default" }: BannerProp
   };
 
   return (
-    <div className={`${variantStyles[variant]} px-4 py-2 text-sm flex items-center justify-center relative`}>
+    <div className={`${variantStyles[variant]} px-4 py-2 text-sm flex items-center justify-center relative fixed top-0 left-0 right-0 z-50`}>
       <span className="font-medium">{message}</span>
       {dismissible && (
         <Button

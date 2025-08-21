@@ -28,7 +28,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background">
+    <div className="min-h-screen flex flex-col w-full bg-background pt-10">
       {/* Top Banner - Above everything */}
       <Banner message="Free Access for all, help us improve" />
       
