@@ -145,8 +145,14 @@ serve(async (req) => {
       if (jsonMatch) {
         const rawSuggestions = JSON.parse(jsonMatch[0]);
         
-        // Apply quality validation and enhancement
-        suggestions = await enhanceSuggestions(rawSuggestions, userPreferences, suggestionMemory);
+        // Validate suggestions quality and count 
+        if (!validateSuggestions(rawSuggestions)) {
+          console.warn(`⚠️ [${requestId}] Claude returned invalid or incomplete suggestions, using fallback`);
+          suggestions = await generateIntelligentFallback(context, goalType, userPreferences);
+        } else {
+          // Apply quality validation and enhancement
+          suggestions = await enhanceSuggestions(rawSuggestions, userPreferences, suggestionMemory);
+        }
       } else {
         throw new Error('No valid JSON found in Claude response');
       }
@@ -392,64 +398,83 @@ AVOID REPETITION:
 - Recent suggestion patterns: ${suggestionMemory.avoid_patterns.join(', ')}
 - Successful approaches to build on: ${suggestionMemory.successful_approaches.slice(0, 3).join(', ')}
 
-TASK: Generate 3 EXCEPTIONAL AB test opportunities that would make a PM say "I never thought of that!"
+=== TÂCHE CRITIQUE ===
+Génère EXACTEMENT 3 suggestions d'A/B test exceptionnelles et concrètes.
 
-CRITERIA FOR EACH SUGGESTION:
-1. SPECIFIC PROBLEM: Based on actual data patterns, not generic issues
-2. INNOVATIVE SOLUTION: Creative approach that goes beyond obvious fixes  
-3. BUSINESS IMPACT: Quantified estimate with confidence level
-4. IMPLEMENTATION: Realistic technical assessment
-5. PSYCHOLOGICAL INSIGHT: Why this works on user behavior
+REQUIS POUR CHAQUE SUGGESTION:
+1. SOLUTION ULTRA-CONCRÈTE: Pas de description vague. Explique exactement quoi changer, où et comment.
+2. ÉTAPES D'IMPLÉMENTATION DÉTAILLÉES: Code CSS/JS précis, sélecteurs exacts, instructions pas-à-pas
+3. EXEMPLES DE COPY CONCRETS: Texte exact "avant" vs "après" 
+4. WIREFRAME TEXTUEL: Description précise de l'apparence visuelle
+5. INNOVATION AUTHENTIQUE: Approche créative qui surprend vraiment
 
-AVOID:
-- Generic "make button bigger/different color" suggestions
-- Solutions already tried: ${suggestionMemory.recent_suggestions.map(s => s.suggestion_data?.suggestions?.[0]?.title).filter(Boolean).slice(0, 3).join(', ')}
-- One-size-fits-all recommendations
+EXEMPLE DE SOLUTION CONCRÈTE:
+"Remplacer le bouton 'Acheter maintenant' par un selector de quantité interactif avec preview de remise volume:
+- Sélecteur: .checkout-button
+- Code: <div class='quantity-selector'>1× 29€ | 2× 55€ (-5%) | 3× 78€ (-10%)</div>
+- Copy: 'Économisez jusqu'à 10% - Choisissez votre quantité'
+- Apparence: 3 cartes horizontales avec highlighting de l'économie"
 
-RETURN FORMAT:
+FORMAT DE RETOUR OBLIGATOIRE (JSON valide):
 {
   "suggestions": [
     {
       "id": "1",
-      "title": "Specific, compelling name that creates curiosity",
+      "title": "Titre spécifique et intriguant",
       "problem_detected": {
-        "issue": "Specific problem with data backing",
-        "evidence": "What in the data suggests this",
-        "impact_scope": "% of users affected"
+        "issue": "Problème spécifique avec preuves",
+        "evidence": "Données qui le prouvent",
+        "impact_scope": "% d'utilisateurs affectés"
       },
       "solution": {
-        "approach": "Innovative solution description", 
-        "psychological_rationale": "Why this works psychologically with specific cognitive bias",
-        "implementation_strategy": "How to build this step-by-step"
+        "approach": "Description de la solution innovante",
+        "what_to_change": "EXACTEMENT quoi modifier sur la page (sélecteurs CSS, éléments)",
+        "how_to_implement": [
+          "Étape 1: Action précise avec code",
+          "Étape 2: Modification CSS/HTML exacte", 
+          "Étape 3: Test de validation",
+          "Étape 4: Mesure des résultats"
+        ],
+        "visual_description": "Description précise de l'apparence finale",
+        "copy_examples": {
+          "before": "Texte actuel",
+          "after": "Nouveau texte proposé"
+        },
+        "psychological_rationale": "Pourquoi ça marche psychologiquement"
       },
       "expected_impact": {
-        "primary_metric": "Conversion rate +15-22%",
-        "confidence_level": "High (85%)",
-        "timeline_to_significance": "14 days",
-        "secondary_benefits": ["Reduced support tickets", "Higher AOV", "Better user experience"]
+        "primary_metric": "Taux de conversion +15-22%",
+        "confidence_level": "Élevé (85%)",
+        "timeline_to_significance": "14 jours",
+        "secondary_benefits": ["Bénéfice 1", "Bénéfice 2"]
       },
-      "differentiation_factor": "What makes this insight unique/non-obvious - the 'I never thought of that' element",
-      "surprise_type": "counter_intuitive|cross_industry|micro_interaction|psychological_bias|data_revelation",
-      "credibility_signals": {
-        "case_study_reference": "Similar successful implementation",
-        "psychological_research": "Research backing the approach",
-        "industry_precedent": "Where this has worked before"
-      },
+      "differentiation_factor": "Ce qui rend cette idée unique/non-évidente",
       "implementation": {
         "platform": "AB Tasty",
-        "difficulty": "Easy|Medium|Advanced",
-        "code": "Production-ready CSS/JS code",
-        "setup": ["Step 1", "Step 2", "Step 3", "Step 4"]
+        "difficulty": "Facile|Moyen|Avancé",
+        "code": "Code CSS/JS prêt à utiliser en production",
+        "setup": ["Étape concrète 1", "Étape concrète 2", "Étape concrète 3"]
       },
       "metrics": {
-        "primary": "Main success metric",
-        "secondary": ["Additional metrics to track"]
+        "primary": "Métrique de succès principale",
+        "secondary": ["Métriques additionnelles"]
       }
+    },
+    {
+      "id": "2",
+      "title": "Deuxième suggestion...",
+      // ... structure identique
+    },
+    {
+      "id": "3", 
+      "title": "Troisième suggestion...",
+      // ... structure identique
     }
   ],
   "meta": {
     "iteration": ${iterationCount},
     "angles_used": ${JSON.stringify(currentAngles)},
+    "total_suggestions": 3,
     "personalization_applied": true
   }
 }
@@ -533,39 +558,265 @@ function calculateQualityScore(suggestion: any) {
   return Math.min(score, 1.0);
 }
 
+function validateSuggestions(rawSuggestions: any): boolean {
+  // Critical validation: must have exactly 3 suggestions
+  if (!rawSuggestions.suggestions || rawSuggestions.suggestions.length !== 3) {
+    return false;
+  }
+  
+  // Each suggestion must have concrete implementation details
+  return rawSuggestions.suggestions.every(suggestion => {
+    return suggestion.solution?.how_to_implement && 
+           Array.isArray(suggestion.solution.how_to_implement) &&
+           suggestion.solution.how_to_implement.length >= 3 &&
+           suggestion.solution.what_to_change &&
+           suggestion.implementation?.code;
+  });
+}
+
 async function generateIntelligentFallback(context: any, goalType: string, userPreferences: any) {
-  // Enhanced fallback suggestions based on user preferences and context
+  // Enhanced fallback with exactly 3 concrete suggestions
   const fallbackSuggestions = [
     {
       id: "1",
-      title: "Micro-Commitment Psychology Ladder",
+      title: "Sélecteur de Quantité Dynamique avec Économies Visuelles",
       problem_detected: {
-        issue: "Users experience decision paralysis with large commitments",
-        evidence: "Behavioral psychology shows 67% higher completion with micro-steps",
-        impact_scope: "73% of hesitant visitors"
+        issue: "70% des visiteurs partent sans voir les économies de volume disponibles",
+        evidence: "Analytics montrent que les utilisateurs cliquent une seule fois sur 'Ajouter au panier'",
+        impact_scope: "73% des acheteurs potentiels"
       },
       solution: {
-        approach: "Break main CTA into micro-commitment sequence with progress visualization",
-        psychological_rationale: "Commitment escalation + goal gradient effect reduces cognitive load and creates momentum",
-        implementation_strategy: "Multi-step progress bar with small victories at each stage"
+        approach: "Remplacer le bouton d'achat par un sélecteur interactif qui montre les économies en temps réel",
+        what_to_change: "Remplacer .add-to-cart-button par un widget de sélection de quantité",
+        how_to_implement: [
+          "Étape 1: Identifier le sélecteur .add-to-cart-button et le masquer avec CSS",
+          "Étape 2: Injecter le HTML : <div class='quantity-selector'><div class='qty-option' data-qty='1'>1× 29€</div><div class='qty-option highlight' data-qty='2'>2× 55€ <span class='savings'>(-5%)</span></div><div class='qty-option highlight' data-qty='3'>3× 78€ <span class='savings'>(-10%)</span></div></div>",
+          "Étape 3: Ajouter le CSS pour styling avec animations au hover",
+          "Étape 4: Implémenter le JavaScript pour la sélection et l'ajout au panier"
+        ],
+        visual_description: "3 cartes horizontales côte à côte, la quantité 1 en standard, les quantités 2 et 3 avec un badge vert montrant l'économie",
+        copy_examples: {
+          before: "Ajouter au panier - 29€",
+          after: "1× 29€ | 2× 55€ (-5%) | 3× 78€ (-10%)"
+        },
+        psychological_rationale: "Anchoring bias + loss aversion - les utilisateurs voient l'économie manquée comme une perte"
       },
       expected_impact: {
-        primary_metric: "Conversion rate +28-35%",
-        confidence_level: "High (87%)",
-        timeline_to_significance: "12 days",
-        secondary_benefits: ["Reduced abandonment", "Higher engagement", "Better qualification"]
+        primary_metric: "Taux de conversion +22-28%",
+        confidence_level: "Élevé (85%)",
+        timeline_to_significance: "8 jours",
+        secondary_benefits: ["AOV +35%", "Réduction du taux de rebond", "Meilleure découverte des offres"]
       },
-      differentiation_factor: "Uses gaming psychology principles rarely applied to conversion optimization",
-      surprise_type: "cross_industry",
+      differentiation_factor: "Transforme un point de décision binaire en opportunité de vente additionnelle visible",
       implementation: {
         platform: "AB Tasty",
-        difficulty: userPreferences.technical_comfort === 'low' ? "Easy" : "Medium",
-        code: generateContextualCSS(userPreferences.scope_preference),
-        setup: ["Add progress indicator", "Break form into steps", "Add micro-rewards", "Track step completion"]
+        difficulty: "Moyen",
+        code: `
+.quantity-selector {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+}
+.qty-option {
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  flex: 1;
+}
+.qty-option.highlight {
+  border-color: #28a745;
+  background: #f8fff9;
+}
+.qty-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.savings {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 0.9em;
+}`,
+        setup: [
+          "Cibler la page produit avec AB Tasty",
+          "Masquer le bouton original avec CSS",
+          "Injecter le nouveau sélecteur avec JavaScript",
+          "Configurer le tracking des clics par quantité"
+        ]
       },
       metrics: {
-        primary: "Multi-step conversion completion rate",
-        secondary: ["Time per step", "Drop-off by stage", "Overall satisfaction"]
+        primary: "Taux de conversion par quantité sélectionnée",
+        secondary: ["Valeur moyenne du panier", "Temps passé sur la page", "Taux de clics par option"]
+      }
+    },
+    {
+      id: "2", 
+      title: "Preuve Sociale en Temps Réel avec Urgence Authentique",
+      problem_detected: {
+        issue: "Les visiteurs ne font pas confiance au site sans signaux sociaux crédibles",
+        evidence: "Tests utilisateurs montrent 67% d'hésitation due au manque de validation sociale",
+        impact_scope: "80% des nouveaux visiteurs"
+      },
+      solution: {
+        approach: "Afficher les achats récents réels avec localisation approximative et timer de disponibilité",
+        what_to_change: "Ajouter un widget de notifications sociales près du CTA principal",
+        how_to_implement: [
+          "Étape 1: Créer un div avec class='social-proof-widget' dans la zone du CTA",
+          "Étape 2: Récupérer les vraies données de commandes récentes via l'API",
+          "Étape 3: Afficher avec rotation automatique : 'Marie de Paris a commandé il y a 3 minutes'",
+          "Étape 4: Ajouter un compteur de stock dynamique basé sur les vraies données"
+        ],
+        visual_description: "Petite notification discrète qui apparaît/disparaît avec avatar générique, nom et ville, timer orange pour l'urgence",
+        copy_examples: {
+          before: "[Aucune preuve sociale]",
+          after: "👤 Marie de Lyon a commandé il y a 2 min • ⏰ Plus que 3 en stock"
+        },
+        psychological_rationale: "Preuve sociale + rareté + récence créent un sentiment d'urgence authentique et de validation"
+      },
+      expected_impact: {
+        primary_metric: "Taux de conversion +18-25%",
+        confidence_level: "Très élevé (92%)",
+        timeline_to_significance: "5 jours",
+        secondary_benefits: ["Réduction du temps d'hésitation", "Augmentation de la confiance", "Meilleur taux de rétention"]
+      },
+      differentiation_factor: "Utilise de vraies données de commandes plutôt que des faux témoignages",
+      implementation: {
+        platform: "AB Tasty",
+        difficulty: "Avancé",
+        code: `
+.social-proof-widget {
+  position: relative;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+  border: 1px solid #e0e8ff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideInFromRight 0.5s ease;
+}
+.social-proof-widget .avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+}
+.urgency-indicator {
+  color: #ff6b35;
+  font-weight: 600;
+}
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}`,
+        setup: [
+          "Configurer l'endpoint API pour récupérer les commandes récentes",
+          "Implémenter la rotation automatique des notifications (toutes les 8 secondes)",
+          "Ajouter l'anonymisation des données clients",
+          "Tracker les interactions avec le widget"
+        ]
+      },
+      metrics: {
+        primary: "Taux de conversion après visualisation du widget",
+        secondary: ["Temps passé avant achat", "Taux de clics sur le widget", "Confiance perçue (sondage)"]
+      }
+    },
+    {
+      id: "3",
+      title: "Calculateur de ROI Interactif Avant Achat",
+      problem_detected: {
+        issue: "Les acheteurs B2B ne visualisent pas clairement la valeur business du produit",
+        evidence: "68% abandonnent car ils ne peuvent pas justifier l'achat auprès de leur hiérarchie",
+        impact_scope: "85% des visiteurs B2B"
+      },
+      solution: {
+        approach: "Widget calculateur qui transforme les caractéristiques produit en gains financiers personnalisés",
+        what_to_change: "Ajouter un calculateur interactif avec sliders au-dessus du formulaire de contact",
+        how_to_implement: [
+          "Étape 1: Créer un container .roi-calculator avec 3 sliders (nb employés, coût horaire, temps gagné)",
+          "Étape 2: Implémenter le calcul en temps réel : économies = (nb_employés × coût_horaire × temps_gagné × 250_jours)",
+          "Étape 3: Afficher le résultat avec animation des chiffres et graphique simple",
+          "Étape 4: Ajouter un bouton 'Recevoir le rapport détaillé' qui pré-remplit le formulaire"
+        ],
+        visual_description: "Interface propre avec 3 sliders étiquetés, gros chiffre des économies annuelles qui s'anime, mini-graphique avant/après",
+        copy_examples: {
+          before: "Demander une démo",
+          after: "Économisez 127 450€/an • Calculez votre ROI personnalisé"
+        },
+        psychological_rationale: "Ancrage des bénéfices concrets + ownership effect (ils participent au calcul) + justification d'achat"
+      },
+      expected_impact: {
+        primary_metric: "Taux de conversion formulaire +35-45%",
+        confidence_level: "Élevé (88%)",
+        timeline_to_significance: "12 jours",
+        secondary_benefits: ["Qualification des leads améliorée", "Cycle de vente raccourci", "Taux de closing +25%"]
+      },
+      differentiation_factor: "Transforme une visite passive en expérience de découverte de valeur personnalisée",
+      implementation: {
+        platform: "AB Tasty",
+        difficulty: "Avancé",
+        code: `
+.roi-calculator {
+  background: #fff;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.slider-group {
+  margin: 16px 0;
+}
+.slider-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+}
+.roi-result {
+  text-align: center;
+  margin: 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-radius: 8px;
+  color: white;
+}
+.roi-amount {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+.roi-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-top: 4px;
+}`,
+        setup: [
+          "Identifier l'emplacement optimal sur la page (avant formulaire)",
+          "Configurer les valeurs min/max des sliders selon le secteur",
+          "Implémenter la logique de calcul avec validation",
+          "Tracker chaque interaction avec les sliders"
+        ]
+      },
+      metrics: {
+        primary: "Taux de complétion du formulaire après utilisation du calculateur",
+        secondary: ["Temps d'interaction avec le calculateur", "Valeurs calculées moyennes", "Taux de conversion par segment"]
       }
     }
   ];
@@ -575,6 +826,7 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
     meta: {
       fallback: true,
       personalized: true,
+      total_suggestions: 3,
       user_tone: userPreferences.tone_preference
     }
   };
