@@ -12,6 +12,7 @@ import { useSimpleVault } from "@/hooks/useSimpleVault";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { toast } from "@/hooks/use-toast";
+import { determinePageType, extractBrandFromUrl, extractIndustryFromUrl } from "./utils/pageAnalysis";
 
 interface ABTestCreatorProps {
   onDataUploaded: (data: any) => void;
