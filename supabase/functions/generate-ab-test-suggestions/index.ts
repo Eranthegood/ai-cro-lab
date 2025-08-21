@@ -113,7 +113,7 @@ serve(async (req) => {
       iterationCount
     );
 
-    console.log(`🧠 [${requestId}] Calling Claude Sonnet 4 for intelligent suggestions`);
+    console.log(`🧠 [${requestId}] Calling Claude 3.5 Sonnet for intelligent suggestions`);
 
     // Call Claude API with latest model
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -124,7 +124,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', // Latest Claude model
+        model: 'claude-3-5-sonnet-20241022', // Claude 3.5 Sonnet model
         max_tokens: 4000,
         messages: [
           { 
@@ -142,7 +142,7 @@ serve(async (req) => {
     }
 
     const aiResponse = await response.json();
-    console.log(`✅ [${requestId}] Claude Sonnet 4 response received: ${Date.now() - requestStart}ms`);
+    console.log(`✅ [${requestId}] Claude 3.5 Sonnet response received: ${Date.now() - requestStart}ms`);
 
     // Parse and enhance Claude's response
     let suggestions;
@@ -682,21 +682,20 @@ function validateSuggestions(rawSuggestions: any): boolean {
   
   // Check that we have 3 suggestions for each approach
   const approaches = rawSuggestions.suggestions.map(s => s.approach);
-  const technicalCount = approaches.filter(a => a === 'Technical UX').length;
-  const psychologyCount = approaches.filter(a => a === 'Psychology').length;
-  const brandCount = approaches.filter(a => a === 'Brand Differentiation').length;
+  const technicalCount = approaches.filter(a => a?.includes('Technical') || a?.includes('UX')).length;
+  const psychologyCount = approaches.filter(a => a?.includes('Psychology') || a?.includes('Persuasion')).length;
+  const brandCount = approaches.filter(a => a?.includes('Brand') || a?.includes('Differentiation')).length;
   
   if (technicalCount !== 3 || psychologyCount !== 3 || brandCount !== 3) {
     return false;
   }
   
-  // Each suggestion must have concrete implementation details
+  // Each suggestion must have required fields from the prompt
   return rawSuggestions.suggestions.every(suggestion => {
     return suggestion.title && 
-           suggestion.solution_description &&
-           suggestion.implementation_method &&
-           suggestion.expected_impact &&
-           suggestion.psychology_insight;
+           suggestion.approach &&
+           (suggestion.problem_detected || suggestion.solution_description) &&
+           (suggestion.expected_impact || suggestion.impact);
   });
 }
 
@@ -815,175 +814,6 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
       psychology_insight: "Quantified superiority reduces price sensitivity",
       code_complexity: "Complex Integration", 
       unique_factor: "Direct competitive positioning with proof points"
-    },
-    {
-      id: "2", 
-      title: "Preuve Sociale en Temps Réel avec Urgence Authentique",
-      problem_detected: {
-        issue: "Les visiteurs ne font pas confiance au site sans signaux sociaux crédibles",
-        evidence: "Tests utilisateurs montrent 67% d'hésitation due au manque de validation sociale",
-        impact_scope: "80% des nouveaux visiteurs"
-      },
-      solution: {
-        approach: "Afficher les achats récents réels avec localisation approximative et timer de disponibilité",
-        what_to_change: "Ajouter un widget de notifications sociales près du CTA principal",
-        how_to_implement: [
-          "Étape 1: Créer un div avec class='social-proof-widget' dans la zone du CTA",
-          "Étape 2: Récupérer les vraies données de commandes récentes via l'API",
-          "Étape 3: Afficher avec rotation automatique : 'Marie de Paris a commandé il y a 3 minutes'",
-          "Étape 4: Ajouter un compteur de stock dynamique basé sur les vraies données"
-        ],
-        visual_description: "Petite notification discrète qui apparaît/disparaît avec avatar générique, nom et ville, timer orange pour l'urgence",
-        copy_examples: {
-          before: "[Aucune preuve sociale]",
-          after: "👤 Marie de Lyon a commandé il y a 2 min • ⏰ Plus que 3 en stock"
-        },
-        psychological_rationale: "Preuve sociale + rareté + récence créent un sentiment d'urgence authentique et de validation"
-      },
-      expected_impact: {
-        primary_metric: "Taux de conversion +18-25%",
-        confidence_level: "Très élevé (92%)",
-        timeline_to_significance: "5 jours",
-        secondary_benefits: ["Réduction du temps d'hésitation", "Augmentation de la confiance", "Meilleur taux de rétention"]
-      },
-      differentiation_factor: "Utilise de vraies données de commandes plutôt que des faux témoignages",
-      implementation: {
-        platform: "AB Tasty",
-        difficulty: "Avancé",
-        code: `
-.social-proof-widget {
-  position: relative;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
-  border: 1px solid #e0e8ff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin: 16px 0;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: slideInFromRight 0.5s ease;
-}
-.social-proof-widget .avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-}
-.urgency-indicator {
-  color: #ff6b35;
-  font-weight: 600;
-}
-@keyframes slideInFromRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}`,
-        setup: [
-          "Configurer l'endpoint API pour récupérer les commandes récentes",
-          "Implémenter la rotation automatique des notifications (toutes les 8 secondes)",
-          "Ajouter l'anonymisation des données clients",
-          "Tracker les interactions avec le widget"
-        ]
-      },
-      metrics: {
-        primary: "Taux de conversion après visualisation du widget",
-        secondary: ["Temps passé avant achat", "Taux de clics sur le widget", "Confiance perçue (sondage)"]
-      }
-    },
-    {
-      id: "3",
-      title: "Calculateur de ROI Interactif Avant Achat",
-      problem_detected: {
-        issue: "Les acheteurs B2B ne visualisent pas clairement la valeur business du produit",
-        evidence: "68% abandonnent car ils ne peuvent pas justifier l'achat auprès de leur hiérarchie",
-        impact_scope: "85% des visiteurs B2B"
-      },
-      solution: {
-        approach: "Widget calculateur qui transforme les caractéristiques produit en gains financiers personnalisés",
-        what_to_change: "Ajouter un calculateur interactif avec sliders au-dessus du formulaire de contact",
-        how_to_implement: [
-          "Étape 1: Créer un container .roi-calculator avec 3 sliders (nb employés, coût horaire, temps gagné)",
-          "Étape 2: Implémenter le calcul en temps réel : économies = (nb_employés × coût_horaire × temps_gagné × 250_jours)",
-          "Étape 3: Afficher le résultat avec animation des chiffres et graphique simple",
-          "Étape 4: Ajouter un bouton 'Recevoir le rapport détaillé' qui pré-remplit le formulaire"
-        ],
-        visual_description: "Interface propre avec 3 sliders étiquetés, gros chiffre des économies annuelles qui s'anime, mini-graphique avant/après",
-        copy_examples: {
-          before: "Demander une démo",
-          after: "Économisez 127 450€/an • Calculez votre ROI personnalisé"
-        },
-        psychological_rationale: "Ancrage des bénéfices concrets + ownership effect (ils participent au calcul) + justification d'achat"
-      },
-      expected_impact: {
-        primary_metric: "Taux de conversion formulaire +35-45%",
-        confidence_level: "Élevé (88%)",
-        timeline_to_significance: "12 jours",
-        secondary_benefits: ["Qualification des leads améliorée", "Cycle de vente raccourci", "Taux de closing +25%"]
-      },
-      differentiation_factor: "Transforme une visite passive en expérience de découverte de valeur personnalisée",
-      implementation: {
-        platform: "AB Tasty",
-        difficulty: "Avancé",
-        code: `
-.roi-calculator {
-  background: #fff;
-  border: 2px solid #f0f0f0;
-  border-radius: 12px;
-  padding: 24px;
-  margin: 24px 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-.slider-group {
-  margin: 16px 0;
-}
-.slider-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
-.slider {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #e0e0e0;
-  outline: none;
-}
-.roi-result {
-  text-align: center;
-  margin: 24px 0;
-  padding: 20px;
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  border-radius: 8px;
-  color: white;
-}
-.roi-amount {
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1;
-}
-.roi-subtitle {
-  font-size: 14px;
-  opacity: 0.9;
-  margin-top: 4px;
-}`,
-        setup: [
-          "Identifier l'emplacement optimal sur la page (avant formulaire)",
-          "Configurer les valeurs min/max des sliders selon le secteur",
-          "Implémenter la logique de calcul avec validation",
-          "Tracker chaque interaction avec les sliders"
-        ]
-      },
-      metrics: {
-        primary: "Taux de complétion du formulaire après utilisation du calculateur",
-        secondary: ["Temps d'interaction avec le calculateur", "Valeurs calculées moyennes", "Taux de conversion par segment"]
-      }
-    }
   ];
 
   return { 
