@@ -76,7 +76,7 @@ const AppSidebar = () => {
         { title: "Journey Mapper", url: "/dashboard/knowledge/journey-mapper", icon: Map }
       ]
     },
-    { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
+    { title: "A/B Testing", url: "/dashboard/ab-testing", icon: TestTube },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
   ];
 
