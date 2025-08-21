@@ -15,6 +15,7 @@ import DataAnalysis from "./pages/DataAnalysis";
 import CodeGenerator from "./pages/CodeGenerator";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import KnowledgeVaultConfig from "./pages/KnowledgeVaultConfig";
+import SimpleVault from "./pages/SimpleVault";
 import AIInsights from "./pages/AIInsights";
 import { JourneyMapper } from "./pages/JourneyMapper";
 import Analytics from "./pages/Analytics";
@@ -69,6 +70,13 @@ const App = () => (
                 <ProtectedRoute>
                   <NotificationProvider>
                     <KnowledgeVaultConfig />
+                  </NotificationProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/vault-simple" element={
+                <ProtectedRoute>
+                  <NotificationProvider>
+                    <SimpleVault />
                   </NotificationProvider>
                 </ProtectedRoute>
               } />

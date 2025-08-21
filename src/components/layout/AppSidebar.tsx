@@ -67,6 +67,7 @@ const AppSidebar = () => {
       submenu: [
         { title: "Overview", url: "/dashboard/knowledge", icon: FileText },
         { title: "Configuration", url: "/dashboard/knowledge/config", icon: Settings },
+        { title: "Vault Simple", url: "/vault-simple", icon: Brain },
         { title: "Journey Mapper", url: "/dashboard/knowledge/journey-mapper", icon: Map }
       ]
     },
