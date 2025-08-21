@@ -67,16 +67,39 @@ class ScreenshotService {
     } = options;
 
     try {
-      // Use screenshot API with visual analysis
-      const response = await this.captureWithAnalysis(url, {
-        width,
-        height,
-        device,
-        fullPage,
-        delay
+      // Use Supabase Edge Function for screenshot capture
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('capture-screenshot', {
+        body: {
+          url,
+          width,
+          height,
+          device,
+          fullPage,
+          delay
+        }
       });
 
-      return response;
+      if (error) {
+        console.error('Screenshot function error:', error);
+        throw new Error(error.message || 'Screenshot capture failed');
+      }
+
+      if (!data.success) {
+        console.warn('Screenshot API returned failure, using fallback');
+        return {
+          imageUrl: data.imageUrl,
+          visualAnalysis: data.visualAnalysis,
+          metadata: data.metadata
+        };
+      }
+
+      return {
+        imageUrl: data.imageUrl,
+        visualAnalysis: data.visualAnalysis,
+        metadata: data.metadata
+      };
     } catch (error) {
       console.error('Screenshot capture failed:', error);
       // Fallback to simple screenshot without analysis
@@ -84,29 +107,8 @@ class ScreenshotService {
     }
   }
 
-  private async captureWithAnalysis(
-    url: string,
-    options: any
-  ): Promise<ScreenshotResult> {
-    // Simulate screenshot API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock visual analysis based on URL patterns
-    const visualAnalysis = this.analyzeUrlPatterns(url);
-    
-    const screenshotUrl = `https://via.placeholder.com/${options.width}x${options.height}/f8f9fa/6c757d?text=Screenshot+of+${encodeURIComponent(new URL(url).hostname)}`;
-    
-    return {
-      imageUrl: screenshotUrl,
-      visualAnalysis,
-      metadata: {
-        timestamp: Date.now(),
-        url,
-        viewport: { width: options.width, height: options.height },
-        deviceType: options.device
-      }
-    };
-  }
+  // This method is now replaced by the Supabase Edge Function
+  // Keeping it for backward compatibility but it won't be used in the main flow
 
   private analyzeUrlPatterns(url: string): ScreenshotResult['visualAnalysis'] {
     const domain = new URL(url).hostname.toLowerCase();
