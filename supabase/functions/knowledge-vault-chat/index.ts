@@ -29,7 +29,9 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Knowledge Vault Chat function called');
+    const requestStart = Date.now();
+    const requestId = crypto.randomUUID().substring(0, 8);
+    console.log(`🚀 [${requestId}] Knowledge Vault Chat function started`);
 
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!anthropicApiKey) {
@@ -42,7 +44,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { message, workspaceId, projectId, userId } = await req.json();
-    console.log('Request data:', { message, workspaceId, projectId, userId });
+    console.log(`📝 [${requestId}] Request:`, { 
+      messageLength: message?.length, 
+      workspaceId: workspaceId?.substring(0, 8), 
+      projectId: projectId?.substring(0, 8) || 'global',
+      userId: userId?.substring(0, 8)
+    });
 
     // Verify workspace access
     const { data: workspaceAccess } = await supabase
@@ -57,16 +64,21 @@ serve(async (req) => {
     }
 
     // Gather Knowledge Vault data with smart parsing
+    const dataStart = Date.now();
     const knowledgeVaultData = await gatherKnowledgeVaultData(supabase, workspaceId);
-    console.log('Knowledge Vault data gathered:', knowledgeVaultData);
+    console.log(`📊 [${requestId}] Data gathered: ${knowledgeVaultData.files?.length || 0} files, ${Date.now() - dataStart}ms`);
 
     // Parse files based on user query for contextual relevance
+    const parseStart = Date.now();
     const parsedFiles = await parseRelevantFiles(supabase, knowledgeVaultData.files, message, workspaceId);
     knowledgeVaultData.parsedFiles = parsedFiles;
+    console.log(`🔧 [${requestId}] Files parsed: ${Object.keys(parsedFiles).length}, ${Date.now() - parseStart}ms`);
 
     // Create smart context based on query and available data
+    const contextStart = Date.now();
     const context = await createSmartContext(knowledgeVaultData, message, projectId);
-    console.log('Smart context created, tokens:', context.length);
+    const contextTokens = Math.ceil(context.length / 4);
+    console.log(`🧠 [${requestId}] Context created: ${contextTokens} tokens, ${Date.now() - contextStart}ms`);
 
     // Call Claude with intelligent retry and optimization
     const data = await callClaudeWithRetry(anthropicApiKey, {
@@ -96,20 +108,27 @@ Réponds de manière:
       ]
     });
 
-    console.log('Claude response received');
+    const totalTime = Date.now() - requestStart;
+    const responseLength = data.content[0].text.length;
+    console.log(`✅ [${requestId}] Claude response: ${responseLength} chars, total time: ${totalTime}ms`);
 
-    // Log the interaction for audit
+    // Log détaillé pour monitoring avancé
     await supabase.rpc('log_knowledge_vault_action', {
       p_workspace_id: workspaceId,
       p_action: 'ai_interaction',
       p_resource_type: 'chat',
       p_resource_id: projectId || null,
       p_metadata: {
+        request_id: requestId,
         message_length: message.length,
-        response_length: data.content[0].text.length,
-        model: 'claude-3-5-haiku-20241022', // Modèle optimisé
+        response_length: responseLength,
+        context_tokens: contextTokens,
+        total_time_ms: totalTime,
+        files_parsed: Object.keys(parsedFiles).length,
+        model: 'claude-3-5-haiku-20241022',
         project_id: projectId || null,
-        mode: projectId ? 'project' : 'global'
+        mode: projectId ? 'project' : 'global',
+        usage: data.usage || {}
       }
     });
 
@@ -121,10 +140,31 @@ Réponds de manière:
     });
 
   } catch (error) {
-    console.error('Error in knowledge-vault-chat function:', error);
+    const totalTime = Date.now() - requestStart;
+    console.error(`🚨 [${requestId}] Function error: ${error?.message} (${totalTime}ms)`);
+    
+    // Log erreur pour monitoring
+    try {
+      await supabase.rpc('log_knowledge_vault_action', {
+        p_workspace_id: workspaceId,
+        p_action: 'error',
+        p_resource_type: 'chat',
+        p_resource_id: projectId || null,
+        p_metadata: {
+          request_id: requestId,
+          error_message: error?.message,
+          error_type: error?.constructor?.name,
+          total_time_ms: totalTime
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(JSON.stringify({ 
       error: error.message,
-      details: 'Check function logs for more information'
+      request_id: requestId,
+      details: 'Erreur détaillée disponible dans les logs'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -281,26 +321,44 @@ async function gatherKnowledgeVaultData(supabase: any, workspaceId: string): Pro
   };
 }
 
-// Helpers for CSV parsing and CVR summary
+// ========== PHASE 2 CORRECTIONS: PARSER CSV ROBUSTIFIÉ ==========
 function csvSplit(line: string): string[] {
+  // Vérifications de sécurité pour éviter undefined.length
+  if (!line || typeof line !== 'string') {
+    console.warn('⚠️ CSV Split: Invalid line input:', line);
+    return [];
+  }
+  
   const result: string[] = [];
   let current = '';
   let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      inQuotes = !inQuotes;
-      continue;
+  
+  try {
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
     }
-    if (ch === ',' && !inQuotes) {
-      result.push(current);
-      current = '';
-    } else {
-      current += ch;
+    result.push(current);
+    
+    // Log pour diagnostics avancés
+    if (result.length === 0) {
+      console.warn('⚠️ CSV Split: Empty result for line:', line.substring(0, 100));
     }
+    
+    return result;
+  } catch (error) {
+    console.error('🚨 CSV Split Error:', error, 'Line:', line?.substring(0, 100));
+    return [];
   }
-  result.push(current);
-  return result;
 }
 
 function normalizePercent(val?: string): number | null {
@@ -332,43 +390,118 @@ async function computeCVRSummary(
   supabase: any,
   storagePath: string
 ): Promise<{ summaryText: string; yesterdayCVR?: number; yesterdayDate?: string }> {
+  const startTime = Date.now();
+  
   try {
+    console.log('📊 Starting CVR Summary for:', storagePath);
+    
     const { data, error } = await supabase.storage.from('knowledge-vault').download(storagePath);
     if (error || !data) {
-      console.log('Failed to download CSV:', error);
+      console.error('🚨 CVR Download failed:', error?.message || 'No data');
       return { summaryText: '' };
     }
 
     const text = await data.text();
-    const lines = text.split(/\r?\n/).filter((l: string) => l.trim().length > 0);
-
-    let headerIdx = lines.findIndex((l: string) => l.toLowerCase().includes('daynum') && l.toLowerCase().includes('dayweek'));
-    if (headerIdx === -1) {
-      headerIdx = lines.findIndex((l: string) => l.toLowerCase().includes('date') && l.toLowerCase().includes('cvr'));
+    
+    // Vérifications de sécurité robustes
+    if (!text || typeof text !== 'string') {
+      console.error('🚨 Invalid CSV text content');
+      return { summaryText: '' };
     }
-    if (headerIdx === -1) return { summaryText: '' };
+    
+    const lines = text.split(/\r?\n/).filter((l: string) => l?.trim()?.length > 0);
+    
+    if (!lines || lines.length === 0) {
+      console.warn('⚠️ Empty CSV file');
+      return { summaryText: '' };
+    }
 
-    const header = csvSplit(lines[headerIdx]).map((s) => s.trim());
-    const idxDate = header.findIndex((h) => h.toLowerCase() === 'date');
-    const idxCVR = header.findIndex((h) => h.toLowerCase() === 'cvr');
-    const idxWebCVR = header.findIndex((h) => h.toLowerCase().includes('web') && h.toLowerCase().includes('cvr'));
-    const idxAppCVR = header.findIndex((h) => h.toLowerCase().includes('app') && h.toLowerCase().includes('cvr'));
+    // Détection intelligente du header avec vérifications de sécurité
+    let headerIdx = -1;
+    
+    for (let i = 0; i < Math.min(lines.length, 10); i++) {
+      const line = lines[i];
+      if (!line || typeof line !== 'string') continue;
+      
+      const lowerLine = line.toLowerCase();
+      if ((lowerLine.includes('daynum') && lowerLine.includes('dayweek')) || 
+          (lowerLine.includes('date') && lowerLine.includes('cvr'))) {
+        headerIdx = i;
+        break;
+      }
+    }
+    
+    if (headerIdx === -1) {
+      console.warn('⚠️ No valid header found in CSV');
+      return { summaryText: '' };
+    }
+
+    const headerLine = lines[headerIdx];
+    if (!headerLine) {
+      console.error('🚨 Header line is undefined at index:', headerIdx);
+      return { summaryText: '' };
+    }
+
+    const header = csvSplit(headerLine).map((s) => s?.trim() || '').filter(h => h.length > 0);
+    
+    if (header.length === 0) {
+      console.error('🚨 Empty header after parsing');
+      return { summaryText: '' };
+    }
+    
+    console.log('📝 CSV Header parsed:', header.length, 'columns');
+    
+    const idxDate = header.findIndex((h) => h && h.toLowerCase() === 'date');
+    const idxCVR = header.findIndex((h) => h && h.toLowerCase() === 'cvr');
+    const idxWebCVR = header.findIndex((h) => h && h.toLowerCase().includes('web') && h.toLowerCase().includes('cvr'));
+    const idxAppCVR = header.findIndex((h) => h && h.toLowerCase().includes('app') && h.toLowerCase().includes('cvr'));
 
     const entries: { date: Date; dateStr: string; cvr: number | null; web: number | null; app: number | null }[] = [];
 
-    for (let i = headerIdx + 1; i < lines.length; i++) {
+    // Parsing robuste des données avec vérifications
+    let processedRows = 0;
+    let errorRows = 0;
+    
+    for (let i = headerIdx + 1; i < Math.min(lines.length, headerIdx + 1000); i++) {
       const line = lines[i];
-      if (line.toLowerCase().includes('daynum')) break; // stop at next header block if any
-      const cells = csvSplit(line);
-      if (idxDate < 0 || idxDate >= cells.length) continue;
-      const dateStr = cells[idxDate];
-      const d = parseDDMMYYYY(dateStr || '');
-      if (!d) continue;
-      const cvr = idxCVR >= 0 && idxCVR < cells.length ? normalizePercent(cells[idxCVR]) : null;
-      const web = idxWebCVR >= 0 && idxWebCVR < cells.length ? normalizePercent(cells[idxWebCVR]) : null;
-      const app = idxAppCVR >= 0 && idxAppCVR < cells.length ? normalizePercent(cells[idxAppCVR]) : null;
-      entries.push({ date: d, dateStr: formatDDMMYYYY(d), cvr, web, app });
+      
+      if (!line || typeof line !== 'string') {
+        errorRows++;
+        continue;
+      }
+      
+      if (line.toLowerCase().includes('daynum')) break; // stop at next header block
+      
+      try {
+        const cells = csvSplit(line);
+        
+        if (!cells || cells.length === 0) {
+          errorRows++;
+          continue;
+        }
+        
+        if (idxDate < 0 || idxDate >= cells.length) continue;
+        
+        const dateStr = cells[idxDate];
+        if (!dateStr) continue;
+        
+        const d = parseDDMMYYYY(dateStr);
+        if (!d) continue;
+        
+        const cvr = idxCVR >= 0 && idxCVR < cells.length ? normalizePercent(cells[idxCVR]) : null;
+        const web = idxWebCVR >= 0 && idxWebCVR < cells.length ? normalizePercent(cells[idxWebCVR]) : null;
+        const app = idxAppCVR >= 0 && idxAppCVR < cells.length ? normalizePercent(cells[idxAppCVR]) : null;
+        
+        entries.push({ date: d, dateStr: formatDDMMYYYY(d), cvr, web, app });
+        processedRows++;
+        
+      } catch (rowError) {
+        console.warn('⚠️ Error parsing CSV row', i, ':', rowError);
+        errorRows++;
+      }
     }
+    
+    console.log(`📊 CSV Parsing complete: ${processedRows} rows processed, ${errorRows} errors, ${Date.now() - startTime}ms`);
 
     if (entries.length === 0) return { summaryText: '' };
 
@@ -388,10 +521,18 @@ async function computeCVRSummary(
       summary += `${e.dateStr} | ${cvrStr} | ${webStr} | ${appStr}\n`;
     });
 
-    return { summaryText: summary, yesterdayCVR: yesterdayOrLatest.cvr ?? undefined, yesterdayDate: yesterdayOrLatest.dateStr };
+    const processingTime = Date.now() - startTime;
+    console.log(`✅ CVR Summary generated: ${entries.length} entries, ${processingTime}ms`);
+    
+    return { 
+      summaryText: summary, 
+      yesterdayCVR: yesterdayOrLatest.cvr ?? undefined, 
+      yesterdayDate: yesterdayOrLatest.dateStr 
+    };
   } catch (e) {
-    console.log('Error computing CVR summary:', e);
-    return { summaryText: '' };
+    const processingTime = Date.now() - startTime;
+    console.error('🚨 CVR Summary Error:', e?.message || e, `(${processingTime}ms)`);
+    return { summaryText: `Erreur parsing CVR: ${e?.message || 'Erreur inconnue'}` };
   }
 }
 
@@ -461,50 +602,123 @@ async function parseFileContent(supabase: any, file: any): Promise<ParsedFileCon
   }
 }
 
-// Enhanced CSV parsing with intelligent column detection
+// ========== PHASE 2: CSV PARSING ROBUSTIFIÉ & OPTIMISÉ ==========
 async function parseCSVContent(content: string, fileName: string): Promise<any> {
-  const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
-  if (lines.length === 0) return { rows: [], columns: [], summary: 'CSV vide' };
-
-  // Find header line
-  let headerIdx = 0;
-  if (fileName.includes('REAL 24-25')) {
-    headerIdx = lines.findIndex(l => l.toLowerCase().includes('date') && l.toLowerCase().includes('cvr'));
+  const startTime = Date.now();
+  console.log('📊 Starting robust CSV parsing for:', fileName);
+  
+  // Vérifications de sécurité renforcées
+  if (!content || typeof content !== 'string') {
+    console.error('🚨 Invalid CSV content');
+    return { rows: [], columns: [], summary: 'Contenu CSV invalide', error: 'Invalid content type' };
   }
-  
-  const header = csvSplit(lines[headerIdx]).map(h => h.trim());
-  const dataRows = [];
-  
-  // Parse data rows
-  for (let i = headerIdx + 1; i < Math.min(lines.length, headerIdx + 500); i++) { // Limit to 500 rows for token management
-    const cells = csvSplit(lines[i]);
-    if (cells.length >= header.length) {
-      const row: any = {};
-      header.forEach((col, idx) => {
-        row[col] = cells[idx]?.trim() || '';
+
+  const lines = content.split(/\r?\n/).filter(l => l?.trim()?.length > 0);
+  if (!lines || lines.length === 0) {
+    console.warn('⚠️ Empty CSV');
+    return { rows: [], columns: [], summary: 'CSV vide', error: 'Empty file' };
+  }
+
+  try {
+    // Détection intelligente du header
+    let headerIdx = 0;
+    if (fileName.includes('REAL 24-25') || fileName.includes('SHIFT Digital')) {
+      const foundIdx = lines.findIndex(l => {
+        if (!l || typeof l !== 'string') return false;
+        const lower = l.toLowerCase();
+        return lower.includes('date') && lower.includes('cvr');
       });
-      dataRows.push(row);
+      if (foundIdx !== -1) headerIdx = foundIdx;
     }
-  }
+    
+    const headerLine = lines[headerIdx];
+    if (!headerLine) {
+      throw new Error(`Header line not found at index ${headerIdx}`);
+    }
+    
+    const header = csvSplit(headerLine).map(h => (h || '').trim()).filter(h => h.length > 0);
+    if (header.length === 0) {
+      throw new Error('Empty header after parsing');
+    }
+    
+    console.log(`📝 Header parsed: ${header.length} columns`);
+    
+    const dataRows = [];
+    let processedRows = 0;
+    let errorRows = 0;
+    const maxRows = Math.min(lines.length, headerIdx + 500); // Limit for token management
+    
+    // Parsing robuste des données
+    for (let i = headerIdx + 1; i < maxRows; i++) {
+      const line = lines[i];
+      if (!line || typeof line !== 'string') {
+        errorRows++;
+        continue;
+      }
+      
+      try {
+        const cells = csvSplit(line);
+        if (!cells || cells.length === 0) {
+          errorRows++;
+          continue;
+        }
+        
+        // Accepter les lignes avec au moins 50% des colonnes
+        if (cells.length >= Math.floor(header.length * 0.5)) {
+          const row: any = {};
+          header.forEach((col, idx) => {
+            row[col] = (cells[idx] || '').trim();
+          });
+          dataRows.push(row);
+          processedRows++;
+        } else {
+          errorRows++;
+        }
+      } catch (rowError) {
+        console.warn(`⚠️ Row ${i} parsing error:`, rowError);
+        errorRows++;
+      }
+    }
 
-  // Detect important columns for CVR analysis
-  const dateColumns = header.filter(h => h.toLowerCase().includes('date'));
-  const cvrColumns = header.filter(h => h.toLowerCase().includes('cvr'));
-  const trafficColumns = header.filter(h => h.toLowerCase().includes('traffic') || h.toLowerCase().includes('visit'));
-  const revenueColumns = header.filter(h => h.toLowerCase().includes('revenue') || h.toLowerCase().includes('ca'));
+    // Détection intelligente des colonnes clés
+    const dateColumns = header.filter(h => h && h.toLowerCase().includes('date'));
+    const cvrColumns = header.filter(h => h && h.toLowerCase().includes('cvr'));
+    const trafficColumns = header.filter(h => h && (h.toLowerCase().includes('traffic') || h.toLowerCase().includes('visit')));
+    const revenueColumns = header.filter(h => h && (h.toLowerCase().includes('revenue') || h.toLowerCase().includes('ca')));
+    
+    const processingTime = Date.now() - startTime;
+    const successRate = processedRows / (processedRows + errorRows) * 100;
+    
+    console.log(`✅ CSV Parsing complete: ${processedRows} rows, ${errorRows} errors, ${successRate.toFixed(1)}% success, ${processingTime}ms`);
 
-  return {
-    rows: dataRows,
-    columns: header,
-    totalRows: lines.length - headerIdx - 1,
-    keyColumns: {
+    return {
+      rows: dataRows,
+      columns: header,
+      totalRows: lines.length - headerIdx - 1,
+      processedRows,
+      errorRows,
+      successRate,
+      processingTime,
+      keyColumns: {
       dates: dateColumns,
       cvr: cvrColumns,
       traffic: trafficColumns,
       revenue: revenueColumns
-    },
-    summary: `CSV avec ${dataRows.length} lignes analysées (${cvrColumns.length} colonnes CVR, ${dateColumns.length} colonnes dates)`
-  };
+      },
+      summary: `CSV ${fileName}: ${dataRows.length} lignes analysées (${cvrColumns.length} CVR, ${dateColumns.length} dates, ${successRate.toFixed(1)}% succès)`
+    };
+    
+  } catch (error) {
+    const processingTime = Date.now() - startTime;
+    console.error('🚨 CSV Parsing Error:', error?.message, `(${processingTime}ms)`);
+    return {
+      rows: [],
+      columns: [],
+      summary: `Erreur parsing ${fileName}: ${error?.message || 'Erreur inconnue'}`,
+      error: error?.message,
+      processingTime
+    };
+  }
 }
 
 // Generate file hash for cache validation
@@ -526,9 +740,14 @@ async function generateFileHash(supabase: any, file: any): Promise<string> {
   }
 }
 
-// Check cache for parsed file content
+// ========== PHASE 2: SYSTÈME DE CACHE OPTIMISÉ & INTELLIGENT ==========
 async function getCachedFileContent(supabase: any, workspaceId: string, file: any): Promise<ParsedFileContent | null> {
+  const startTime = Date.now();
+  
   try {
+    // Nettoyage automatique du cache ancien (>7 jours)
+    await cleanOldCache(supabase, workspaceId);
+    
     const fileHash = await generateFileHash(supabase, file);
     
     const { data: cachedData } = await supabase
@@ -540,28 +759,74 @@ async function getCachedFileContent(supabase: any, workspaceId: string, file: an
       .maybeSingle();
     
     if (cachedData) {
-      // Update last_accessed
+      // Update last_accessed pour le garbage collection
       await supabase
         .from('knowledge_vault_cache')
         .update({ last_accessed: new Date().toISOString() })
         .eq('id', cachedData.id);
       
-      console.log(`✅ Cache HIT for file: ${file.file_name}`);
+      const cacheAge = Date.now() - new Date(cachedData.created_at).getTime();
+      console.log(`✅ Cache HIT: ${file.file_name} (age: ${Math.round(cacheAge / 1000 / 60)}min, ${Date.now() - startTime}ms)`);
+      
       return cachedData.parsed_content as ParsedFileContent;
     }
     
-    console.log(`❌ Cache MISS for file: ${file.file_name}`);
+    console.log(`❌ Cache MISS: ${file.file_name} (${Date.now() - startTime}ms)`);
     return null;
   } catch (error) {
-    console.error('Error checking cache:', error);
+    console.error('🚨 Cache check error:', error?.message, `(${Date.now() - startTime}ms)`);
     return null;
   }
 }
 
-// Save parsed content to cache
+// Nettoyage intelligent du cache ancien
+async function cleanOldCache(supabase: any, workspaceId: string): Promise<void> {
+  try {
+    const cutoffDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 jours
+    
+    const { data: deletedEntries } = await supabase
+      .from('knowledge_vault_cache')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .lt('last_accessed', cutoffDate)
+      .select('id');
+    
+    if (deletedEntries && deletedEntries.length > 0) {
+      console.log(`🧹 Cache cleanup: ${deletedEntries.length} old entries removed`);
+    }
+  } catch (error) {
+    console.warn('⚠️ Cache cleanup error:', error?.message);
+  }
+}
+
+// Sauvegarde intelligente avec compression automatique
 async function saveParsedContentToCache(supabase: any, workspaceId: string, file: any, parsedContent: ParsedFileContent): Promise<void> {
+  const startTime = Date.now();
+  
   try {
     const fileHash = await generateFileHash(supabase, file);
+    const contentString = JSON.stringify(parsedContent);
+    const contextSize = contentString.length;
+    
+    // Compression automatique des gros contextes (>50KB)
+    let finalContent = parsedContent;
+    let isCompressed = false;
+    
+    if (contextSize > 50000) {
+      // Compression intelligente : garder summary et métadonnées, réduire data
+      finalContent = {
+        ...parsedContent,
+        data: parsedContent.type === 'csv' && parsedContent.data.rows ? 
+          { 
+            ...parsedContent.data, 
+            rows: parsedContent.data.rows.slice(0, 100) // Garder 100 lignes max
+          } : 
+          parsedContent.data,
+        compressed: true,
+        originalSize: contextSize
+      };
+      isCompressed = true;
+    }
     
     await supabase
       .from('knowledge_vault_cache')
@@ -569,15 +834,18 @@ async function saveParsedContentToCache(supabase: any, workspaceId: string, file
         workspace_id: workspaceId,
         file_id: file.id,
         file_hash: fileHash,
-        parsed_content: parsedContent,
-        context_size: JSON.stringify(parsedContent).length,
+        parsed_content: finalContent,
+        context_size: JSON.stringify(finalContent).length,
         token_count: parsedContent.tokens || 0,
         last_accessed: new Date().toISOString()
       });
     
-    console.log(`💾 Cached file: ${file.file_name} (${parsedContent.tokens} tokens)`);
+    const finalSize = JSON.stringify(finalContent).length;
+    const compressionRatio = isCompressed ? Math.round((1 - finalSize / contextSize) * 100) : 0;
+    
+    console.log(`💾 Cached: ${file.file_name} (${parsedContent.tokens} tokens, ${Math.round(finalSize/1024)}KB${isCompressed ? `, -${compressionRatio}%` : ''}, ${Date.now() - startTime}ms)`);
   } catch (error) {
-    console.error('Error saving to cache:', error);
+    console.error('🚨 Cache save error:', error?.message, `(${Date.now() - startTime}ms)`);
   }
 }
 
