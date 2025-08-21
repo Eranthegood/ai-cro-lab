@@ -815,11 +815,7 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
       psychology_insight: "Quantified superiority reduces price sensitivity",
       code_complexity: "Complex Integration", 
       unique_factor: "Direct competitive positioning with proof points"
-        }
-      differentiation_factor: "Transforme un point de décision binaire en opportunité de vente additionnelle visible",
-      implementation: {
-        platform: "AB Tasty",
-        difficulty: "Moyen",
+    }
         code: `
 .quantity-selector {
   display: flex;
