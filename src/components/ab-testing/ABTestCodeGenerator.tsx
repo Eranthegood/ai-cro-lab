@@ -18,50 +18,42 @@ interface ABTestCodeGeneratorProps {
 export const ABTestCodeGenerator = ({ suggestion, data, onCodeGenerated, onBack }: ABTestCodeGeneratorProps) => {
   const [selectedPlatform, setSelectedPlatform] = useState('ab-tasty');
   const [isPreviewMobile, setIsPreviewMobile] = useState(false);
-  const [currentCSS, setCurrentCSS] = useState(suggestion.implementation.code);
+  const [currentCSS, setCurrentCSS] = useState(suggestion?.implementation?.code || `.cta-button {\n  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%) !important;\n  color: #ffffff !important;\n  border: none !important;\n  padding: 16px 32px !important;\n  border-radius: 12px !important;\n  font-size: 18px !important;\n  transition: all 0.3s ease !important;\n}\n.cta-button:hover {\n  transform: translateY(-2px) scale(1.01) !important;\n}`);
   const [messages, setMessages] = useState<Array<{type: 'user' | 'ai'; content: string; timestamp: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
+
+  const defaultSetup = suggestion?.implementation?.setup || [
+    "Créer un test dans l'outil choisi",
+    "Identifier l'élément cible avec un sélecteur",
+    "Coller le CSS fourni dans l'éditeur de variante",
+    "Définir l'objectif et lancer le test"
+  ];
 
   const platforms = {
     'ab-tasty': {
       name: 'AB Tasty',
       logo: '🅰️',
-      code: suggestion.implementation.code,
-      setup: suggestion.implementation.setup
+      code: currentCSS,
+      setup: defaultSetup
     },
     'optimizely': {
       name: 'Optimizely',
       logo: '🔵',
-      code: suggestion.implementation.code.replace('!important', ''),
-      setup: [
-        "Créer une nouvelle expérience dans Optimizely",
-        "Sélectionner l'élément cible avec le sélecteur visuel",
-        "Appliquer les styles CSS dans l'éditeur",
-        "Configurer l'audience et la répartition de trafic"
-      ]
+      code: currentCSS.replace(/!important/g, ''),
+      setup: defaultSetup
     },
     'vwo': {
       name: 'Visual Website Optimizer',
       logo: '🟡',
-      code: suggestion.implementation.code,
-      setup: [
-        "Créer un nouveau test A/B dans VWO",
-        "Utiliser l'éditeur visuel pour identifier l'élément",
-        "Injecter le CSS personnalisé",
-        "Définir les objectifs de conversion"
-      ]
+      code: currentCSS,
+      setup: defaultSetup
     },
     'google-optimize': {
       name: 'Google Optimize',
       logo: '🔍',
-      code: suggestion.implementation.code.replace(/!important/g, ''),
-      setup: [
-        "Créer une expérience dans Google Optimize",
-        "Lier avec Google Analytics",
-        "Utiliser l'éditeur de variantes",
-        "Configurer les objectifs de conversion"
-      ]
+      code: currentCSS.replace(/!important/g, ''),
+      setup: defaultSetup
     }
   };
 
@@ -200,15 +192,15 @@ export const ABTestCodeGenerator = ({ suggestion, data, onCodeGenerated, onBack 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="font-medium">Impact attendu:</span>
-              <div className="text-lg font-bold text-green-600">{suggestion.expectedImpact}</div>
+              <div className="text-lg font-bold text-green-600">{suggestion.expected_impact || suggestion.expectedImpact || '—'}</div>
             </div>
             <div>
               <span className="font-medium">Confiance:</span>
-              <div className="text-lg font-bold">{suggestion.confidence}%</div>
+              <div className="text-lg font-bold">{Math.round((suggestion.confidence ?? (suggestion.quality_score ? suggestion.quality_score * 100 : 80)))}%</div>
             </div>
             <div>
               <span className="font-medium">Difficulté:</span>
-              <Badge className="ml-2">{suggestion.difficulty}</Badge>
+              <Badge className="ml-2">{suggestion.difficulty || suggestion.code_complexity || 'Medium'}</Badge>
             </div>
           </div>
         </CardContent>
@@ -398,12 +390,12 @@ export const ABTestCodeGenerator = ({ suggestion, data, onCodeGenerated, onBack 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <h4 className="font-medium mb-2">Métrique principale</h4>
-              <p className="text-sm text-muted-foreground">{suggestion.metrics.primary}</p>
+              <p className="text-sm text-muted-foreground">{suggestion.metrics?.primary || 'Primary metric to be defined'}</p>
             </div>
             <div>
               <h4 className="font-medium mb-2">Métriques secondaires</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                {suggestion.metrics.secondary.map((metric: string, index: number) => (
+                {(suggestion.metrics?.secondary || []).map((metric: string, index: number) => (
                   <li key={index}>• {metric}</li>
                 ))}
               </ul>
