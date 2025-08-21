@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import WorkspaceSwitcher from "@/components/workspace/WorkspaceSwitcher";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/context/NotificationContext";
+import { RateLimitProgress } from "@/components/knowledge-vault/RateLimitProgress";
 
 const AppSidebar = () => {
   const location = useLocation();
@@ -100,6 +101,9 @@ const AppSidebar = () => {
               <h2 className="font-medium text-foreground">CRO Intelligence</h2>
             </div>
             <WorkspaceSwitcher />
+            <div className="mt-3">
+              <RateLimitProgress />
+            </div>
           </>
         )}
         {!open && (

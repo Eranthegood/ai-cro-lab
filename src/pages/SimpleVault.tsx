@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { SimpleVaultChat } from "@/components/knowledge-vault/SimpleVaultChat";
-import { RateLimitProgress } from "@/components/knowledge-vault/RateLimitProgress";
+
 
 const SimpleVault = () => {
   return (
@@ -11,7 +11,6 @@ const SimpleVault = () => {
           <p className="text-muted-foreground mb-4">
             Interface Claude-style : Upload vos fichiers et posez vos questions
           </p>
-          <RateLimitProgress />
         </div>
         
         <SimpleVaultChat />
