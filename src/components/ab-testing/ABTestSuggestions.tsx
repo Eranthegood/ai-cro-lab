@@ -322,12 +322,91 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
               📚 Knowledge Vault Enhanced
             </Badge>
           )}
+          {data.screenshot && (
+            <Badge className="bg-success/10 text-success px-3 py-1">
+              📸 Visual Analysis • {data.screenshot.visualAnalysis?.elements.length || 0} éléments
+            </Badge>
+          )}
           {engineVersion && (
             <Badge variant="outline" className="px-3 py-1">
               🤖 {engineVersion}
             </Badge>
           )}
         </div>
+
+        {/* Phase 2: Screenshot Preview Section */}
+        {data.screenshot && (
+          <Card className="mb-8 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Camera className="h-4 w-4 text-primary" />
+                Analyse visuelle de la page
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <div className="relative border rounded-lg overflow-hidden bg-muted/20">
+                    <img
+                      src={data.screenshot.imageUrl}
+                      alt="Page Screenshot"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="secondary">
+                        {data.screenshot.metadata.deviceType === 'desktop' ? '🖥️ Desktop' : '📱 Mobile'}
+                      </Badge>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-white text-sm font-medium truncate">
+                        {new URL(data.screenshot.metadata.url).hostname}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {data.screenshot.visualAnalysis && (
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Couleurs détectées</h4>
+                      <div className="flex gap-1 flex-wrap">
+                        {data.screenshot.visualAnalysis.colors.slice(0, 6).map((color, index) => (
+                          <div
+                            key={index}
+                            className="w-6 h-6 rounded border border-muted"
+                            style={{ backgroundColor: color }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Éléments clés</h4>
+                      <div className="space-y-1 text-xs">
+                        {data.screenshot.visualAnalysis.elements.slice(0, 3).map((element, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: element.styles.backgroundColor }} />
+                            <span>{element.text || element.type}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Performance</h4>
+                      <div className="text-xs text-muted-foreground">
+                        <div>Load: {Math.round(data.screenshot.visualAnalysis.performance.loadTime)}ms</div>
+                        <div>Images: {data.screenshot.visualAnalysis.performance.imageCount}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Suggestions by Approach */}
         <div className="space-y-8 mb-8">

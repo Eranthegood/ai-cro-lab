@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Brain, AlertCircle, FileText, BarChart3, Mouse, CheckSquare, Square } from 'lucide-react';
+import { Upload, Brain, AlertCircle, FileText, BarChart3, Mouse, CheckSquare, Square, Camera, Monitor, Smartphone, Zap, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useSimpleVault } from "@/hooks/useSimpleVault";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { toast } from "@/hooks/use-toast";
 import { determinePageType, extractBrandFromUrl, extractIndustryFromUrl } from "./utils/pageAnalysis";
+import { screenshotService, ScreenshotResult } from "@/services/screenshotService";
 
 interface ABTestCreatorProps {
   onDataUploaded: (data: any) => void;
@@ -29,6 +31,12 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
   const [businessContext, setBusinessContext] = useState('');
   const [currentPain, setCurrentPain] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // Phase 2: Screenshot Integration
+  const [screenshot, setScreenshot] = useState<ScreenshotResult | null>(null);
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
+  const [screenshotDevice, setScreenshotDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [enableVisualAnalysis, setEnableVisualAnalysis] = useState(true);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -79,6 +87,66 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
 
   const clearFileSelection = () => {
     setSelectedFiles([]);
+  };
+
+  const handleCaptureScreenshot = async () => {
+    if (!pageUrl.trim()) {
+      toast({
+        title: "URL requise",
+        description: "Saisissez d'abord une URL pour capturer un screenshot",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Enhanced URL validation
+    try {
+      const url = new URL(pageUrl);
+      if (!url.protocol.startsWith('http')) {
+        throw new Error('Invalid protocol');
+      }
+    } catch (error) {
+      toast({
+        title: "URL invalide",
+        description: "Veuillez saisir une URL valide (ex: https://example.com)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCapturingScreenshot(true);
+
+    try {
+      toast({
+        title: "Capture en cours",
+        description: `Capture ${screenshotDevice} de ${pageUrl}...`,
+      });
+
+      const result = await screenshotService.captureScreenshot(pageUrl, {
+        device: screenshotDevice,
+        width: screenshotDevice === 'desktop' ? 1920 : 375,
+        height: screenshotDevice === 'desktop' ? 1080 : 667,
+        fullPage: true,
+        delay: 2000
+      });
+
+      setScreenshot(result);
+      
+      toast({
+        title: "Screenshot capturé !",
+        description: `Analyse visuelle ${enableVisualAnalysis ? 'activée' : 'désactivée'} • ${result.visualAnalysis.elements.length} éléments détectés`,
+      });
+
+    } catch (error) {
+      console.error('Screenshot capture failed:', error);
+      toast({
+        title: "Erreur de capture",
+        description: "Impossible de capturer le screenshot. Réessayez.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCapturingScreenshot(false);
+    }
   };
 
   const handleAnalyze = async () => {
@@ -150,6 +218,12 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
         currentPain: currentPain.trim(),
         useVaultKnowledge,
         selectedFiles: filesToAnalyze,
+        // Phase 2: Enhanced with visual context
+        screenshot: screenshot ? {
+          imageUrl: screenshot.imageUrl,
+          visualAnalysis: enableVisualAnalysis ? screenshot.visualAnalysis : null,
+          metadata: screenshot.metadata
+        } : null,
         context: {
           pageType: determinePageType(pageUrl),
           brand: extractBrandFromUrl(pageUrl),
@@ -167,7 +241,7 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
 
       toast({
         title: "Analyse initiée avec succès",
-        description: `Contexte: ${goalType} | Files: ${filesToAnalyze.length} | Vault: ${useVaultKnowledge ? 'Oui' : 'Non'}`,
+        description: `Contexte: ${goalType} | Files: ${filesToAnalyze.length} | Screenshot: ${screenshot ? 'Oui' : 'Non'} | Visual AI: ${enableVisualAnalysis ? 'Oui' : 'Non'}`,
       });
 
       onDataUploaded(analysisData);
@@ -341,16 +415,25 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
       {/* Configuration Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Configuration du test</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            Configuration du test
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="page-url">URL de la page *</Label>
               <Input
                 id="page-url"
                 value={pageUrl}
-                onChange={(e) => setPageUrl(e.target.value)}
+                onChange={(e) => {
+                  setPageUrl(e.target.value);
+                  // Reset screenshot when URL changes
+                  if (screenshot && e.target.value !== screenshot.metadata.url) {
+                    setScreenshot(null);
+                  }
+                }}
                 placeholder="https://example.com/checkout"
                 required
               />
@@ -373,6 +456,135 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
               </Select>
             </div>
           </div>
+
+          {/* Phase 2: Screenshot Capture Section */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Camera className="h-4 w-4 text-primary" />
+                Capture visuelle intelligente (Phase 2)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Capturez un screenshot de votre page pour une analyse visuelle AI approfondie
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={screenshotDevice === 'desktop' ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setScreenshotDevice('desktop')}
+                  >
+                    <Monitor className="h-4 w-4 mr-1" />
+                    Desktop
+                  </Button>
+                  <Button
+                    variant={screenshotDevice === 'mobile' ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setScreenshotDevice('mobile')}
+                  >
+                    <Smartphone className="h-4 w-4 mr-1" />
+                    Mobile
+                  </Button>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="enable-visual-analysis"
+                    checked={enableVisualAnalysis}
+                    onCheckedChange={(checked) => setEnableVisualAnalysis(checked as boolean)}
+                  />
+                  <Label htmlFor="enable-visual-analysis" className="text-sm cursor-pointer">
+                    Analyse visuelle AI
+                  </Label>
+                </div>
+              </div>
+
+              {/* Screenshot Preview or Capture Button */}
+              {screenshot ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">
+                        {screenshot.metadata.deviceType === 'desktop' ? '🖥️ Desktop' : '📱 Mobile'}
+                      </Badge>
+                      <Badge variant="outline">
+                        {screenshot.visualAnalysis.elements.length} éléments détectés
+                      </Badge>
+                      {enableVisualAnalysis && (
+                        <Badge className="bg-success/10 text-success">
+                          AI Analysis Active
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCaptureScreenshot}
+                      disabled={isCapturingScreenshot}
+                    >
+                      <Camera className="h-3 w-3 mr-1" />
+                      Recapturer
+                    </Button>
+                  </div>
+                  
+                  <div className="relative border rounded-lg overflow-hidden bg-muted/20">
+                    <img
+                      src={screenshot.imageUrl}
+                      alt="Page Screenshot"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-white text-sm font-medium truncate">
+                        {new URL(screenshot.metadata.url).hostname}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-white/80 text-xs">
+                          {screenshot.visualAnalysis.colors.length} couleurs détectées
+                        </span>
+                        <span className="text-white/60">•</span>
+                        <span className="text-white/80 text-xs">
+                          Load: {Math.round(screenshot.visualAnalysis.performance.loadTime)}ms
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {enableVisualAnalysis && screenshot.visualAnalysis.elements.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {screenshot.visualAnalysis.elements.slice(0, 4).map((element, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-background rounded border">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: element.styles.backgroundColor }} />
+                          <span className="font-medium">{element.text || element.type}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  onClick={handleCaptureScreenshot}
+                  disabled={!pageUrl.trim() || isCapturingScreenshot}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {isCapturingScreenshot ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                      Capture en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Capturer Screenshot {screenshotDevice === 'desktop' ? 'Desktop' : 'Mobile'}
+                    </>
+                  )}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
           
           <div className="space-y-2">
             <Label htmlFor="business-context">Contexte business (optionnel)</Label>
