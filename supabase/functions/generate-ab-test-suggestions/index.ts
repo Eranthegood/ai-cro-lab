@@ -815,15 +815,7 @@ async function generateIntelligentFallback(context: any, goalType: string, userP
       psychology_insight: "Quantified superiority reduces price sensitivity",
       code_complexity: "Complex Integration", 
       unique_factor: "Direct competitive positioning with proof points"
-        },
-        psychological_rationale: "Anchoring bias + loss aversion - les utilisateurs voient l'économie manquée comme une perte"
-      },
-      expected_impact: {
-        primary_metric: "Taux de conversion +22-28%",
-        confidence_level: "Élevé (85%)",
-        timeline_to_significance: "8 jours",
-        secondary_benefits: ["AOV +35%", "Réduction du taux de rebond", "Meilleure découverte des offres"]
-      },
+        }
       differentiation_factor: "Transforme un point de décision binaire en opportunité de vente additionnelle visible",
       implementation: {
         platform: "AB Tasty",

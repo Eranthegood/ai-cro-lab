@@ -164,10 +164,27 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
     return [];
   };
 
-const SuggestionCard = ({ suggestion, onSelect, getDifficultyColor }: {
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'simple css':
+      case 'easy':
+      case 'simple':
+        return 'border-green-200 text-green-700 bg-green-50';
+      case 'medium js':
+      case 'medium':
+        return 'border-yellow-200 text-yellow-700 bg-yellow-50';
+      case 'complex integration':
+      case 'complex':
+      case 'hard':
+        return 'border-red-200 text-red-700 bg-red-50';
+      default:
+        return 'border-gray-200 text-gray-700 bg-gray-50';
+    }
+  };
+
+  const SuggestionCard = ({ suggestion, onSelect }: {
   suggestion: Suggestion;
   onSelect: (suggestion: Suggestion) => void;
-  getDifficultyColor: (difficulty: string) => string;
 }) => (
   <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
     <CardHeader className="pb-4">
@@ -326,12 +343,11 @@ const SuggestionCard = ({ suggestion, onSelect, getDifficultyColor }: {
               {suggestions
                 .filter(suggestion => suggestion.approach === 'Technical UX')
                 .map((suggestion) => (
-                  <SuggestionCard 
-                    key={suggestion.id} 
-                    suggestion={suggestion} 
-                    onSelect={onSuggestionSelected}
-                    getDifficultyColor={getDifficultyColor}
-                  />
+                   <SuggestionCard 
+                     key={suggestion.id} 
+                     suggestion={suggestion} 
+                     onSelect={onSuggestionSelected}
+                   />
                 ))}
             </div>
           </div>
@@ -351,12 +367,11 @@ const SuggestionCard = ({ suggestion, onSelect, getDifficultyColor }: {
               {suggestions
                 .filter(suggestion => suggestion.approach === 'Psychology')
                 .map((suggestion) => (
-                  <SuggestionCard 
-                    key={suggestion.id} 
-                    suggestion={suggestion} 
-                    onSelect={onSuggestionSelected}
-                    getDifficultyColor={getDifficultyColor}
-                  />
+                   <SuggestionCard 
+                     key={suggestion.id} 
+                     suggestion={suggestion} 
+                     onSelect={onSuggestionSelected}
+                   />
                 ))}
             </div>
           </div>
@@ -376,12 +391,11 @@ const SuggestionCard = ({ suggestion, onSelect, getDifficultyColor }: {
               {suggestions
                 .filter(suggestion => suggestion.approach === 'Brand Differentiation')
                 .map((suggestion) => (
-                  <SuggestionCard 
-                    key={suggestion.id} 
-                    suggestion={suggestion} 
-                    onSelect={onSuggestionSelected}
-                    getDifficultyColor={getDifficultyColor}
-                  />
+                   <SuggestionCard 
+                     key={suggestion.id} 
+                     suggestion={suggestion} 
+                     onSelect={onSuggestionSelected}
+                   />
                 ))}
             </div>
           </div>
