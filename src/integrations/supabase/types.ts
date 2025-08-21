@@ -77,6 +77,78 @@ export type Database = {
           },
         ]
       }
+      alert_rules: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notification_channels: Json | null
+          threshold_value: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notification_channels?: Json | null
+          threshold_value?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notification_channels?: Json | null
+          threshold_value?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      alerts_log: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+          workspace_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          title: string
+          workspace_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       contentsquare_data: {
         Row: {
           analysis_results: Json | null
@@ -519,6 +591,39 @@ export type Database = {
           name?: string
           settings?: Json | null
           updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      semantic_cache: {
+        Row: {
+          created_at: string
+          id: string
+          last_accessed: string | null
+          query_hash: string
+          query_text: string
+          response_content: string
+          tokens_saved: number | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_accessed?: string | null
+          query_hash: string
+          query_text: string
+          response_content: string
+          tokens_saved?: number | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_accessed?: string | null
+          query_hash?: string
+          query_text?: string
+          response_content?: string
+          tokens_saved?: number | null
           workspace_id?: string
         }
         Relationships: []
