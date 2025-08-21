@@ -70,15 +70,14 @@ const AppSidebar = () => {
       url: "/dashboard/knowledge", 
       icon: BookOpen,
       submenu: [
+        { title: "Ask your vault", url: "/vault-simple", icon: Brain },
         { title: "Overview", url: "/dashboard/knowledge", icon: FileText },
         { title: "Configuration", url: "/dashboard/knowledge/config", icon: Settings },
-        { title: "Vault Simple", url: "/vault-simple", icon: Brain },
         { title: "Journey Mapper", url: "/dashboard/knowledge/journey-mapper", icon: Map }
       ]
     },
     { title: "A/B Testing", url: "/dashboard/testing", icon: TestTube },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
-    { title: "Intel", url: "/dashboard/insights", icon: AnthropicIcon },
   ];
 
   const isActive = (path: string) => location.pathname === path;
