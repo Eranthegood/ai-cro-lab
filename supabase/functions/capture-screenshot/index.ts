@@ -15,6 +15,14 @@ interface ScreenshotOptions {
   delay?: number;
 }
 
+interface ScreenshotMetrics {
+  service: 'screenshotapi' | 'urlbox' | 'fallback';
+  responseTime: number;
+  success: boolean;
+  error?: string;
+  imageSize?: number;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -36,84 +44,10 @@ serve(async (req) => {
       });
     }
 
-    const screenshotApiKey = Deno.env.get('SCREENSHOT_API_KEY');
-    if (!screenshotApiKey) {
-      console.error('Screenshot API key not configured');
-      return new Response(JSON.stringify({ error: 'Screenshot service not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // Try hybrid approach: ScreenshotAPI -> URLBox -> Fallback
+    const result = await captureWithFallback(url, { width, height, device, fullPage, delay });
 
-    // Use ScreenshotAPI.net service
-    const screenshotApiUrl = 'https://screenshotapi.net/api/v1/screenshot';
-    
-    const params = new URLSearchParams({
-      url: url,
-      width: width.toString(),
-      height: height.toString(),
-      full_page: fullPage.toString(),
-      delay: delay.toString(),
-      format: 'png',
-      fresh: 'true', // Force fresh screenshot
-      user_agent: device === 'mobile' 
-        ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
-        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      token: screenshotApiKey
-    });
-
-    console.log('Calling screenshot API with params:', params.toString());
-
-    const response = await fetch(`${screenshotApiUrl}?${params}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'image/png',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Screenshot API error:', response.status, errorText);
-      
-      // Return fallback screenshot
-      return new Response(JSON.stringify({
-        success: false,
-        imageUrl: generateFallbackImageUrl(url, width, height),
-        visualAnalysis: generateBasicAnalysis(url),
-        metadata: {
-          timestamp: Date.now(),
-          url,
-          viewport: { width, height },
-          deviceType: device,
-          fallback: true
-        }
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get the image as base64
-    const imageBuffer = await response.arrayBuffer();
-    const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
-    const imageDataUrl = `data:image/png;base64,${imageBase64}`;
-
-    // Generate visual analysis based on URL and captured screenshot
-    const visualAnalysis = await generateVisualAnalysis(url, imageDataUrl);
-
-    console.log('Screenshot captured successfully');
-
-    return new Response(JSON.stringify({
-      success: true,
-      imageUrl: imageDataUrl,
-      visualAnalysis,
-      metadata: {
-        timestamp: Date.now(),
-        url,
-        viewport: { width, height },
-        deviceType: device,
-        fallback: false
-      }
-    }), {
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -129,6 +63,200 @@ serve(async (req) => {
     });
   }
 });
+
+async function captureWithFallback(url: string, options: ScreenshotOptions) {
+  const startTime = Date.now();
+  let metrics: ScreenshotMetrics[] = [];
+
+  // Primary: Try ScreenshotAPI
+  try {
+    console.log('Attempting ScreenshotAPI.net...');
+    const result = await tryScreenshotAPI(url, options);
+    metrics.push({
+      service: 'screenshotapi',
+      responseTime: Date.now() - startTime,
+      success: true,
+      imageSize: result.imageUrl.length
+    });
+    
+    return {
+      ...result,
+      metadata: {
+        ...result.metadata,
+        metrics,
+        primaryService: 'screenshotapi'
+      }
+    };
+  } catch (error) {
+    console.warn('ScreenshotAPI failed:', error.message);
+    metrics.push({
+      service: 'screenshotapi',
+      responseTime: Date.now() - startTime,
+      success: false,
+      error: error.message
+    });
+  }
+
+  // Fallback 1: Try URLBox
+  try {
+    console.log('Attempting URLBox fallback...');
+    const fallbackStart = Date.now();
+    const result = await tryURLBox(url, options);
+    metrics.push({
+      service: 'urlbox',
+      responseTime: Date.now() - fallbackStart,
+      success: true,
+      imageSize: result.imageUrl.length
+    });
+    
+    return {
+      ...result,
+      metadata: {
+        ...result.metadata,
+        metrics,
+        primaryService: 'urlbox',
+        fallbackUsed: true
+      }
+    };
+  } catch (error) {
+    console.warn('URLBox failed:', error.message);
+    metrics.push({
+      service: 'urlbox',
+      responseTime: Date.now() - startTime,
+      success: false,
+      error: error.message
+    });
+  }
+
+  // Fallback 2: Generate placeholder
+  console.log('Using placeholder fallback...');
+  const fallbackStart = Date.now();
+  const result = generateFallbackResult(url, options);
+  metrics.push({
+    service: 'fallback',
+    responseTime: Date.now() - fallbackStart,
+    success: true
+  });
+
+  return {
+    ...result,
+    metadata: {
+      ...result.metadata,
+      metrics,
+      primaryService: 'fallback',
+      fallbackUsed: true
+    }
+  };
+}
+
+async function tryScreenshotAPI(url: string, options: ScreenshotOptions) {
+  const screenshotApiKey = Deno.env.get('SCREENSHOT_API_KEY');
+  if (!screenshotApiKey) {
+    throw new Error('ScreenshotAPI key not configured');
+  }
+
+  const params = new URLSearchParams({
+    url: url,
+    width: options.width.toString(),
+    height: options.height.toString(),
+    full_page: options.fullPage.toString(),
+    delay: options.delay.toString(),
+    format: 'png',
+    fresh: 'true',
+    user_agent: options.device === 'mobile' 
+      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    token: screenshotApiKey
+  });
+
+  const response = await fetch(`https://screenshotapi.net/api/v1/screenshot?${params}`, {
+    method: 'GET',
+    headers: { 'Accept': 'image/png' },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`ScreenshotAPI error: ${response.status} ${errorText}`);
+  }
+
+  const imageBuffer = await response.arrayBuffer();
+  const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+  const imageDataUrl = `data:image/png;base64,${imageBase64}`;
+
+  return {
+    success: true,
+    imageUrl: imageDataUrl,
+    visualAnalysis: await generateVisualAnalysis(url, imageDataUrl),
+    metadata: {
+      timestamp: Date.now(),
+      url,
+      viewport: { width: options.width, height: options.height },
+      deviceType: options.device,
+      fallback: false
+    }
+  };
+}
+
+async function tryURLBox(url: string, options: ScreenshotOptions) {
+  const urlboxApiKey = Deno.env.get('URLBOX_API_KEY');
+  if (!urlboxApiKey) {
+    throw new Error('URLBox API key not configured');
+  }
+
+  const params = new URLSearchParams({
+    url: url,
+    width: options.width.toString(),
+    height: options.height.toString(),
+    full_page: options.fullPage.toString(),
+    delay: options.delay.toString(),
+    format: 'png',
+    user_agent: options.device === 'mobile' 
+      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  });
+
+  const response = await fetch(`https://api.urlbox.io/v1/${urlboxApiKey}/png?${params}`, {
+    method: 'GET',
+    headers: { 'Accept': 'image/png' },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`URLBox error: ${response.status} ${errorText}`);
+  }
+
+  const imageBuffer = await response.arrayBuffer();
+  const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+  const imageDataUrl = `data:image/png;base64,${imageBase64}`;
+
+  return {
+    success: true,
+    imageUrl: imageDataUrl,
+    visualAnalysis: await generateVisualAnalysis(url, imageDataUrl),
+    metadata: {
+      timestamp: Date.now(),
+      url,
+      viewport: { width: options.width, height: options.height },
+      deviceType: options.device,
+      fallback: false
+    }
+  };
+}
+
+function generateFallbackResult(url: string, options: ScreenshotOptions) {
+  return {
+    success: false,
+    imageUrl: generateFallbackImageUrl(url, options.width, options.height),
+    visualAnalysis: generateBasicAnalysis(url),
+    metadata: {
+      timestamp: Date.now(),
+      url,
+      viewport: { width: options.width, height: options.height },
+      deviceType: options.device,
+      fallback: true
+    }
+  };
+}
 
 function generateFallbackImageUrl(url: string, width: number, height: number): string {
   const hostname = new URL(url).hostname;
