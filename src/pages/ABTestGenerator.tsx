@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { ABTestCreator } from "@/components/ab-testing/ABTestCreator";
+import { EnhancedABTestCreator } from "@/components/ab-testing/EnhancedABTestCreator";
 import { ABTestSuggestions } from "@/components/ab-testing/ABTestSuggestions";
 import { ABTestCodeGenerator } from "@/components/ab-testing/ABTestCodeGenerator";
 import ABTestErrorBoundary from "@/components/ab-testing/ErrorBoundary";
-import { Upload, Brain, Code, Zap } from 'lucide-react';
+import { Upload, Brain, Code, Zap, Wand2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,10 +15,18 @@ const ABTestGenerator = () => {
   const [uploadedData, setUploadedData] = useState<any>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
   const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [analysisMode, setAnalysisMode] = useState<'enhanced' | 'classic'>('enhanced');
 
-  const handleDataUploaded = (data: any) => {
+  const handleAnalysisComplete = (data: any) => {
     setUploadedData(data);
-    setCurrentStep('suggestions');
+    
+    // If enhanced mode with generated code, skip to code step
+    if (data.analysisMode === 'enhanced' && data.generatedCode) {
+      setGeneratedCode(data.generatedCode);
+      setCurrentStep('code');
+    } else {
+      setCurrentStep('suggestions');
+    }
   };
 
   const handleSuggestionSelected = (suggestion: any) => {
@@ -102,7 +111,26 @@ const ABTestGenerator = () => {
 
         {currentStep === 'upload' && (
           <div className="animate-slide-in-up">
-            <ABTestCreator onDataUploaded={handleDataUploaded} />
+            <Tabs value={analysisMode} onValueChange={(value) => setAnalysisMode(value as 'enhanced' | 'classic')}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="enhanced" className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4" />
+                  Enhanced (Vibe Coding)
+                </TabsTrigger>
+                <TabsTrigger value="classic" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Classic Mode
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="enhanced">
+                <EnhancedABTestCreator onAnalysisComplete={handleAnalysisComplete} />
+              </TabsContent>
+              
+              <TabsContent value="classic">
+                <ABTestCreator onDataUploaded={handleAnalysisComplete} />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
 
