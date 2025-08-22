@@ -1,52 +1,153 @@
 import React, { useState } from 'react';
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { ABTestCreator } from "@/components/ab-testing/ABTestCreator";
-import { EnhancedABTestCreator } from "@/components/ab-testing/EnhancedABTestCreator";
-import { ABTestSuggestions } from "@/components/ab-testing/ABTestSuggestions";
-import { ABTestCodeGenerator } from "@/components/ab-testing/ABTestCodeGenerator";
-import { SuggestionPreview } from "@/components/ab-testing/SuggestionPreview";
-import { LivePreviewWithVibe } from "@/components/ab-testing/LivePreviewWithVibe";
-import ABTestErrorBoundary from "@/components/ab-testing/ErrorBoundary";
-import { Upload, Brain, Code, Zap, Wand2, Eye } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { ABTestErrorBoundary } from '@/components/ab-testing/ErrorBoundary';
+import { ABTestWorkflowStarter, WorkflowData } from '@/components/ab-testing/ABTestWorkflowStarter';
+import { ABTestSuggestions } from '@/components/ab-testing/ABTestSuggestions';
+import { SuggestionPreview } from '@/components/ab-testing/SuggestionPreview';
+import { LivePreviewWithVibe } from '@/components/ab-testing/LivePreviewWithVibe';
+import { ABTestCodeGenerator } from '@/components/ab-testing/ABTestCodeGenerator';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { toast } from "@/hooks/use-toast";
+import { scrapingService, ScrapedSiteData } from "@/services/scrapingService";
+import { Loader2 } from 'lucide-react';
 
-const ABTestGenerator = () => {
-  const [currentStep, setCurrentStep] = useState<'upload' | 'suggestions' | 'preview' | 'vibe' | 'code'>('upload');
-  const [uploadedData, setUploadedData] = useState<any>(null);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
-  const [generatedCode, setGeneratedCode] = useState<string>('');
-  const [analysisMode, setAnalysisMode] = useState<'enhanced' | 'classic'>('enhanced');
-  const [vibeInitialModifications, setVibeInitialModifications] = useState<any>(null);
-  const [vibeSuggestionContext, setVibeSuggestionContext] = useState<any>(null);
+type WorkflowStep = 'upload' | 'scraping' | 'suggestions' | 'preview' | 'vibe' | 'code';
 
-  const handleAnalysisComplete = (data: any) => {
-    setUploadedData(data);
-    
-    // If enhanced mode with generated code, skip to code step
-    if (data.analysisMode === 'enhanced' && data.generatedCode) {
-      setGeneratedCode(data.generatedCode);
-      setCurrentStep('code');
-    } else {
+interface ProcessedData {
+  workflowData: WorkflowData;
+  scrapedData: ScrapedSiteData;
+  analysisId: string;
+}
+
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  impact: string;
+  difficulty: string;
+  confidence: number;
+  solution: {
+    approach: string;
+    changes: string[];
+    reasoning: string;
+  };
+  implementation: {
+    cssChanges: string;
+    htmlChanges?: string;
+    jsChanges?: string;
+  };
+  preview?: {
+    selectors: Record<string, string>;
+    modifications: Array<{
+      selector: string;
+      property: string;
+      value: string;
+      originalValue?: string;
+    }>;
+    visualChanges: {
+      colors?: string[];
+      typography?: string[];
+      layout?: string[];
+    };
+  };
+}
+
+export const ABTestGenerator = () => {
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  
+  const [currentStep, setCurrentStep] = useState<WorkflowStep>('upload');
+  const [processedData, setProcessedData] = useState<ProcessedData | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [isScrapingLoading, setIsScrapingLoading] = useState(false);
+  
+  // Add state for Vibe Coding
+  const [vibeInitialModifications, setVibeInitialModifications] = useState<any[]>([]);
+  const [vibeSuggestionContext, setVibeSuggestionContext] = useState<string>('');
+
+  const handleWorkflowStart = async (workflowData: WorkflowData) => {
+    if (!user || !currentWorkspace) {
+      toast({
+        title: "Erreur d'Authentification",
+        description: "Utilisateur ou workspace manquant",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCurrentStep('scraping');
+    setIsScrapingLoading(true);
+
+    try {
+      toast({
+        title: "🔥 Analyse Enhanced en cours",
+        description: "Scraping professionnel avec Firecrawl pour contournement des protections...",
+      });
+
+      // Scrape the website using Firecrawl
+      const scrapedSite = await scrapingService.scrapeSite(workflowData.pageUrl, {
+        includeStyles: true,
+        includeScripts: false,
+        analyzeContent: true,
+        generateSelectors: true
+      });
+
+      const processed: ProcessedData = {
+        workflowData,
+        scrapedData: scrapedSite,
+        analysisId: `workflow_${Date.now()}`
+      };
+
+      setProcessedData(processed);
       setCurrentStep('suggestions');
+
+      toast({
+        title: "🎉 Site web analysé avec succès!",
+        description: `${scrapedSite.targetableElements.length} éléments modifiables détectés`,
+      });
+
+    } catch (error: any) {
+      console.error('🚨 Workflow analysis failed:', error);
+      
+      toast({
+        title: "Erreur d'Analyse",
+        description: error.message || "Impossible d'analyser le site web",
+        variant: "destructive",
+      });
+      
+      // Return to upload step
+      setCurrentStep('upload');
+    } finally {
+      setIsScrapingLoading(false);
     }
   };
 
-  const handleSuggestionSelected = (suggestion: any) => {
+  const handleSuggestionSelected = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
-    // Go to preview step instead of directly to code
     setCurrentStep('preview');
   };
 
   const handleBackToSuggestions = () => {
-    setCurrentStep('suggestions');
     setSelectedSuggestion(null);
+    setCurrentStep('suggestions');
   };
 
-  const handleStartVibeCoding = (initialModifications: any, suggestionContext: any) => {
-    setVibeInitialModifications(initialModifications);
-    setVibeSuggestionContext(suggestionContext);
+  const handleStartVibeCoding = () => {
+    // Prepare initial modifications from suggestion
+    if (selectedSuggestion?.preview?.modifications) {
+      setVibeInitialModifications([{
+        prompt: `Applied suggestion: ${selectedSuggestion.title}`,
+        targetElement: null, // Will be determined from selectors
+        cssChanges: selectedSuggestion.preview.modifications,
+        timestamp: Date.now()
+      }]);
+      setVibeSuggestionContext(`User applied suggestion: "${selectedSuggestion.title}" - ${selectedSuggestion.description}`);
+    }
     setCurrentStep('vibe');
   };
 
@@ -57,183 +158,139 @@ const ABTestGenerator = () => {
 
   const handleCodeGenerated = (code: string) => {
     setGeneratedCode(code);
+    setCurrentStep('code');
+  };
+
+  const getStepProgress = () => {
+    switch (currentStep) {
+      case 'upload': return 0;
+      case 'scraping': return 16;
+      case 'suggestions': return 33;
+      case 'preview': return 50;
+      case 'vibe': return 75;
+      case 'code': return 100;
+      default: return 0;
+    }
+  };
+
+  const getStepName = (step: WorkflowStep) => {
+    switch (step) {
+      case 'upload': return 'Configuration';
+      case 'scraping': return 'Scraping & Analyse';
+      case 'suggestions': return 'Suggestions IA';
+      case 'preview': return 'Preview & Sélection';
+      case 'vibe': return 'Vibe Coding';
+      case 'code': return 'Génération Code';
+      default: return step;
+    }
   };
 
   return (
     <DashboardLayout>
-      <ABTestErrorBoundary
-        onBack={() => setCurrentStep('upload')}
-        onRetry={() => window.location.reload()}
-      >
-        <div className="p-6 max-w-7xl mx-auto animate-fade-in">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              🎯 AB Test Generator
+      <ABTestErrorBoundary>
+        <div className="container mx-auto px-4 py-8 space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Générateur de Tests A/B
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Transformez vos données en tests AB prêts à déployer avec l'intelligence artificielle
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Workflow complet : Upload → Vault → Scraping → Suggestions → Preview → Vibe Coding → Code
             </p>
           </div>
 
-        {/* Progress Steps - Updated to include Preview */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between max-w-2xl mx-auto">
-            <div className={`flex items-center gap-3 transition-all duration-500 ${currentStep === 'upload' ? 'text-primary' : 'text-success'}`}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-500 transform hover:scale-105 ${
-                currentStep === 'upload' ? 'border-primary bg-primary/10 animate-pulse' : 
-                'border-success bg-success text-success-foreground'
-              }`}>
-                {currentStep !== 'upload' ? 
-                  <span className="animate-fade-in">✓</span> : 
-                  <span className={currentStep === 'upload' ? 'animate-bounce' : ''}>1</span>
-                }
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Setup</span>
-                <span className="text-xs text-muted-foreground">Configure test</span>
-              </div>
+          {/* Progress Indicator */}
+          <div className="max-w-3xl mx-auto space-y-4">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Étape {['upload', 'scraping', 'suggestions', 'preview', 'vibe', 'code'].indexOf(currentStep) + 1} sur 6</span>
+              <span>{getStepName(currentStep)}</span>
             </div>
+            <Progress value={getStepProgress()} className="h-2" />
             
-            <div className={`h-px flex-1 mx-2 transition-all duration-700 ${currentStep === 'suggestions' || currentStep === 'preview' || currentStep === 'vibe' || currentStep === 'code' ? 'bg-success animate-pulse' : 'bg-muted-foreground/30'}`} />
-            
-            <div className={`flex items-center gap-3 transition-all duration-500 ${currentStep === 'suggestions' ? 'text-primary' : (currentStep === 'preview' || currentStep === 'vibe' || currentStep === 'code') ? 'text-success' : 'text-muted-foreground'}`}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-500 transform hover:scale-105 ${
-                currentStep === 'suggestions' ? 'border-primary bg-primary/10 animate-pulse' : 
-                (currentStep === 'preview' || currentStep === 'vibe' || currentStep === 'code') ? 'border-success bg-success text-success-foreground' : 
-                'border-muted-foreground/30'
-              }`}>
-                {(currentStep === 'preview' || currentStep === 'vibe' || currentStep === 'code') ? 
-                  <span className="animate-fade-in">✓</span> : 
-                  <span className={currentStep === 'suggestions' ? 'animate-bounce' : ''}>2</span>
-                }
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Analyze</span>
-                <span className="text-xs text-muted-foreground">AI suggestions</span>
-              </div>
-            </div>
-            
-            <div className={`h-px flex-1 mx-2 transition-all duration-700 ${currentStep === 'preview' || currentStep === 'vibe' || currentStep === 'code' ? 'bg-success animate-pulse' : 'bg-muted-foreground/30'}`} />
-            
-            <div className={`flex items-center gap-3 transition-all duration-500 ${currentStep === 'preview' ? 'text-primary' : (currentStep === 'vibe' || currentStep === 'code') ? 'text-success' : 'text-muted-foreground'}`}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-500 transform hover:scale-105 ${
-                currentStep === 'preview' ? 'border-primary bg-primary/10 animate-pulse' : 
-                (currentStep === 'vibe' || currentStep === 'code') ? 'border-success bg-success text-success-foreground' : 
-                'border-muted-foreground/30'
-              }`}>
-                {(currentStep === 'vibe' || currentStep === 'code') ? 
-                  <span className="animate-fade-in">✓</span> : 
-                  <span className={currentStep === 'preview' ? 'animate-bounce' : ''}>3</span>
-                }
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Preview</span>
-                <span className="text-xs text-muted-foreground">View changes</span>
-              </div>
-            </div>
-            
-            <div className={`h-px flex-1 mx-2 transition-all duration-700 ${currentStep === 'vibe' || currentStep === 'code' ? 'bg-success animate-pulse' : 'bg-muted-foreground/30'}`} />
-            
-            <div className={`flex items-center gap-3 transition-all duration-500 ${currentStep === 'vibe' ? 'text-primary' : currentStep === 'code' ? 'text-success' : 'text-muted-foreground'}`}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-500 transform hover:scale-105 ${
-                currentStep === 'vibe' ? 'border-primary bg-primary/10 animate-pulse' : 
-                currentStep === 'code' ? 'border-success bg-success text-success-foreground' : 
-                'border-muted-foreground/30'
-              }`}>
-                {currentStep === 'code' ? 
-                  <span className="animate-fade-in">✓</span> : 
-                  <span className={currentStep === 'vibe' ? 'animate-bounce' : ''}>4</span>
-                }
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Vibe Code</span>
-                <span className="text-xs text-muted-foreground">Refine & tune</span>
-              </div>
-            </div>
-            
-            <div className={`h-px flex-1 mx-2 transition-all duration-700 ${currentStep === 'code' ? 'bg-success animate-pulse' : 'bg-muted-foreground/30'}`} />
-            
-            <div className={`flex items-center gap-3 transition-all duration-500 ${currentStep === 'code' ? 'text-primary' : 'text-muted-foreground'}`}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all duration-500 transform hover:scale-105 ${
-                currentStep === 'code' ? 'border-primary bg-primary/10 animate-pulse' : 'border-muted-foreground/30'
-              }`}>
-                <span className={currentStep === 'code' ? 'animate-bounce' : ''}>5</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Generate</span>
-                <span className="text-xs text-muted-foreground">Export code</span>
-              </div>
+            {/* Step badges */}
+            <div className="flex justify-between">
+              {(['upload', 'scraping', 'suggestions', 'preview', 'vibe', 'code'] as WorkflowStep[]).map((step, index) => (
+                <Badge 
+                  key={step}
+                  variant={currentStep === step ? 'default' : 
+                           ['upload', 'scraping', 'suggestions', 'preview', 'vibe', 'code'].indexOf(currentStep) > index ? 'secondary' : 'outline'}
+                  className="text-xs"
+                >
+                  {getStepName(step)}
+                </Badge>
+              ))}
             </div>
           </div>
-        </div>
 
-        {currentStep === 'upload' && (
-          <div className="animate-slide-in-up">
-            <Tabs value={analysisMode} onValueChange={(value) => setAnalysisMode(value as 'enhanced' | 'classic')}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="enhanced" className="flex items-center gap-2">
-                  <Wand2 className="h-4 w-4" />
-                  Enhanced (Vibe Coding)
-                </TabsTrigger>
-                <TabsTrigger value="classic" className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Classic Mode
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="enhanced">
-                <EnhancedABTestCreator onAnalysisComplete={handleAnalysisComplete} />
-              </TabsContent>
-              
-              <TabsContent value="classic">
-                <ABTestCreator onDataUploaded={handleAnalysisComplete} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
+          {/* Step Content */}
+          {currentStep === 'upload' && (
+            <ABTestWorkflowStarter onStartWorkflow={handleWorkflowStart} />
+          )}
 
-        {currentStep === 'suggestions' && uploadedData && (
-          <div className="animate-scale-up">
+          {currentStep === 'scraping' && (
+            <div className="max-w-2xl mx-auto text-center space-y-6">
+              <Loader2 className="h-16 w-16 animate-spin mx-auto text-primary" />
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">Analyse en cours...</h3>
+                <p className="text-muted-foreground">
+                  Scraping professionnel avec Firecrawl pour contournement des protections
+                </p>
+              </div>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>• Extraction du contenu HTML complet</p>
+                <p>• Analyse des styles CSS appliqués</p>
+                <p>• Détection des éléments interactifs</p>
+                <p>• Génération des sélecteurs optimaux</p>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'suggestions' && processedData && (
             <ABTestSuggestions 
-              data={uploadedData} 
-              onSuggestionSelected={handleSuggestionSelected}
-              onBack={() => setCurrentStep('upload')}
+              data={{
+                pageUrl: processedData.workflowData.pageUrl,
+                goalType: processedData.workflowData.goalType,
+                analysisMode: 'enhanced',
+                scrapedData: processedData.scrapedData,
+                businessContext: processedData.workflowData.businessContext,
+                currentPain: processedData.workflowData.currentPain,
+                useVaultKnowledge: processedData.workflowData.useVaultKnowledge,
+                selectedVaultFiles: processedData.workflowData.selectedVaultFiles,
+                uploadedFiles: processedData.workflowData.uploadedFiles,
+                workspace: currentWorkspace,
+                user: user,
+                timestamp: Date.now()
+              }}
+              onSuggestionSelected={handleSuggestionSelected as any}
             />
-          </div>
-        )}
+          )}
 
-        {currentStep === 'preview' && selectedSuggestion && uploadedData && (
-          <div className="animate-scale-up">
+          {currentStep === 'preview' && selectedSuggestion && processedData?.scrapedData && (
             <SuggestionPreview
               suggestion={selectedSuggestion}
-              scrapedData={uploadedData.scrapedData}
+              scrapedData={processedData.scrapedData}
               onBackToSuggestions={handleBackToSuggestions}
               onStartVibeCoding={handleStartVibeCoding}
             />
-          </div>
-        )}
+          )}
 
-        {currentStep === 'vibe' && uploadedData && vibeInitialModifications && (
-          <div className="animate-fade-in">
+          {currentStep === 'vibe' && processedData?.scrapedData && (
             <LivePreviewWithVibe
-              scrapedData={uploadedData.scrapedData}
+              scrapedData={processedData.scrapedData}
               onCodeGenerated={handleVibeCodeGenerated}
               initialModifications={vibeInitialModifications}
-              suggestionContext={vibeSuggestionContext}
+              suggestionContext={vibeSuggestionContext as any}
             />
-          </div>
-        )}
+          )}
 
-        {currentStep === 'code' && selectedSuggestion && (
-          <div className="animate-fade-in">
-            <ABTestCodeGenerator 
+          {currentStep === 'code' && selectedSuggestion && (
+            <ABTestCodeGenerator
               suggestion={selectedSuggestion}
-              data={uploadedData}
+              data={processedData}
               onCodeGenerated={handleCodeGenerated}
               onBack={() => setCurrentStep('vibe')}
             />
-          </div>
-        )}
+          )}
         </div>
       </ABTestErrorBoundary>
     </DashboardLayout>

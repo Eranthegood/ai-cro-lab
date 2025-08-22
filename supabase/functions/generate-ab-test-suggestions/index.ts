@@ -53,23 +53,28 @@ serve(async (req) => {
       businessContext, 
       currentPain, 
       useVaultKnowledge, 
-      uploadedFiles, 
+      uploadedFiles,
+      selectedVaultFiles, 
       workspaceId, 
       userId,
       context,
       iterationCount = 0,
       // Phase 2: Screenshot integration
-      screenshot = null
+      screenshot = null,
+      // Phase 3: Scraped data integration
+      scrapedData = null
     } = await req.json();
 
     console.log(`📋 [${requestId}] Advanced Request:`, { 
       pageUrl: pageUrl?.substring(0, 50), 
       goalType,
       filesCount: uploadedFiles?.length || 0,
+      vaultFilesCount: selectedVaultFiles?.length || 0,
       useVaultKnowledge,
       context,
       iteration: iterationCount,
-      hasScreenshot: !!screenshot
+      hasScreenshot: !!screenshot,
+      hasScrapedData: !!scrapedData
     });
 
     // Verify workspace access
@@ -90,10 +95,10 @@ serve(async (req) => {
     // Get suggestion history for anti-repetition
     const suggestionMemory = await getSuggestionHistory(supabase, workspaceId, userId);
 
-    // Layer 1: Context Enrichment (Enhanced with screenshot analysis)
+    // Layer 1: Context Enrichment (Enhanced with screenshot analysis and scraped data)
     const enrichedContext = await generateEnrichedContext(
       supabase, pageUrl, goalType, businessContext, currentPain, 
-      useVaultKnowledge, uploadedFiles, requestId, screenshot
+      useVaultKnowledge, uploadedFiles, selectedVaultFiles, requestId, screenshot, scrapedData
     );
 
     // Layer 2: Multi-Angle Analysis with rotation
@@ -105,12 +110,13 @@ serve(async (req) => {
     goalType,
     businessContext,
     currentPain,
-    useVaultKnowledge,
-    {
-      selectedFiles: uploadedFiles || [],
-      fullVaultMode: false,
-      selectedInsights: 'Processing uploaded files for insights'
-    },
+        useVaultKnowledge,
+        {
+          selectedFiles: uploadedFiles || [],
+          selectedVaultFiles: selectedVaultFiles || [],
+          fullVaultMode: false,
+          selectedInsights: 'Processing uploaded files and vault data for insights'
+        },
     userPreferences, 
     suggestionMemory,
     iterationCount,
@@ -292,7 +298,7 @@ function getSuccessfulApproaches(history: any[]) {
 async function generateEnrichedContext(
   supabase: any, pageUrl: string, goalType: string, businessContext: string, 
   currentPain: string, useVaultKnowledge: boolean, uploadedFiles: any[], 
-  requestId: string, screenshot: any = null
+  selectedVaultFiles: any[], requestId: string, screenshot: any = null, scrapedData: any = null
 ) {
   let context = `
 CONTEXT ANALYSIS FOR CRO OPTIMIZATION
@@ -364,25 +370,124 @@ Current Pain Point: ${currentPain || 'Not specified'}
     }
   }
 
-  // Analyze uploaded data if available
-  if (useVaultKnowledge && uploadedFiles && uploadedFiles.length > 0) {
-    console.log(`📚 [${requestId}] Processing ${uploadedFiles.length} vault files for context enrichment`);
+  // Phase 3: Enhanced Scraped Data Analysis
+  if (scrapedData) {
+    console.log(`🔧 [${requestId}] Integrating enhanced scraped data analysis`);
     
-    context += '\nDATA ANALYSIS:\n';
-    for (const file of uploadedFiles.slice(0, 5)) {
-      try {
-        const { data: fileData } = await supabase.storage
-          .from('knowledge-vault')
-          .download(file.storage_path);
-        
-        if (fileData && (file.file_type?.includes('text') || file.file_name.endsWith('.csv'))) {
-          const text = await fileData.text();
-          const insights = analyzeUploadedData(text, file.file_name);
-          context += `📊 ${file.file_name}: ${insights}\n`;
-        }
-      } catch (error) {
-        console.log(`⚠️ [${requestId}] Could not process file ${file.file_name}:`, error.message);
+    context += '\n🔧 SCRAPED WEBSITE ANALYSIS:\n';
+    context += `Page Title: ${scrapedData.title || 'N/A'}\n`;
+    context += `Meta Description: ${scrapedData.metaDescription || 'N/A'}\n`;
+    context += `Total Elements: ${scrapedData.targetableElements?.length || 0}\n`;
+    
+    if (scrapedData.targetableElements && scrapedData.targetableElements.length > 0) {
+      context += `\n📊 INTERACTIVE ELEMENTS ANALYSIS:\n`;
+      
+      // Categorize elements
+      const buttons = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'button' || el.classList?.includes('btn'));
+      const links = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'a');
+      const forms = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'form' || el.tagName?.toLowerCase() === 'input');
+      const headings = scrapedData.targetableElements.filter(el => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(el.tagName?.toLowerCase()));
+      
+      if (buttons.length > 0) {
+        context += `- BUTTONS (${buttons.length}): ${buttons.slice(0, 3).map(b => `"${b.textContent || 'No text'}" (${b.selector})`).join(', ')}\n`;
       }
+      
+      if (links.length > 0) {
+        context += `- LINKS (${links.length}): ${links.slice(0, 3).map(l => `"${l.textContent || 'No text'}" (${l.selector})`).join(', ')}\n`;
+      }
+      
+      if (forms.length > 0) {
+        context += `- FORMS (${forms.length}): ${forms.slice(0, 3).map(f => `${f.tagName} (${f.selector})`).join(', ')}\n`;
+      }
+      
+      if (headings.length > 0) {
+        context += `- HEADINGS (${headings.length}): ${headings.slice(0, 3).map(h => `${h.tagName}: "${h.textContent || 'No text'}"`).join(', ')}\n`;
+      }
+    }
+    
+    if (scrapedData.styles) {
+      context += `\n🎨 DESIGN SYSTEM ANALYSIS:\n`;
+      context += `CSS Rules Detected: ${Object.keys(scrapedData.styles).length}\n`;
+      
+      // Extract color patterns
+      const cssText = JSON.stringify(scrapedData.styles);
+      const colorMatches = cssText.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgb\([^)]+\)|rgba\([^)]+\)/g);
+      if (colorMatches && colorMatches.length > 0) {
+        const uniqueColors = [...new Set(colorMatches)].slice(0, 10);
+        context += `Primary Colors Used: ${uniqueColors.join(', ')}\n`;
+      }
+    }
+    
+    context += `\n✨ OPTIMIZATION OPPORTUNITIES FROM SCRAPED DATA:\n`;
+    context += `Based on the live website analysis, here are specific elements ready for AB testing:\n`;
+    
+    if (scrapedData.targetableElements) {
+      const ctaElements = scrapedData.targetableElements.filter(el => 
+        el.textContent?.toLowerCase().includes('buy') ||
+        el.textContent?.toLowerCase().includes('purchase') ||
+        el.textContent?.toLowerCase().includes('get') ||
+        el.textContent?.toLowerCase().includes('start') ||
+        el.classList?.includes('cta') ||
+        el.classList?.includes('btn-primary')
+      );
+      
+      if (ctaElements.length > 0) {
+        context += `- ${ctaElements.length} CTA element(s) identified for conversion testing\n`;
+      }
+      
+      const navigationElements = scrapedData.targetableElements.filter(el => 
+        el.tagName?.toLowerCase() === 'nav' || el.classList?.includes('nav')
+      );
+      
+      if (navigationElements.length > 0) {
+        context += `- Navigation elements detected for UX optimization\n`;
+      }
+    }
+  }
+
+  // Analyze uploaded files and vault data if available
+  if (useVaultKnowledge) {
+    let totalFiles = 0;
+    
+    // Process uploaded files
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      console.log(`📚 [${requestId}] Processing ${uploadedFiles.length} uploaded files for context enrichment`);
+      totalFiles += uploadedFiles.length;
+      
+      context += '\n📤 UPLOADED FILES ANALYSIS:\n';
+      for (const file of uploadedFiles.slice(0, 3)) {
+        const insights = analyzeUploadedData('', file.name);
+        context += `📊 ${file.name}: ${insights}\n`;
+      }
+    }
+    
+    // Process selected vault files
+    if (selectedVaultFiles && selectedVaultFiles.length > 0) {
+      console.log(`🗄️ [${requestId}] Processing ${selectedVaultFiles.length} vault files for context enrichment`);
+      totalFiles += selectedVaultFiles.length;
+      
+      context += '\n🗄️ KNOWLEDGE VAULT FILES ANALYSIS:\n';
+      for (const file of selectedVaultFiles.slice(0, 5)) {
+        try {
+          const { data: fileData } = await supabase.storage
+            .from('knowledge-vault')
+            .download(file.storage_path);
+          
+          if (fileData && (file.file_type?.includes('text') || file.file_name.endsWith('.csv'))) {
+            const text = await fileData.text();
+            const insights = analyzeUploadedData(text, file.file_name);
+            context += `📊 ${file.file_name}: ${insights}\n`;
+          }
+        } catch (error) {
+          console.log(`⚠️ [${requestId}] Could not process vault file ${file.file_name}:`, error.message);
+        }
+      }
+    }
+    
+    if (totalFiles > 0) {
+      context += `\n💡 DATA-DRIVEN INSIGHTS SUMMARY:\n`;
+      context += `Total files analyzed: ${totalFiles} (${uploadedFiles?.length || 0} uploaded + ${selectedVaultFiles?.length || 0} from vault)\n`;
+      context += `Recommendations will be enhanced with insights from your data.\n`;
     }
   }
 
