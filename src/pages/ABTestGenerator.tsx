@@ -262,6 +262,7 @@ export const ABTestGenerator = () => {
                 timestamp: Date.now()
               }}
               onSuggestionSelected={handleSuggestionSelected as any}
+              onBack={() => setCurrentStep('upload')}
             />
           )}
 
