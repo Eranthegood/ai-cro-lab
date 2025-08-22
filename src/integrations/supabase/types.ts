@@ -869,10 +869,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_access_knowledge_base: {
-        Args: { kb_workspace_id: string }
-        Returns: boolean
-      }
       check_workspace_permission: {
         Args: {
           required_role?: string

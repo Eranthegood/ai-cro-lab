@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles, Camera } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -107,25 +107,21 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
         await new Promise(resolve => setTimeout(resolve, 600));
       }
 
-          // Call enhanced Supabase function
-          const { data: result, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
-            body: {
-              pageUrl: data.pageUrl,
-              goalType: data.goalType,
-              businessContext: data.businessContext,
-              currentPain: data.currentPain,
-              useVaultKnowledge: data.useVaultKnowledge,
-              uploadedFiles: data.uploadedFiles,
-              selectedVaultFiles: data.selectedVaultFiles,
-              scrapedData: data.scrapedData,
-              workspaceId: currentWorkspace?.id,
-              userId: user?.id,
-              context: analyzePageContext(data.pageUrl),
-              iterationCount: iteration,
-              // Phase 2: Enhanced with visual analysis
-              screenshot: data.screenshot || null
-            }
-          });
+      // Call enhanced Supabase function
+      const { data: result, error } = await supabase.functions.invoke('generate-ab-test-suggestions', {
+        body: {
+          pageUrl: data.pageUrl,
+          goalType: data.goalType,
+          businessContext: data.businessContext,
+          currentPain: data.currentPain,
+          useVaultKnowledge: data.useVaultKnowledge,
+          uploadedFiles: data.selectedFiles,
+          workspaceId: currentWorkspace?.id,
+          userId: user?.id,
+          context: analyzePageContext(data.pageUrl),
+          iterationCount: iteration
+        }
+      });
 
       if (error) {
         console.error('Error generating suggestions:', error);
@@ -190,9 +186,8 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
   suggestion: Suggestion;
   onSelect: (suggestion: Suggestion) => void;
 }) => (
-  <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 border-border/50 hover:border-primary/30 hover:-translate-y-1 cursor-pointer">
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    <CardHeader className="pb-4 relative z-10">
+  <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
+    <CardHeader className="pb-4">
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <Badge variant="outline" className={getDifficultyColor(suggestion.difficulty || suggestion.code_complexity || 'medium')}>
@@ -244,11 +239,9 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
         </div>
 
         <Button 
-          className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200" 
+          className="w-full mt-4" 
           onClick={() => onSelect(suggestion)}
-          variant="outline"
         >
-          <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
           Select This Test
         </Button>
       </div>
@@ -326,91 +319,12 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
               📚 Knowledge Vault Enhanced
             </Badge>
           )}
-          {data.screenshot && (
-            <Badge className="bg-success/10 text-success px-3 py-1">
-              📸 Visual Analysis • {data.screenshot.visualAnalysis?.elements.length || 0} éléments
-            </Badge>
-          )}
           {engineVersion && (
             <Badge variant="outline" className="px-3 py-1">
               🤖 {engineVersion}
             </Badge>
           )}
         </div>
-
-        {/* Phase 2: Screenshot Preview Section */}
-        {data.screenshot && (
-          <Card className="mb-8 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Analyse visuelle de la page
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
-                  <div className="relative border rounded-lg overflow-hidden bg-muted/20">
-                    <img
-                      src={data.screenshot.imageUrl}
-                      alt="Page Screenshot"
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary">
-                        {data.screenshot.metadata.deviceType === 'desktop' ? '🖥️ Desktop' : '📱 Mobile'}
-                      </Badge>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <p className="text-white text-sm font-medium truncate">
-                        {new URL(data.screenshot.metadata.url).hostname}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {data.screenshot.visualAnalysis && (
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Couleurs détectées</h4>
-                      <div className="flex gap-1 flex-wrap">
-                        {data.screenshot.visualAnalysis.colors.slice(0, 6).map((color, index) => (
-                          <div
-                            key={index}
-                            className="w-6 h-6 rounded border border-muted"
-                            style={{ backgroundColor: color }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Éléments clés</h4>
-                      <div className="space-y-1 text-xs">
-                        {data.screenshot.visualAnalysis.elements.slice(0, 3).map((element, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: element.styles.backgroundColor }} />
-                            <span>{element.text || element.type}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Performance</h4>
-                      <div className="text-xs text-muted-foreground">
-                        <div>Load: {Math.round(data.screenshot.visualAnalysis.performance.loadTime)}ms</div>
-                        <div>Images: {data.screenshot.visualAnalysis.performance.imageCount}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Suggestions by Approach */}
         <div className="space-y-8 mb-8">

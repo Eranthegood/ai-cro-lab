@@ -53,28 +53,20 @@ serve(async (req) => {
       businessContext, 
       currentPain, 
       useVaultKnowledge, 
-      uploadedFiles,
-      selectedVaultFiles, 
+      uploadedFiles, 
       workspaceId, 
       userId,
       context,
-      iterationCount = 0,
-      // Phase 2: Screenshot integration
-      screenshot = null,
-      // Phase 3: Scraped data integration
-      scrapedData = null
+      iterationCount = 0
     } = await req.json();
 
     console.log(`📋 [${requestId}] Advanced Request:`, { 
       pageUrl: pageUrl?.substring(0, 50), 
       goalType,
       filesCount: uploadedFiles?.length || 0,
-      vaultFilesCount: selectedVaultFiles?.length || 0,
       useVaultKnowledge,
       context,
-      iteration: iterationCount,
-      hasScreenshot: !!screenshot,
-      hasScrapedData: !!scrapedData
+      iteration: iterationCount
     });
 
     // Verify workspace access
@@ -95,33 +87,31 @@ serve(async (req) => {
     // Get suggestion history for anti-repetition
     const suggestionMemory = await getSuggestionHistory(supabase, workspaceId, userId);
 
-    // Layer 1: Context Enrichment (Enhanced with screenshot analysis and scraped data)
+    // Layer 1: Context Enrichment
     const enrichedContext = await generateEnrichedContext(
       supabase, pageUrl, goalType, businessContext, currentPain, 
-      useVaultKnowledge, uploadedFiles, selectedVaultFiles, requestId, screenshot, scrapedData
+      useVaultKnowledge, uploadedFiles, requestId
     );
 
     // Layer 2: Multi-Angle Analysis with rotation
     const currentAngles = getRotatedAngles(analysisAngles, iterationCount);
     
-  // Layer 3: Generate comprehensive prompt for 9 suggestions with technical details
-  const comprehensivePrompt = generateAdaptivePrompt(
-    pageUrl, 
-    goalType,
-    businessContext,
-    currentPain,
-        useVaultKnowledge,
-        {
-          selectedFiles: uploadedFiles || [],
-          selectedVaultFiles: selectedVaultFiles || [],
-          fullVaultMode: false,
-          selectedInsights: 'Processing uploaded files and vault data for insights'
-        },
-    userPreferences, 
-    suggestionMemory,
-    iterationCount,
-    enrichedContext
-  );
+    // Layer 3: Generate comprehensive prompt for 9 suggestions
+    const comprehensivePrompt = generateAdaptivePrompt(
+      pageUrl, 
+      goalType,
+      businessContext,
+      currentPain,
+      useVaultKnowledge,
+      {
+        selectedFiles: uploadedFiles || [],
+        fullVaultMode: false,
+        selectedInsights: 'Processing uploaded files for insights'
+      },
+      userPreferences, 
+      suggestionMemory,
+      iterationCount
+    );
 
     console.log(`🧠 [${requestId}] Calling Claude Sonnet 4 for intelligent suggestions`);
 
@@ -134,7 +124,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-20250514', // Claude Sonnet 4 model
         max_tokens: 4000,
         messages: [
           { 
@@ -297,8 +287,7 @@ function getSuccessfulApproaches(history: any[]) {
 
 async function generateEnrichedContext(
   supabase: any, pageUrl: string, goalType: string, businessContext: string, 
-  currentPain: string, useVaultKnowledge: boolean, uploadedFiles: any[], 
-  selectedVaultFiles: any[], requestId: string, screenshot: any = null, scrapedData: any = null
+  currentPain: string, useVaultKnowledge: boolean, uploadedFiles: any[], requestId: string
 ) {
   let context = `
 CONTEXT ANALYSIS FOR CRO OPTIMIZATION
@@ -309,185 +298,25 @@ Business Context: ${businessContext || 'Not specified'}
 Current Pain Point: ${currentPain || 'Not specified'}
 `;
 
-  // Phase 2: Visual Analysis from Screenshot
-  if (screenshot) {
-    console.log(`📸 [${requestId}] Integrating visual analysis from screenshot`);
+  // Analyze uploaded data if available
+  if (useVaultKnowledge && uploadedFiles && uploadedFiles.length > 0) {
+    console.log(`📚 [${requestId}] Processing ${uploadedFiles.length} vault files for context enrichment`);
     
-    context += '\n🎨 VISUAL ANALYSIS FROM SCREENSHOT:\n';
-    context += `Device Type: ${screenshot.metadata?.deviceType || 'desktop'}\n`;
-    
-    if (screenshot.visualAnalysis) {
-      const analysis = screenshot.visualAnalysis;
-      
-      // Color analysis
-      if (analysis.colors && analysis.colors.length > 0) {
-        context += `Primary Colors: ${analysis.colors.slice(0, 5).join(', ')}\n`;
-      }
-      
-      // Element analysis  
-      if (analysis.elements && analysis.elements.length > 0) {
-        context += `Key Interactive Elements Detected:\n`;
-        analysis.elements.slice(0, 8).forEach((element, index) => {
-          context += `- ${element.type.toUpperCase()}: "${element.text || 'No text'}" (${element.clickable ? 'Clickable' : 'Non-clickable'})\n`;
-          if (element.styles.backgroundColor) {
-            context += `  Background: ${element.styles.backgroundColor}\n`;
-          }
-        });
-      }
-      
-      // Layout analysis
-      if (analysis.layout) {
-        context += `Layout Structure: Header: ${analysis.layout.hasHeader ? 'Yes' : 'No'}, `;
-        context += `Footer: ${analysis.layout.hasFooter ? 'Yes' : 'No'}, `;
-        context += `Sidebar: ${analysis.layout.hasSidebar ? 'Yes' : 'No'}\n`;
-        context += `Content Width: ${analysis.layout.contentWidth}px, Scroll Height: ${analysis.layout.scrollHeight}px\n`;
-      }
-      
-      // Performance insights
-      if (analysis.performance) {
-        context += `Performance: Load Time ${Math.round(analysis.performance.loadTime)}ms, `;
-        context += `Images: ${analysis.performance.imageCount}\n`;
-        if (analysis.performance.largestContentfulPaint) {
-          context += `LCP: ${Math.round(analysis.performance.largestContentfulPaint)}ms\n`;
+    context += '\nDATA ANALYSIS:\n';
+    for (const file of uploadedFiles.slice(0, 5)) {
+      try {
+        const { data: fileData } = await supabase.storage
+          .from('knowledge-vault')
+          .download(file.storage_path);
+        
+        if (fileData && (file.file_type?.includes('text') || file.file_name.endsWith('.csv'))) {
+          const text = await fileData.text();
+          const insights = analyzeUploadedData(text, file.file_name);
+          context += `📊 ${file.file_name}: ${insights}\n`;
         }
+      } catch (error) {
+        console.log(`⚠️ [${requestId}] Could not process file ${file.file_name}:`, error.message);
       }
-    }
-    
-    context += `Screenshot URL: ${screenshot.imageUrl}\n`;
-    context += `\n📊 VISUAL OPTIMIZATION OPPORTUNITIES:\n`;
-    context += `Based on the screenshot analysis, consider these specific visual elements for AB testing:\n`;
-    
-    if (screenshot.visualAnalysis?.elements) {
-      const buttons = screenshot.visualAnalysis.elements.filter(el => el.type === 'button');
-      if (buttons.length > 0) {
-        context += `- ${buttons.length} button(s) detected - test colors, sizes, positioning\n`;
-      }
-      
-      const forms = screenshot.visualAnalysis.elements.filter(el => el.type === 'form' || el.type === 'input');
-      if (forms.length > 0) {
-        context += `- ${forms.length} form element(s) detected - test field order, labels, validation\n`;
-      }
-    }
-  }
-
-  // Phase 3: Enhanced Scraped Data Analysis
-  if (scrapedData) {
-    console.log(`🔧 [${requestId}] Integrating enhanced scraped data analysis`);
-    
-    context += '\n🔧 SCRAPED WEBSITE ANALYSIS:\n';
-    context += `Page Title: ${scrapedData.title || 'N/A'}\n`;
-    context += `Meta Description: ${scrapedData.metaDescription || 'N/A'}\n`;
-    context += `Total Elements: ${scrapedData.targetableElements?.length || 0}\n`;
-    
-    if (scrapedData.targetableElements && scrapedData.targetableElements.length > 0) {
-      context += `\n📊 INTERACTIVE ELEMENTS ANALYSIS:\n`;
-      
-      // Categorize elements
-      const buttons = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'button' || el.classList?.includes('btn'));
-      const links = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'a');
-      const forms = scrapedData.targetableElements.filter(el => el.tagName?.toLowerCase() === 'form' || el.tagName?.toLowerCase() === 'input');
-      const headings = scrapedData.targetableElements.filter(el => ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(el.tagName?.toLowerCase()));
-      
-      if (buttons.length > 0) {
-        context += `- BUTTONS (${buttons.length}): ${buttons.slice(0, 3).map(b => `"${b.textContent || 'No text'}" (${b.selector})`).join(', ')}\n`;
-      }
-      
-      if (links.length > 0) {
-        context += `- LINKS (${links.length}): ${links.slice(0, 3).map(l => `"${l.textContent || 'No text'}" (${l.selector})`).join(', ')}\n`;
-      }
-      
-      if (forms.length > 0) {
-        context += `- FORMS (${forms.length}): ${forms.slice(0, 3).map(f => `${f.tagName} (${f.selector})`).join(', ')}\n`;
-      }
-      
-      if (headings.length > 0) {
-        context += `- HEADINGS (${headings.length}): ${headings.slice(0, 3).map(h => `${h.tagName}: "${h.textContent || 'No text'}"`).join(', ')}\n`;
-      }
-    }
-    
-    if (scrapedData.styles) {
-      context += `\n🎨 DESIGN SYSTEM ANALYSIS:\n`;
-      context += `CSS Rules Detected: ${Object.keys(scrapedData.styles).length}\n`;
-      
-      // Extract color patterns
-      const cssText = JSON.stringify(scrapedData.styles);
-      const colorMatches = cssText.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgb\([^)]+\)|rgba\([^)]+\)/g);
-      if (colorMatches && colorMatches.length > 0) {
-        const uniqueColors = [...new Set(colorMatches)].slice(0, 10);
-        context += `Primary Colors Used: ${uniqueColors.join(', ')}\n`;
-      }
-    }
-    
-    context += `\n✨ OPTIMIZATION OPPORTUNITIES FROM SCRAPED DATA:\n`;
-    context += `Based on the live website analysis, here are specific elements ready for AB testing:\n`;
-    
-    if (scrapedData.targetableElements) {
-      const ctaElements = scrapedData.targetableElements.filter(el => 
-        el.textContent?.toLowerCase().includes('buy') ||
-        el.textContent?.toLowerCase().includes('purchase') ||
-        el.textContent?.toLowerCase().includes('get') ||
-        el.textContent?.toLowerCase().includes('start') ||
-        el.classList?.includes('cta') ||
-        el.classList?.includes('btn-primary')
-      );
-      
-      if (ctaElements.length > 0) {
-        context += `- ${ctaElements.length} CTA element(s) identified for conversion testing\n`;
-      }
-      
-      const navigationElements = scrapedData.targetableElements.filter(el => 
-        el.tagName?.toLowerCase() === 'nav' || el.classList?.includes('nav')
-      );
-      
-      if (navigationElements.length > 0) {
-        context += `- Navigation elements detected for UX optimization\n`;
-      }
-    }
-  }
-
-  // Analyze uploaded files and vault data if available
-  if (useVaultKnowledge) {
-    let totalFiles = 0;
-    
-    // Process uploaded files
-    if (uploadedFiles && uploadedFiles.length > 0) {
-      console.log(`📚 [${requestId}] Processing ${uploadedFiles.length} uploaded files for context enrichment`);
-      totalFiles += uploadedFiles.length;
-      
-      context += '\n📤 UPLOADED FILES ANALYSIS:\n';
-      for (const file of uploadedFiles.slice(0, 3)) {
-        const insights = analyzeUploadedData('', file.name);
-        context += `📊 ${file.name}: ${insights}\n`;
-      }
-    }
-    
-    // Process selected vault files
-    if (selectedVaultFiles && selectedVaultFiles.length > 0) {
-      console.log(`🗄️ [${requestId}] Processing ${selectedVaultFiles.length} vault files for context enrichment`);
-      totalFiles += selectedVaultFiles.length;
-      
-      context += '\n🗄️ KNOWLEDGE VAULT FILES ANALYSIS:\n';
-      for (const file of selectedVaultFiles.slice(0, 5)) {
-        try {
-          const { data: fileData } = await supabase.storage
-            .from('knowledge-vault')
-            .download(file.storage_path);
-          
-          if (fileData && (file.file_type?.includes('text') || file.file_name.endsWith('.csv'))) {
-            const text = await fileData.text();
-            const insights = analyzeUploadedData(text, file.file_name);
-            context += `📊 ${file.file_name}: ${insights}\n`;
-          }
-        } catch (error) {
-          console.log(`⚠️ [${requestId}] Could not process vault file ${file.file_name}:`, error.message);
-        }
-      }
-    }
-    
-    if (totalFiles > 0) {
-      context += `\n💡 DATA-DRIVEN INSIGHTS SUMMARY:\n`;
-      context += `Total files analyzed: ${totalFiles} (${uploadedFiles?.length || 0} uploaded + ${selectedVaultFiles?.length || 0} from vault)\n`;
-      context += `Recommendations will be enhanced with insights from your data.\n`;
     }
   }
 
@@ -570,8 +399,7 @@ function generateAdaptivePrompt(
   vaultData: any,
   userPreferences: any,
   suggestionMemory: any,
-  iterationCount: number,
-  enrichedContext: string
+  iterationCount: number
 ) {
   // Analyze page context
   const pageType = analyzePageType(pageUrl);
@@ -589,8 +417,6 @@ function generateAdaptivePrompt(
   const brandIntel = generateBrandIntelligence(pageUrl, industry);
 
   return `COMPREHENSIVE CRO ANALYSIS: Generate 9 exceptional AB test suggestions across 3 methodological approaches
-
-${enrichedContext}
 
 CONTEXT ANALYSIS:
 Page URL: ${pageUrl}
@@ -678,62 +504,14 @@ For EACH of the 9 suggestions, provide:
 - **Psychology Insight:** [Why this works on human decision-making]
 - **Code Complexity:** [Simple CSS / Medium JS / Complex Integration]
 - **Unique Factor:** [What makes this insight non-obvious]
-- **Preview Data:** {
-    "targetSelector": "[specific CSS selector]",
-    "cssModifications": {
-      "property1": "value1",
-      "property2": "value2"
-    },
-    "textChanges": {
-      "originalText": "new text content"
-    },
-    "newElements": "[any HTML to add]"
-  }
 
 CRITICAL REQUIREMENTS:
 
 1. **CODE-READY SOLUTIONS:** Each suggestion must be implementable with client-side code (HTML/CSS/JavaScript only - no backend required)
 
-2. **SPECIFIC SELECTORS FOR PREVIEW:** For each suggestion that modifies visual elements, provide:
-   - **Target Selector:** Exact CSS selector (e.g., ".product-title", "#add-to-cart-btn", ".hero-section h1")
-   - **Preview Modifications:** Specific CSS properties and values for immediate preview application
-   - **HTML Changes:** Any text content or structural changes needed
-   - **JavaScript Requirements:** Behavior changes or dynamic functionality needed
+2. **SPECIFIC SELECTORS:** Hint at likely CSS selectors and DOM elements that would be targeted (e.g., ".product-title", ".add-to-cart-button", ".price-display")
 
-Output must be in valid JSON format with this exact structure:
-{
-  "suggestions": [
-    {
-      "id": "1.1",
-      "title": "Compelling Title",
-      "approach": "Technical UX | Psychology | Brand Differentiation",
-      "problem_detected": "Specific issue description",
-      "solution_description": "Clear solution",
-      "implementation_method": "Technical approach",
-      "expected_impact": "Quantified estimate",
-      "psychology_insight": "Human behavior explanation",
-      "code_complexity": "Simple CSS | Medium JS | Complex Integration",
-      "unique_factor": "What makes this special",
-      "preview_data": {
-        "targetSelector": ".specific-selector",
-        "cssModifications": {
-          "backgroundColor": "#FF0000",
-          "fontSize": "18px"
-        },
-        "textChanges": {
-          "Buy Now": "Get Started Today"
-        },
-        "newElements": "<span class='badge'>New!</span>"
-      }
-    }
-  ],
-  "meta": {
-    "total_suggestions": 9,
-    "engine_version": "preview-enabled-v1"
-  }
-}
-
-3. **VAULT INTEGRATION:**
+3. **VAULT INTEGRATION:** 
    ${vaultMode === 'all' ? `- Leverage ALL vault insights to create personalized suggestions
    - Reference previous test results to avoid repetition and build on learnings
    - Respect brand guidelines and technical constraints
