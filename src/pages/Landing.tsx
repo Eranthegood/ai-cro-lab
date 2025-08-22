@@ -29,19 +29,77 @@ const Landing = () => {
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-24">
-        <div className="container max-w-4xl mx-auto px-8 text-center">
-          <h1 className="text-5xl font-bold text-foreground mb-8 leading-[1.1] tracking-tight">
-            From Data to AB-test in one click
-          </h1>
-          <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
-            Deploy powerful AI contextual AB-test on your website
-          </p>
-          
-          <Button size="lg" onClick={() => navigate('/auth')} className="text-base px-8">
-            Request Access
-          </Button>
+      <section className="relative pt-32 pb-32 overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background"></div>
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)`,
+          backgroundSize: '24px 24px'
+        }}></div>
+        
+        <div className="container relative max-w-6xl mx-auto px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background/50 backdrop-blur-sm mb-8">
+              <span className="text-sm text-muted-foreground">✨ Intelligence artificielle contextuelle</span>
+            </div>
+            
+            {/* Main headline */}
+            <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-8 leading-[0.9] tracking-tighter">
+              De la donnée au
+              <span className="block bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                test AB
+              </span>
+              <span className="block text-5xl md:text-6xl">en un clic</span>
+            </h1>
+            
+            {/* Subtitle */}
+            <p className="text-xl md:text-2xl text-muted-foreground mb-16 leading-relaxed max-w-3xl mx-auto">
+              Déployez des tests AB puissants et contextuels sur votre site web grâce à l'IA
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/auth')} 
+                className="text-base px-8 py-6 h-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+              >
+                Demander l'accès
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => scrollToSection('platform')}
+                className="text-base px-8 py-6 h-auto border-border hover:bg-muted/50"
+              >
+                Voir la démo
+              </Button>
+            </div>
+            
+            {/* Social proof */}
+            <div className="flex justify-center items-center gap-8 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-success rounded-full"></div>
+                <span>Accès anticipé</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-success rounded-full"></div>
+                <span>50% de réduction</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-success rounded-full"></div>
+                <span>Support prioritaire</span>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        {/* Floating elements */}
+        <div className="absolute top-1/4 left-10 w-20 h-20 bg-primary/5 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-10 w-32 h-32 bg-accent/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
       </section>
 
       {/* Results */}
