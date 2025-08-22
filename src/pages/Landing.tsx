@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 const Landing = () => {
@@ -10,367 +8,276 @@ const Landing = () => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const stats = [
-    { number: "80%", label: "Tests reach significance" },
-    { number: "3x", label: "Faster deployment" },  
-    { number: "97%", label: "Analysis time saved" }
-  ];
-
-  const features = [
-    {
-      title: "Universal Data Integration",
-      description: "Connect any data source: analytics platforms, user research, CSV exports, behavioral data, and competitive intelligence. Real-time API connections supported."
-    },
-    {
-      title: "Context-Aware Generation",
-      description: "Generate 9 statistically-significant test variations per analysis, each grounded in behavioral psychology and your specific organizational context."
-    },
-    {
-      title: "One-Click Deployment", 
-      description: "Deploy to any platform: Shopify, Webflow, custom CMS, or AB testing tools (Optimizely, VWO, AB Tasty). Lightweight SDK included."
-    },
-    {
-      title: "Automated Documentation",
-      description: "Auto-generate test documentation with hypothesis, psychological levers, sample size calculations. Integrate with Linear, Jira, and project management tools."
-    },
-    {
-      title: "Continuous Learning", 
-      description: "Each test result enriches your Vault, improving future recommendations. Build institutional knowledge that persists across team changes."
-    },
-    {
-      title: "Enterprise Security",
-      description: "SOC 2 Type II compliance, GDPR-ready data handling, on-premise deployment options. Role-based access controls and audit logging."
-    }
-  ];
-
-  const metrics = [
-    { number: "<30s", label: "Analysis Time", description: "From data upload to test recommendations" },
-    { number: "9", label: "Test Variations", description: "Contextual experiments per analysis" },
-    { number: "99.9%", label: "Uptime SLA", description: "Enterprise reliability guarantee" },
-    { number: "15+", label: "Integrations", description: "Analytics and deployment platforms" }
-  ];
-
-  const integrations = [
-    "ContentSquare", "Google Analytics", "Amplitude", "Mixpanel", 
-    "Optimizely", "VWO", "AB Tasty", "Convert", 
-    "Shopify", "Webflow", "WordPress", "Magento",
-    "Linear", "Jira", "Notion", "Slack"
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-sm border-b border-border">
-        <nav className="container max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="text-xl font-bold text-foreground tracking-tight">
-              CRO Intelligence
-            </div>
-            <div className="hidden md:flex items-center gap-8">
-              <button onClick={() => scrollToSection('platform')} className="text-muted-foreground hover:text-foreground font-medium transition-colors">
-                Platform
-              </button>
-              <button onClick={() => scrollToSection('vault')} className="text-muted-foreground hover:text-foreground font-medium transition-colors">
-                Intelligence Engine
-              </button>
-              <button onClick={() => scrollToSection('waitlist')} className="text-muted-foreground hover:text-foreground font-medium transition-colors">
-                Early Access
-              </button>
-              <Button onClick={() => navigate('/auth')} variant="default" size="sm">
-                Get Started
-              </Button>
-            </div>
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+        <div className="container max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
+          <div className="text-lg font-semibold text-foreground">
+            CRO Intelligence
           </div>
-        </nav>
+          <nav className="hidden md:flex items-center gap-8">
+            <button 
+              onClick={() => scrollToSection('platform')} 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Platform
+            </button>
+            <button 
+              onClick={() => scrollToSection('features')} 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Features
+            </button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/auth')}
+            >
+              Get Started
+            </Button>
+          </nav>
+        </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-muted/50 to-background">
-        <div className="container max-w-7xl mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight max-w-4xl mx-auto">
-            Build products that perform
+      {/* Hero */}
+      <section className="pt-32 pb-24">
+        <div className="container max-w-4xl mx-auto px-8 text-center">
+          <h1 className="text-5xl font-bold text-foreground mb-8 leading-[1.1] tracking-tight">
+            Context-aware experimentation for enterprise teams
           </h1>
-          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
-            Ship experiments with confidence, powered by context. The only experimentation 
-            platform that learns your business to generate tests that actually win.
-          </p>
-          <p className="text-lg text-foreground mb-8 max-w-xl mx-auto font-medium">
-            Make better product decisions — with real-time signal, at faster pace.
+          <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
+            Generate high-converting A/B tests using your organizational knowledge. 
+            Deploy faster, learn more, iterate with confidence.
           </p>
           
-          {/* Stats */}
-          <div className="flex flex-col md:flex-row justify-center gap-8 md:gap-12 mb-12">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-foreground mb-1">{stat.number}</div>
-                <div className="text-sm text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</div>
-              </div>
-            ))}
+          <div className="flex items-center justify-center gap-16 mb-16">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">80%</div>
+              <div className="text-sm text-muted-foreground">reach significance</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">3x</div>
+              <div className="text-sm text-muted-foreground">faster deployment</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-foreground">97%</div>
+              <div className="text-sm text-muted-foreground">time saved</div>
+            </div>
           </div>
           
-          {/* CTA */}
-          <div className="space-y-4">
-            <Button 
-              size="lg" 
-              onClick={() => scrollToSection('waitlist')}
-              className="px-8 py-6 text-base font-semibold"
-            >
-              Join Early Access Program
-              <span className="ml-2">→</span>
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              500+ teams already on waitlist • Lifetime benefits included
-            </p>
-          </div>
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/auth')}
+            className="text-base px-8"
+          >
+            Request Access
+          </Button>
         </div>
       </section>
 
-      {/* Problem Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6 tracking-tight">
-              Why 80% of AB tests fail to reach significance
+      {/* Problem */}
+      <section className="py-24 border-t border-border">
+        <div className="container max-w-5xl mx-auto px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl font-bold text-foreground mb-6">
+              Most A/B tests fail because they lack context
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Most experimentation platforms generate generic tests that ignore your business context, 
-              breaking the essential cycle: Test, Learn, Improve, Iterate.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Generic testing approaches ignore your business specifics, user behavior patterns, 
+              and organizational knowledge.
             </p>
           </div>
 
-          {/* Process Flow */}
-          <div className="flex items-center justify-center gap-4 mb-16 flex-wrap">
-            {['Test', 'Learn', 'Improve', 'Iterate'].map((step, index) => (
-              <div key={step} className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                    {index + 1}
-                  </div>
-                  <span className="font-medium text-foreground">{step}</span>
-                </div>
-                {index < 3 && <span className="text-muted-foreground text-xl">→</span>}
-              </div>
-            ))}
-          </div>
-          
-          {/* Comparison */}
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-foreground mb-6">Traditional AB Testing</h3>
-              <ul className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-16">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-6">Traditional Testing</h3>
+              <div className="space-y-4">
                 {[
-                  "Generic best practice recommendations",
-                  "No business context integration", 
-                  "Manual hypothesis generation",
-                  "Disconnected from organizational knowledge",
-                  "Low statistical significance rates",
-                  "Weeks from insight to live test"
+                  "Generic best practices",
+                  "Manual hypothesis creation",
+                  "Isolated from business context",
+                  "Low success rates",
+                  "Slow iteration cycles"
                 ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                    <span className="text-muted-foreground/50 text-sm mt-1">—</span>
-                    <span>{item}</span>
-                  </li>
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-1 h-1 bg-muted-foreground rounded-full mt-3 flex-shrink-0"></div>
+                    <span className="text-muted-foreground">{item}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-foreground mb-6">Context-Aware Testing</h3>
-              <ul className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-6">Context-Aware Testing</h3>
+              <div className="space-y-4">
                 {[
-                  "Business-specific test recommendations",
+                  "Business-specific recommendations",
+                  "AI-powered hypothesis generation",
                   "Organizational knowledge integration",
-                  "AI-powered hypothesis generation", 
-                  "Continuous learning from test results",
-                  "High statistical significance rates",
-                  "Minutes from data to deployed test"
+                  "High significance rates",
+                  "Rapid experiment cycles"
                 ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-3 text-foreground">
-                    <span className="text-primary text-sm mt-1">•</span>
-                    <span>{item}</span>
-                  </li>
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-1 h-1 bg-foreground rounded-full mt-3 flex-shrink-0"></div>
+                    <span className="text-foreground">{item}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Vault Section */}
-      <section id="vault" className="py-20 bg-background">
-        <div className="container max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-foreground mb-6 tracking-tight leading-tight">
-                The Vault: Your Experimentation Intelligence
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                A persistent knowledge layer that accumulates your organizational learning, 
-                brand guidelines, user research, and test results to power increasingly 
-                sophisticated experiment recommendations.
-              </p>
-              
-              <ul className="space-y-4">
-                {[
-                  "Test performance analysis and pattern recognition",
-                  "Brand voice and technical constraint awareness",
-                  "User behavioral insights and persona mapping", 
-                  "Competitive positioning and market context",
-                  "Cross-team knowledge sharing and institutional memory",
-                  "Powers the complete cycle: Test → Learn → Improve → Iterate"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-primary text-sm mt-1">•</span>
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+      {/* Platform */}
+      <section id="platform" className="py-24 border-t border-border bg-muted/20">
+        <div className="container max-w-4xl mx-auto px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">
+            The Intelligence Vault
+          </h2>
+          <p className="text-lg text-muted-foreground mb-16 max-w-2xl mx-auto">
+            A persistent knowledge layer that learns from your data, tests, and results 
+            to generate increasingly sophisticated experiment recommendations.
+          </p>
+
+          <div className="bg-background border border-border rounded-lg p-12">
+            <div className="w-16 h-16 bg-foreground rounded-lg mx-auto mb-8 flex items-center justify-center">
+              <div className="w-6 h-6 bg-background rounded-full"></div>
             </div>
             
-            <div>
-              <Card className="bg-muted/10 border-border/50">
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <div className="w-4 h-4 bg-primary rounded-full"></div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">Organizational Memory</h3>
-                  <p className="text-muted-foreground mb-8 text-sm">
-                    Continuously learning from your experimentation data
-                  </p>
-                  
-                  <div className="grid grid-cols-4 gap-3 mb-6">
-                    {['Analytics', 'Design', 'Users', 'Results'].map((label, index) => (
-                      <div key={index} className="text-center">
-                        <div className="w-8 h-8 bg-muted rounded-md mx-auto mb-2"></div>
-                        <span className="text-xs text-muted-foreground">{label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center justify-center gap-3 p-3 bg-muted/30 rounded-lg">
-                    {['Test', 'Learn', 'Improve', 'Iterate'].map((step, index) => (
-                      <div key={step} className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{step}</span>
-                        {index < 3 && <span className="text-primary text-sm">→</span>}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <h3 className="text-xl font-semibold text-foreground mb-4">
+              Organizational Memory
+            </h3>
+            <p className="text-muted-foreground mb-12">
+              Continuously learns from your experimentation data, user research, 
+              brand guidelines, and business context.
+            </p>
+
+            <div className="grid grid-cols-4 gap-8 mb-8">
+              {['Data', 'Tests', 'Results', 'Context'].map((label, index) => (
+                <div key={index} className="text-center">
+                  <div className="w-8 h-8 bg-muted rounded mx-auto mb-2"></div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground uppercase tracking-wider font-medium">
+              <span>Test</span>
+              <span>→</span>
+              <span>Learn</span>
+              <span>→</span>
+              <span>Improve</span>
+              <span>→</span>
+              <span>Iterate</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Integrations */}
-      <section className="py-16 bg-muted/30 border-y border-border">
-        <div className="container max-w-7xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-8">
-              Seamlessly integrates with your existing stack
-            </h3>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {integrations.map((integration, index) => (
-              <Card key={index} className="bg-background border-border hover:border-muted-foreground/30 transition-all duration-200 hover:shadow-sm hover:-translate-y-1">
-                <CardContent className="p-4 text-center">
-                  <div className="text-xs font-medium text-muted-foreground leading-tight">
-                    {integration}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Platform Features */}
-      <section id="platform" className="py-20 bg-background">
-        <div className="container max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6 tracking-tight">
-              Built for enterprise experimentation at scale
+      {/* Features */}
+      <section id="features" className="py-24 border-t border-border">
+        <div className="container max-w-5xl mx-auto px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl font-bold text-foreground mb-6">
+              Enterprise-grade experimentation
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Make better product decisions — with real-time signal, at faster pace. 
-              Enterprise-grade infrastructure designed for high-velocity product teams.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Built for high-velocity product teams that need reliable, 
+              context-aware testing at scale.
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-border/50 hover:border-border transition-all duration-200 hover:shadow-sm hover:-translate-y-1 bg-background/50">
-                <CardHeader>
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                  <CardTitle className="text-lg text-foreground tracking-tight font-semibold">
-                    {feature.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-muted-foreground leading-relaxed text-sm">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            {[
+              {
+                title: "Universal Integration",
+                description: "Connect any data source or deployment platform. Real-time API connections to analytics, research tools, and testing platforms."
+              },
+              {
+                title: "Contextual Generation",
+                description: "Generate test variations grounded in your business context, user behavior patterns, and organizational knowledge."
+              },
+              {
+                title: "One-Click Deployment",
+                description: "Deploy experiments to any platform instantly. Lightweight SDK with built-in statistical monitoring."
+              },
+              {
+                title: "Automated Documentation",
+                description: "Auto-generate comprehensive test documentation with hypotheses, sample size calculations, and statistical analysis."
+              },
+              {
+                title: "Continuous Learning",
+                description: "Each test result enriches your knowledge base, improving future recommendations and building institutional memory."
+              },
+              {
+                title: "Enterprise Security",
+                description: "SOC 2 compliance, GDPR-ready data handling, on-premise deployment options, and comprehensive audit logging."
+              }
+            ].map((feature, index) => (
+              <div key={index} className="border-l-2 border-border pl-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Metrics */}
-      <section className="py-20 bg-muted/30">
-        <div className="container max-w-7xl mx-auto px-6">
+      <section className="py-24 border-t border-border bg-muted/20">
+        <div className="container max-w-4xl mx-auto px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6 tracking-tight">
-              Performance that scales with your ambition
+            <h2 className="text-3xl font-bold text-foreground mb-6">
+              Performance metrics
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Build products that perform with enterprise-grade infrastructure 
-              designed for teams running hundreds of experiments per quarter.
+            <p className="text-lg text-muted-foreground">
+              Enterprise infrastructure designed for teams running hundreds of experiments per quarter.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {metrics.map((metric, index) => (
-              <Card key={index} className="bg-background border-border text-center">
-                <CardContent className="p-8">
-                  <div className="text-4xl font-bold text-foreground mb-2">{metric.number}</div>
-                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    {metric.label}
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-tight">
-                    {metric.description}
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { number: "<30s", label: "Analysis Time" },
+              { number: "9", label: "Test Variations" },
+              { number: "99.9%", label: "Uptime SLA" },
+              { number: "15+", label: "Integrations" }
+            ].map((metric, index) => (
+              <div key={index} className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">{metric.number}</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
+                  {metric.label}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="waitlist" className="py-20 bg-background">
-        <div className="container max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-foreground mb-6 tracking-tight">
-            Ready to build products that perform?
+      {/* CTA */}
+      <section className="py-24 border-t border-border">
+        <div className="container max-w-3xl mx-auto px-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-6">
+            Ready to start testing smarter?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Join 500+ product leaders getting early access to context-aware experimentation. 
-            Be among the first to transform your testing velocity.
+          <p className="text-lg text-muted-foreground mb-12">
+            Join enterprise teams using context-aware experimentation to build products that perform.
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="flex justify-center gap-8 mb-12">
             {[
-              "First Access to Beta",
-              "50% Lifetime Discount", 
-              "Free Vault Setup & Training",
-              "Priority Support & Onboarding"
+              "Early Access",
+              "50% Discount",
+              "Setup Training",
+              "Priority Support"
             ].map((benefit, index) => (
-              <div key={index} className="p-4 border border-border rounded-lg bg-muted/20 text-center">
-                <span className="text-sm font-medium text-foreground">{benefit}</span>
+              <div key={index} className="text-center">
+                <div className="w-2 h-2 bg-foreground rounded-full mx-auto mb-2"></div>
+                <span className="text-sm text-muted-foreground">{benefit}</span>
               </div>
             ))}
           </div>
@@ -378,15 +285,10 @@ const Landing = () => {
           <Button 
             size="lg" 
             onClick={() => navigate('/auth')}
-            className="px-8 py-6 text-base font-semibold mb-4"
+            className="text-base px-8"
           >
-            Secure Your Early Access Spot
-            <span className="ml-2">→</span>
+            Request Access
           </Button>
-          
-          <p className="text-sm text-muted-foreground">
-            No spam, only updates when we have something meaningful to share • Limited spots available
-          </p>
         </div>
       </section>
     </div>
