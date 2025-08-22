@@ -82,11 +82,11 @@ export const EnhancedABTestCreator: React.FC<EnhancedABTestCreatorProps> = ({
 
     try {
       toast({
-        title: "Enhanced Analysis Started",
-        description: "Scraping website content for live preview...",
+        title: "🔥 Firecrawl Enhanced Analysis",
+        description: "Using professional scraping to bypass protections and capture full content...",
       });
 
-      // Step 1: Scrape the website
+      // Step 1: Scrape the website using Firecrawl
       const scrapedSite = await scrapingService.scrapeSite(pageUrl, {
         includeStyles: true,
         includeScripts: false,
@@ -98,18 +98,33 @@ export const EnhancedABTestCreator: React.FC<EnhancedABTestCreatorProps> = ({
       setAnalysisStep('preview');
 
       toast({
-        title: "Website Scraped Successfully!",
-        description: `${scrapedSite.targetableElements.length} editable elements detected`,
+        title: "🎉 Website Scraped Successfully!",
+        description: `${scrapedSite.targetableElements.length} editable elements detected with Firecrawl`,
       });
 
     } catch (error: any) {
-      console.error('Enhanced analysis failed:', error);
+      console.error('🚨 Enhanced analysis failed:', error);
       
-      // Fallback to classic mode
+      // Handle specific Firecrawl fallback scenario
+      if (error.message === 'FALLBACK_TO_CLASSIC') {
+        toast({
+          title: "Switching to Classic Mode",
+          description: "Firecrawl couldn't scrape this site. Using screenshot analysis instead.",
+          duration: 4000,
+        });
+        
+        // Automatically switch to classic analysis
+        setAnalysisMode('classic');
+        await handleClassicAnalysis();
+        return;
+      }
+      
+      // General fallback to classic mode
       toast({
         title: "Enhanced Mode Failed",
-        description: "Falling back to classic analysis mode...",
+        description: "Firecrawl couldn't access this site. Falling back to classic analysis...",
         variant: "destructive",
+        duration: 5000,
       });
       
       setAnalysisMode('classic');
@@ -345,6 +360,7 @@ export const EnhancedABTestCreator: React.FC<EnhancedABTestCreatorProps> = ({
           <div className="flex flex-wrap gap-2">
             {analysisMode === 'enhanced' ? (
               <>
+                <Badge variant="secondary">🔥 Firecrawl Powered</Badge>
                 <Badge variant="secondary">Live Preview</Badge>
                 <Badge variant="secondary">Interactive Editing</Badge>
                 <Badge variant="secondary">Vibe Coding</Badge>

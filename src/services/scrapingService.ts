@@ -60,7 +60,9 @@ class ScrapingService {
     generateSelectors: true
   }): Promise<ScrapedSiteData> {
     try {
-      // Use Supabase Edge Function for advanced scraping
+      console.log('🔍 Starting enhanced scraping with Firecrawl for:', url);
+      
+      // Use Supabase Edge Function with Firecrawl
       const { supabase } = await import('@/integrations/supabase/client');
       
       const { data, error } = await supabase.functions.invoke('scrape-site-enhanced', {
@@ -71,17 +73,47 @@ class ScrapingService {
       });
 
       if (error) {
-        console.error('Scraping function error:', error);
-        throw new Error(error.message || 'Site scraping failed');
+        console.error('❌ Firecrawl scraping function error:', error);
+        
+        // Check if it's a fallback scenario
+        if (error.message?.includes('fallbackToClassic')) {
+          console.log('🔄 Falling back to Classic mode as requested');
+          throw new Error('FALLBACK_TO_CLASSIC');
+        }
+        
+        throw new Error(error.message || 'Firecrawl scraping failed');
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to scrape site');
+      if (!data?.success) {
+        console.error('❌ Firecrawl scraping failed:', data?.error);
+        
+        if (data?.fallbackToClassic) {
+          console.log('🔄 Firecrawl recommended fallback to Classic mode');
+          throw new Error('FALLBACK_TO_CLASSIC');
+        }
+        
+        throw new Error(data?.error || 'Failed to scrape site with Firecrawl');
       }
+
+      console.log('✅ Firecrawl scraping successful!', {
+        url: data.scrapedData.url,
+        headings: data.scrapedData.htmlStructure?.headings?.length || 0,
+        targetableElements: data.scrapedData.targetableElements?.length || 0,
+        htmlLength: data.scrapedData.html?.length || 0
+      });
 
       return this.enhanceScrapedData(data.scrapedData);
+      
     } catch (error) {
-      console.error('Scraping failed, using fallback:', error);
+      console.error('💥 Enhanced scraping failed:', error);
+      
+      // Don't fallback for specific errors - let the UI handle it
+      if (error.message === 'FALLBACK_TO_CLASSIC') {
+        throw error;
+      }
+      
+      // For other errors, try basic fallback
+      console.log('🔧 Attempting basic fallback scraping...');
       return this.fallbackScraping(url);
     }
   }
