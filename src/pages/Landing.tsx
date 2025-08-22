@@ -35,8 +35,7 @@ const Landing = () => {
             From Data to AB-test in one click
           </h1>
           <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
-            Generate high-converting A/B tests using your organizational knowledge. 
-            Deploy faster, learn more, iterate with confidence.
+            Deploy powerful AI contextual AB-test on your website
           </p>
           
           <Button size="lg" onClick={() => navigate('/auth')} className="text-base px-8">
