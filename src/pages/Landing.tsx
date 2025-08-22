@@ -18,32 +18,26 @@ const Landing = () => {
 
   const features = [
     {
-      icon: "🔌",
       title: "Universal Data Integration",
       description: "Connect any data source: analytics platforms, user research, CSV exports, behavioral data, and competitive intelligence. Real-time API connections supported."
     },
     {
-      icon: "🎯", 
       title: "Context-Aware Generation",
       description: "Generate 9 statistically-significant test variations per analysis, each grounded in behavioral psychology and your specific organizational context."
     },
     {
-      icon: "⚡",
       title: "One-Click Deployment", 
       description: "Deploy to any platform: Shopify, Webflow, custom CMS, or AB testing tools (Optimizely, VWO, AB Tasty). Lightweight SDK included."
     },
     {
-      icon: "📋",
       title: "Automated Documentation",
       description: "Auto-generate test documentation with hypothesis, psychological levers, sample size calculations. Integrate with Linear, Jira, and project management tools."
     },
     {
-      icon: "🔄",
       title: "Continuous Learning", 
       description: "Each test result enriches your Vault, improving future recommendations. Build institutional knowledge that persists across team changes."
     },
     {
-      icon: "🛡️",
       title: "Enterprise Security",
       description: "SOC 2 Type II compliance, GDPR-ready data handling, on-premise deployment options. Role-based access controls and audit logging."
     }
@@ -159,59 +153,45 @@ const Landing = () => {
             ))}
           </div>
           
-          {/* Comparison Cards */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-destructive bg-destructive/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-destructive">
-                  <span>❌</span>
-                  Traditional AB Testing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {[
-                    "Generic best practice recommendations",
-                    "No business context integration", 
-                    "Manual hypothesis generation",
-                    "Disconnected from organizational knowledge",
-                    "Low statistical significance rates",
-                    "Weeks from insight to live test"
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-center gap-3">
-                      <span className="text-destructive font-semibold">✗</span>
-                      <span className="text-muted-foreground">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+          {/* Comparison */}
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-foreground mb-6">Traditional AB Testing</h3>
+              <ul className="space-y-4">
+                {[
+                  "Generic best practice recommendations",
+                  "No business context integration", 
+                  "Manual hypothesis generation",
+                  "Disconnected from organizational knowledge",
+                  "Low statistical significance rates",
+                  "Weeks from insight to live test"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3 text-muted-foreground">
+                    <span className="text-muted-foreground/50 text-sm mt-1">—</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-            <Card className="border-success bg-success/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-success">
-                  <span>✓</span>
-                  Context-Aware Testing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {[
-                    "Business-specific test recommendations",
-                    "Organizational knowledge integration",
-                    "AI-powered hypothesis generation", 
-                    "Continuous learning from test results",
-                    "High statistical significance rates",
-                    "Minutes from data to deployed test"
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-center gap-3">
-                      <span className="text-success font-semibold">✓</span>
-                      <span className="text-muted-foreground">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-foreground mb-6">Context-Aware Testing</h3>
+              <ul className="space-y-4">
+                {[
+                  "Business-specific test recommendations",
+                  "Organizational knowledge integration",
+                  "AI-powered hypothesis generation", 
+                  "Continuous learning from test results",
+                  "High statistical significance rates",
+                  "Minutes from data to deployed test"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start gap-3 text-foreground">
+                    <span className="text-primary text-sm mt-1">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -239,8 +219,8 @@ const Landing = () => {
                   "Cross-team knowledge sharing and institutional memory",
                   "Powers the complete cycle: Test → Learn → Improve → Iterate"
                 ].map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <span className="text-success text-sm">◆</span>
+                  <li key={index} className="flex items-start gap-3">
+                    <span className="text-primary text-sm mt-1">•</span>
                     <span className="text-muted-foreground">{feature}</span>
                   </li>
                 ))}
@@ -248,29 +228,30 @@ const Landing = () => {
             </div>
             
             <div>
-              <Card className="bg-muted/30 border-border">
+              <Card className="bg-muted/10 border-border/50">
                 <CardContent className="p-8 text-center">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-success to-success/70 rounded-2xl flex items-center justify-center text-4xl animate-pulse">
-                    🧠
+                  <div className="w-20 h-20 mx-auto mb-6 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <div className="w-4 h-4 bg-primary rounded-full"></div>
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-3">Organizational Memory</h3>
-                  <p className="text-muted-foreground mb-6 text-sm">
+                  <p className="text-muted-foreground mb-8 text-sm">
                     Continuously learning from your experimentation data
                   </p>
                   
-                  <div className="flex justify-center gap-4 mb-6">
-                    {['📊', '🎨', '👥', '🏆'].map((icon, index) => (
-                      <div key={index} className="w-12 h-12 bg-background rounded-lg flex items-center justify-center border border-border">
-                        {icon}
+                  <div className="grid grid-cols-4 gap-3 mb-6">
+                    {['Analytics', 'Design', 'Users', 'Results'].map((label, index) => (
+                      <div key={index} className="text-center">
+                        <div className="w-8 h-8 bg-muted rounded-md mx-auto mb-2"></div>
+                        <span className="text-xs text-muted-foreground">{label}</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="flex items-center justify-center gap-2 p-4 bg-background/50 rounded-lg">
+                  <div className="flex items-center justify-center gap-3 p-3 bg-muted/30 rounded-lg">
                     {['Test', 'Learn', 'Improve', 'Iterate'].map((step, index) => (
                       <div key={step} className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{step}</span>
-                        {index < 3 && <span className="text-success text-sm font-bold">→</span>}
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{step}</span>
+                        {index < 3 && <span className="text-primary text-sm">→</span>}
                       </div>
                     ))}
                   </div>
@@ -319,17 +300,17 @@ const Landing = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-border hover:border-muted-foreground/30 transition-all duration-200 hover:shadow-lg hover:-translate-y-2">
+              <Card key={index} className="border-border/50 hover:border-border transition-all duration-200 hover:shadow-sm hover:-translate-y-1 bg-background/50">
                 <CardHeader>
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center text-2xl mb-4">
-                    {feature.icon}
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
                   </div>
-                  <CardTitle className="text-xl text-foreground tracking-tight">
+                  <CardTitle className="text-lg text-foreground tracking-tight font-semibold">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-muted-foreground leading-relaxed">
+                  <CardDescription className="text-muted-foreground leading-relaxed text-sm">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -383,15 +364,14 @@ const Landing = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { icon: "🚀", text: "First Access to Beta" },
-              { icon: "💰", text: "50% Lifetime Discount" },
-              { icon: "🎯", text: "Free Vault Setup & Training" },
-              { icon: "⚡", text: "Priority Support & Onboarding" }
+              "First Access to Beta",
+              "50% Lifetime Discount", 
+              "Free Vault Setup & Training",
+              "Priority Support & Onboarding"
             ].map((benefit, index) => (
-              <Badge key={index} variant="secondary" className="p-3 justify-center">
-                <span className="mr-2">{benefit.icon}</span>
-                {benefit.text}
-              </Badge>
+              <div key={index} className="p-4 border border-border rounded-lg bg-muted/20 text-center">
+                <span className="text-sm font-medium text-foreground">{benefit}</span>
+              </div>
             ))}
           </div>
           
