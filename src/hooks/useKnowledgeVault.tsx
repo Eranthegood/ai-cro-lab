@@ -85,7 +85,13 @@ export const useKnowledgeVault = () => {
         p_completion_score: completionScore
       });
 
-      if (error) throw error;
+      if (error) {
+        // Enhanced error handling for sensitive configuration updates
+        if (error.message?.includes('Access denied') || error.message?.includes('permission')) {
+          throw new Error('You need administrator privileges to modify sensitive configurations.');
+        }
+        throw error;
+      }
 
       toast({
         title: "Configuration saved",
@@ -149,13 +155,25 @@ export const useKnowledgeVault = () => {
       // First recalculate points for existing files
       await recalculateAllPoints();
 
-      // Fetch configurations
+      // Fetch configurations with enhanced error handling for sensitive data access
       const { data: configs, error: configError } = await supabase
         .from('knowledge_vault_config')
         .select('*')
         .eq('workspace_id', currentWorkspace.id);
 
-      if (configError) throw configError;
+      if (configError) {
+        // Handle authorization errors gracefully
+        if (configError.code === 'PGRST116' || configError.message?.includes('row-level security')) {
+          console.warn('Limited access to sensitive configurations - user may not be admin');
+          toast({
+            title: "Limited Access",
+            description: "Some sensitive configurations are only available to workspace administrators.",
+          });
+          // Continue with partial data instead of throwing
+        } else {
+          throw configError;
+        }
+      }
 
       // Convert to record for easier access
       const configRecord: Record<string, KnowledgeVaultConfig> = {};
@@ -168,16 +186,34 @@ export const useKnowledgeVault = () => {
       const { data: progressData, error: progressError } = await supabase
         .rpc('get_knowledge_vault_progress', { p_workspace_id: currentWorkspace.id });
 
-      if (progressError) throw progressError;
-      setProgress(progressData || []);
+      if (progressError) {
+        if (progressError.code === 'PGRST116' || progressError.message?.includes('row-level security')) {
+          console.warn('Limited access to progress data - user may not have sufficient permissions');
+          setProgress([]);
+        } else {
+          throw progressError;
+        }
+      } else {
+        setProgress(progressData || []);
+      }
 
     } catch (error: any) {
       console.error('Error fetching vault data:', error);
-      toast({
-        variant: "destructive",
-        title: "Error loading Knowledge Vault",
-        description: error.message,
-      });
+      
+      // Enhanced error handling for authorization issues
+      if (error.code === 'PGRST116' || error.message?.includes('row-level security') || error.message?.includes('permission')) {
+        toast({
+          variant: "destructive",
+          title: "Access Restricted",
+          description: "You don't have permission to access sensitive configurations. Contact your workspace administrator.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error loading Knowledge Vault",
+          description: error.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
