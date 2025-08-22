@@ -51,18 +51,22 @@ const Landing = () => {
             Deploy faster, learn more, iterate with confidence.
           </p>
           
-          <div className="flex items-center justify-center gap-16 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">80%</div>
-              <div className="text-sm text-muted-foreground">reach significance</div>
+              <div className="text-3xl font-bold text-foreground">+24.2%</div>
+              <div className="text-sm text-muted-foreground">Augmentation du taux de conversion</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">3x</div>
-              <div className="text-sm text-muted-foreground">faster deployment</div>
+              <div className="text-3xl font-bold text-foreground">+9%</div>
+              <div className="text-sm text-muted-foreground">Croissance des visiteurs récurrents</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">97%</div>
-              <div className="text-sm text-muted-foreground">time saved</div>
+              <div className="text-3xl font-bold text-foreground">87h</div>
+              <div className="text-sm text-muted-foreground">Gagnées par mois</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-foreground">8x</div>
+              <div className="text-sm text-muted-foreground">ROI</div>
             </div>
           </div>
           
