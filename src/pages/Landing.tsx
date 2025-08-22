@@ -32,7 +32,7 @@ const Landing = () => {
       <section className="pt-32 pb-24">
         <div className="container max-w-4xl mx-auto px-8 text-center">
           <h1 className="text-5xl font-bold text-foreground mb-8 leading-[1.1] tracking-tight">
-            Context-aware experimentation for enterprise teams
+            From Data to AB-test in one click
           </h1>
           <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
             Generate high-converting A/B tests using your organizational knowledge. 
