@@ -39,7 +39,16 @@ const Landing = () => {
             Deploy faster, learn more, iterate with confidence.
           </p>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <Button size="lg" onClick={() => navigate('/auth')} className="text-base px-8">
+            Request Access
+          </Button>
+        </div>
+      </section>
+
+      {/* Results */}
+      <section className="py-24 border-t border-border bg-muted/20">
+        <div className="container max-w-4xl mx-auto px-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-3xl font-bold text-foreground">+24.2%</div>
               <div className="text-sm text-muted-foreground">Augmentation du taux de conversion</div>
@@ -57,10 +66,6 @@ const Landing = () => {
               <div className="text-sm text-muted-foreground">ROI</div>
             </div>
           </div>
-          
-          <Button size="lg" onClick={() => navigate('/auth')} className="text-base px-8">
-            Request Access
-          </Button>
         </div>
       </section>
 
