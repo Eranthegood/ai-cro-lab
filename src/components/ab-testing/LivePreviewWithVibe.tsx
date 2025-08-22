@@ -11,6 +11,14 @@ import { toast } from "@/hooks/use-toast";
 interface LivePreviewWithVibeProps {
   scrapedData: ScrapedSiteData;
   onCodeGenerated: (code: string) => void;
+  // Extended for suggestion integration
+  initialModifications?: any;
+  suggestionContext?: {
+    title: string;
+    approach: string;
+    description: string;
+    reasoning: string;
+  };
 }
 
 interface SelectedElement extends TargetableElement {
@@ -28,7 +36,9 @@ interface VibeModification {
 
 export const LivePreviewWithVibe: React.FC<LivePreviewWithVibeProps> = ({
   scrapedData,
-  onCodeGenerated
+  onCodeGenerated,
+  initialModifications,
+  suggestionContext
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -49,6 +59,28 @@ export const LivePreviewWithVibe: React.FC<LivePreviewWithVibeProps> = ({
       setupLivePreview();
     }
   }, [scrapedData]);
+
+  useEffect(() => {
+    // Apply initial modifications from suggestion if provided
+    if (initialModifications && isLoaded && iframeRef.current?.contentWindow) {
+      setTimeout(() => {
+        iframeRef.current!.contentWindow!.postMessage({
+          type: 'applyModifications',
+          elementId: 'suggestion-initial',
+          modifications: initialModifications.cssModifications || initialModifications
+        }, '*');
+        
+        // Add suggestion context to conversation history
+        if (suggestionContext) {
+          setConversationHistory([{
+            type: 'assistant',
+            content: `Applied suggestion: "${suggestionContext.title}". ${suggestionContext.reasoning}`,
+            timestamp: Date.now()
+          }]);
+        }
+      }, 1000);
+    }
+  }, [initialModifications, suggestionContext, isLoaded]);
 
   useEffect(() => {
     // Listen for element selection from iframe
@@ -316,10 +348,15 @@ export const LivePreviewWithVibe: React.FC<LivePreviewWithVibeProps> = ({
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-primary" />
-                Live Preview with Vibe Coding
-              </CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" />
+              Live Preview with Vibe Coding
+              {suggestionContext && (
+                <Badge variant="secondary" className="ml-2">
+                  Based on: {suggestionContext.title}
+                </Badge>
+              )}
+            </CardTitle>
               <div className="flex gap-2">
                 <Button
                   variant={previewDevice === 'desktop' ? 'default' : 'outline'}

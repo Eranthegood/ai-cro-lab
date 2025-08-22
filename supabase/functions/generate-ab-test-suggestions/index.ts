@@ -99,22 +99,23 @@ serve(async (req) => {
     // Layer 2: Multi-Angle Analysis with rotation
     const currentAngles = getRotatedAngles(analysisAngles, iterationCount);
     
-    // Layer 3: Generate comprehensive prompt for 9 suggestions
-    const comprehensivePrompt = generateAdaptivePrompt(
-      pageUrl, 
-      goalType,
-      businessContext,
-      currentPain,
-      useVaultKnowledge,
-      {
-        selectedFiles: uploadedFiles || [],
-        fullVaultMode: false,
-        selectedInsights: 'Processing uploaded files for insights'
-      },
-      userPreferences, 
-      suggestionMemory,
-      iterationCount
-    );
+  // Layer 3: Generate comprehensive prompt for 9 suggestions with technical details
+  const comprehensivePrompt = generateAdaptivePrompt(
+    pageUrl, 
+    goalType,
+    businessContext,
+    currentPain,
+    useVaultKnowledge,
+    {
+      selectedFiles: uploadedFiles || [],
+      fullVaultMode: false,
+      selectedInsights: 'Processing uploaded files for insights'
+    },
+    userPreferences, 
+    suggestionMemory,
+    iterationCount,
+    enrichedContext
+  );
 
     console.log(`🧠 [${requestId}] Calling Claude Sonnet 4 for intelligent suggestions`);
 
@@ -127,7 +128,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', // Claude Sonnet 4 model
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
         messages: [
           { 
@@ -464,7 +465,8 @@ function generateAdaptivePrompt(
   vaultData: any,
   userPreferences: any,
   suggestionMemory: any,
-  iterationCount: number
+  iterationCount: number,
+  enrichedContext: string
 ) {
   // Analyze page context
   const pageType = analyzePageType(pageUrl);
@@ -482,6 +484,8 @@ function generateAdaptivePrompt(
   const brandIntel = generateBrandIntelligence(pageUrl, industry);
 
   return `COMPREHENSIVE CRO ANALYSIS: Generate 9 exceptional AB test suggestions across 3 methodological approaches
+
+${enrichedContext}
 
 CONTEXT ANALYSIS:
 Page URL: ${pageUrl}
@@ -569,14 +573,62 @@ For EACH of the 9 suggestions, provide:
 - **Psychology Insight:** [Why this works on human decision-making]
 - **Code Complexity:** [Simple CSS / Medium JS / Complex Integration]
 - **Unique Factor:** [What makes this insight non-obvious]
+- **Preview Data:** {
+    "targetSelector": "[specific CSS selector]",
+    "cssModifications": {
+      "property1": "value1",
+      "property2": "value2"
+    },
+    "textChanges": {
+      "originalText": "new text content"
+    },
+    "newElements": "[any HTML to add]"
+  }
 
 CRITICAL REQUIREMENTS:
 
 1. **CODE-READY SOLUTIONS:** Each suggestion must be implementable with client-side code (HTML/CSS/JavaScript only - no backend required)
 
-2. **SPECIFIC SELECTORS:** Hint at likely CSS selectors and DOM elements that would be targeted (e.g., ".product-title", ".add-to-cart-button", ".price-display")
+2. **SPECIFIC SELECTORS FOR PREVIEW:** For each suggestion that modifies visual elements, provide:
+   - **Target Selector:** Exact CSS selector (e.g., ".product-title", "#add-to-cart-btn", ".hero-section h1")
+   - **Preview Modifications:** Specific CSS properties and values for immediate preview application
+   - **HTML Changes:** Any text content or structural changes needed
+   - **JavaScript Requirements:** Behavior changes or dynamic functionality needed
 
-3. **VAULT INTEGRATION:** 
+Output must be in valid JSON format with this exact structure:
+{
+  "suggestions": [
+    {
+      "id": "1.1",
+      "title": "Compelling Title",
+      "approach": "Technical UX | Psychology | Brand Differentiation",
+      "problem_detected": "Specific issue description",
+      "solution_description": "Clear solution",
+      "implementation_method": "Technical approach",
+      "expected_impact": "Quantified estimate",
+      "psychology_insight": "Human behavior explanation",
+      "code_complexity": "Simple CSS | Medium JS | Complex Integration",
+      "unique_factor": "What makes this special",
+      "preview_data": {
+        "targetSelector": ".specific-selector",
+        "cssModifications": {
+          "backgroundColor": "#FF0000",
+          "fontSize": "18px"
+        },
+        "textChanges": {
+          "Buy Now": "Get Started Today"
+        },
+        "newElements": "<span class='badge'>New!</span>"
+      }
+    }
+  ],
+  "meta": {
+    "total_suggestions": 9,
+    "engine_version": "preview-enabled-v1"
+  }
+}
+
+3. **VAULT INTEGRATION:**
    ${vaultMode === 'all' ? `- Leverage ALL vault insights to create personalized suggestions
    - Reference previous test results to avoid repetition and build on learnings
    - Respect brand guidelines and technical constraints
