@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Features } from "@/components/ui/features-8";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -180,57 +181,7 @@ const Landing = () => {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 border-t border-border">
-        <div className="container max-w-5xl mx-auto px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl font-bold text-foreground mb-6">
-              Enterprise-grade experimentation
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built for high-velocity product teams that need reliable, 
-              context-aware testing at scale.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            {[
-              {
-                title: "Universal Integration",
-                description: "Connect any data source or deployment platform. Real-time API connections to analytics, research tools, and testing platforms."
-              },
-              {
-                title: "Contextual Generation",
-                description: "Generate test variations grounded in your business context, user behavior patterns, and organizational knowledge."
-              },
-              {
-                title: "One-Click Deployment",
-                description: "Deploy experiments to any platform instantly. Lightweight SDK with built-in statistical monitoring."
-              },
-              {
-                title: "Automated Documentation",
-                description: "Auto-generate comprehensive test documentation with hypotheses, sample size calculations, and statistical analysis."
-              },
-              {
-                title: "Continuous Learning",
-                description: "Each test result enriches your knowledge base, improving future recommendations and building institutional memory."
-              },
-              {
-                title: "Enterprise Security",
-                description: "SOC 2 compliance, GDPR-ready data handling, on-premise deployment options, and comprehensive audit logging."
-              }
-            ].map((feature, index) => (
-              <div key={index} className="border-l-2 border-border pl-6">
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Features />
 
       {/* Metrics */}
       <section className="py-24 border-t border-border bg-muted/20">
