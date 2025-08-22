@@ -137,13 +137,6 @@ const Landing = () => {
       {/* Platform */}
       <section id="platform" className="py-24 border-t border-border bg-muted/20">
         <div className="container max-w-4xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">
-            Feature : The Intelligence Vault
-          </h2>
-          <p className="text-lg text-muted-foreground mb-16 max-w-2xl mx-auto">
-            A persistent knowledge layer that learns from your data, tests, and results 
-            to generate increasingly sophisticated experiment recommendations.
-          </p>
 
           <div className="bg-background border border-border rounded-lg p-12">
             <div className="w-16 h-16 bg-foreground rounded-lg mx-auto mb-8 flex items-center justify-center">

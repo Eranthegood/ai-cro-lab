@@ -3,8 +3,17 @@ import { Shield, Users } from 'lucide-react'
 
 export function Features() {
     return (
-        <section className="bg-gray-50 py-16 md:py-32 dark:bg-transparent">
+        <section id="features" className="bg-gray-50 py-16 md:py-32 dark:bg-transparent">
             <div className="mx-auto max-w-3xl lg:max-w-5xl px-6">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl font-bold text-foreground mb-6">
+                        Feature : The Intelligence Vault
+                    </h2>
+                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                        A persistent knowledge layer that learns from your data, tests, and results 
+                        to generate increasingly sophisticated experiment recommendations.
+                    </p>
+                </div>
                 <div className="relative">
                     <div className="relative z-10 grid grid-cols-6 gap-3">
                         <Card className="relative col-span-full flex overflow-hidden lg:col-span-2">
