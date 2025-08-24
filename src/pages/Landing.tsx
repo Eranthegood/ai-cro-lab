@@ -97,71 +97,6 @@ const Landing = () => {
           From Data to Ready to Launch AB test in 1 clicks
         </p>
         
-        {/* Pain Points Section */}
-        <div className="w-full max-w-4xl mx-auto mt-16 mb-12">
-          <div className="grid gap-8 md:gap-6">
-            {/* Velocity Crisis */}
-            <div className="text-left p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
-                🚀 CRISE DE VÉLOCITÉ
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• 2-3 semaines de l'insight au test en ligne (devrait être 2-3 jours)</li>
-                <li>• 15h/semaine perdues en analyses manuelles vs travail stratégique</li>
-                <li>• Faible vélocité de test = faible taux d'apprentissage = désavantage concurrentiel</li>
-              </ul>
-            </div>
-
-            {/* Operational Chaos */}
-            <div className="text-left p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
-                🔧 CHAOS OPÉRATIONNEL
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Jongler entre 8-12 outils différents quotidiennement (CS → Excel → Linear → AB Tasty...)</li>
-                <li>• Équipes dev surchargées, tests CRO déprioritisés</li>
-                <li>• Fragmentation des outils tue l'élan et crée des erreurs</li>
-              </ul>
-            </div>
-
-            {/* Analysis Paralysis */}
-            <div className="text-left p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
-                📊 PARALYSIE ANALYTIQUE
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Gouffre temporel pour s'assurer de cibler les bons problèmes</li>
-                <li>• Apprentissages des tests précédents perdus dans les spreadsheets</li>
-                <li>• Tests non soutenus par une base de données quali + quanti solide</li>
-              </ul>
-            </div>
-
-            {/* Organizational Pressure */}
-            <div className="text-left p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
-                🏢 PRESSION ORGANISATIONNELLE
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Pression ROI constante du leadership sur chaque test</li>
-                <li>• Difficile de justifier la valeur du programme de tests</li>
-                <li>• L'AB testing devrait accélérer les décisions, pas les ralentir</li>
-              </ul>
-            </div>
-
-            {/* Scale Limitations */}
-            <div className="text-left p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
-                📈 LIMITES D'ÉCHELLE
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Processus manuels qui ne s'adaptent pas à la croissance de l'entreprise</li>
-                <li>• Expertise CRO concentrée sur 1-2 personnes (goulot d'étranglement)</li>
-                <li>• Problèmes de conformité de marque avec les itérations de tests rapides</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        
         {/* Email form */}
         <form onSubmit={handleEmailSubmit} className="space-y-6">
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -208,6 +143,71 @@ const Landing = () => {
         <p className="text-sm text-muted-foreground">
           Beta testers will have lifetime benefits
         </p>
+        
+        {/* Pain Points Section */}
+        <div className="w-full max-w-4xl mx-auto mt-16 space-y-8">
+          <div className="grid gap-8 md:gap-6">
+            {/* Velocity Crisis */}
+            <div className="text-left p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
+                🚀 VELOCITY CRISIS
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• 2-3 weeks from insight to live test (should be 2-3 days)</li>
+                <li>• 15h/week wasted on manual analysis vs strategic work</li>
+                <li>• Low testing velocity = low learning rate = competitive disadvantage</li>
+              </ul>
+            </div>
+
+            {/* Operational Chaos */}
+            <div className="text-left p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
+                🔧 OPERATIONAL CHAOS
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Juggling 8-12 different tools daily (CS → Excel → Linear → AB Tasty...)</li>
+                <li>• Dev teams overloaded, CRO tests deprioritized</li>
+                <li>• Tool fragmentation kills momentum and creates errors</li>
+              </ul>
+            </div>
+
+            {/* Analysis Paralysis */}
+            <div className="text-left p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
+                📊 ANALYSIS PARALYSIS
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Massive time sink ensuring you're targeting the right issues</li>
+                <li>• Previous test learnings get lost in spreadsheets</li>
+                <li>• Tests not backed by proper qual + quant data foundation</li>
+              </ul>
+            </div>
+
+            {/* Organizational Pressure */}
+            <div className="text-left p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
+                🏢 ORGANIZATIONAL PRESSURE
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Constant ROI pressure from leadership on every test</li>
+                <li>• Hard to justify testing program value</li>
+                <li>• AB testing should drive decisions, not slow them down</li>
+              </ul>
+            </div>
+
+            {/* Scale Limitations */}
+            <div className="text-left p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold text-destructive mb-3 flex items-center">
+                📈 SCALE LIMITATIONS
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Manual processes don't scale with company growth</li>
+                <li>• CRO expertise concentrated in 1-2 people (bottleneck)</li>
+                <li>• Brand compliance issues with rapid test iterations</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
