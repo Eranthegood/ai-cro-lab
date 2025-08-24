@@ -318,48 +318,142 @@ const Landing = () => {
       {/* Bottom Waitlist CTA */}
       <div className="bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="text-center space-y-6 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground">
-              Ready to ship faster?
-            </h2>
-            <p className="text-lg text-primary-foreground/80">
-              Join the waitlist and be the first to experience automated AB testing
-            </p>
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <div className="flex-1">
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isSubmitting || isSubmitted}
-                    className="h-12 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || isSubmitted}
-                  size="lg"
-                  className="h-12 px-6 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Joining...
-                    </>
-                  ) : isSubmitted ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Joined!
-                    </>
-                  ) : (
-                    "Join waitlist"
-                  )}
-                </Button>
+          <div className="space-y-12 max-w-6xl mx-auto">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground mb-6">
+                You need to join this wait list if :
+              </h2>
+            </div>
+            
+            <div className="space-y-8 text-primary-foreground">
+              {/* Analysis Paralysis Over Action */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  Analysis Paralysis Over Action
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "We spend 80% of our time analyzing data and only 20% actually testing hypotheses"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• 15+ hours weekly drowning in Contentsquare exports, heatmaps, and user session recordings</li>
+                  <li>• Manual cross-referencing between analytics tools creates analysis bottlenecks</li>
+                  <li>• Insights get lost in spreadsheets instead of becoming live tests</li>
+                </ul>
               </div>
-            </form>
+
+              {/* Fragmented Decision-Making Process */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  Fragmented Decision-Making Process
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "A/B testing drives every business decision, but our process is scattered across 8+ tools"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• No centralized hub connecting insights → hypotheses → tests → results</li>
+                  <li>• Research findings, test decks, analysis, and roadmaps live in different systems</li>
+                  <li>• Teams work in silos: Analytics finds issues, PM creates hypotheses, Dev builds tests</li>
+                </ul>
+              </div>
+
+              {/* Insight-to-Launch Velocity Crisis */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  Insight-to-Launch Velocity Crisis
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "It takes 2-3 weeks to go from 'we found something interesting' to 'test is live'"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• Manual hypothesis creation from raw data insights</li>
+                  <li>• Time-consuming test specification and design handoffs</li>
+                  <li>• Too much complex feature test, unbalance risk / velocity matrix</li>
+                </ul>
+              </div>
+
+              {/* Data Centralization Challenge */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  Data Centralization Challenge
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "Our best insights are trapped in isolated tools, preventing compound learning"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• Historical test results don't inform new hypothesis generation</li>
+                  <li>• User research insights aren't systematically integrated into test planning</li>
+                  <li>• No learning loop: each test starts from scratch instead of building on previous learnings</li>
+                </ul>
+              </div>
+
+              {/* ROI Pressure vs. Professional Process */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  ROI Pressure vs. Professional Process
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "Leadership demands faster growth, but we lack the systematic process to scale CRO professionally"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• Ad-hoc testing approach limits velocity and learning</li>
+                  <li>• No standardized methodology for hypothesis prioritization</li>
+                  <li>• Difficulty justifying test resource allocation without clear ROI pipeline</li>
+                </ul>
+              </div>
+
+              {/* Scaling Ambitions Require Automation */}
+              <div className="border-l-4 border-primary-foreground/30 pl-6">
+                <h3 className="text-xl font-semibold text-primary-foreground mb-3">
+                  Scaling Ambitions Require Automation
+                </h3>
+                <p className="text-lg italic text-primary-foreground/80 mb-3">
+                  "Our conversion rate goals are ambitious, but manual processes cap our testing velocity"
+                </p>
+                <ul className="space-y-2 text-primary-foreground/70 text-sm">
+                  <li>• Current capacity: 2-3 tests/month vs. need for 8-12 tests/month</li>
+                  <li>• Team bandwidth stretched thin across analysis, execution, and reporting</li>
+                  <li>• Cannot achieve competitive advantage through testing volume with current workflow</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="text-center space-y-6 max-w-2xl mx-auto pt-8">
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                  <div className="flex-1">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting || isSubmitted}
+                      className="h-12 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || isSubmitted}
+                    size="lg"
+                    className="h-12 px-6 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                        Joining...
+                      </>
+                    ) : isSubmitted ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Joined!
+                      </>
+                    ) : (
+                      "Join waitlist"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
