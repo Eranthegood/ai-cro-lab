@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Share, CheckCircle, ArrowRight, Zap, Target, BarChart3, Users, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { FeaturesSectionWithHoverEffects } from '@/components/ui/feature-section-with-hover-effects';
 
 const Landing = () => {
   const [email, setEmail] = useState('');
@@ -260,6 +261,21 @@ const Landing = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* How we solve this Section */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              How we solve this
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Transform your AB testing from manual chaos to automated intelligence
+            </p>
+          </div>
+          <FeaturesSectionWithHoverEffects />
         </div>
       </div>
       
