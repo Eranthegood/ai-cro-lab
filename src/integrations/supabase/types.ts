@@ -744,6 +744,44 @@ export type Database = {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: unknown | null
+          referral_source: string | null
+          user_agent: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: unknown | null
+          referral_source?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: unknown | null
+          referral_source?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_invitations: {
         Row: {
           accepted_at: string | null
@@ -869,6 +907,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_knowledge_base: {
+        Args: { kb_workspace_id: string }
+        Returns: boolean
+      }
       check_workspace_permission: {
         Args: {
           required_role?: string

@@ -1,274 +1,151 @@
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Share, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
 const Landing = () => {
-  const navigate = useNavigate();
-  const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: 'smooth'
-    });
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const { toast } = useToast();
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('waitlist')
+        .insert({
+          email: email.toLowerCase(),
+          referral_source: 'direct',
+          user_agent: navigator.userAgent
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: "Already registered",
+            description: "This email is already on our waitlist!",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        setIsSubmitted(true);
+        toast({
+          title: "Welcome to the waitlist!",
+          description: "You'll be among the first to know when we launch.",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to waitlist:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  return <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
-        <div className="container max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
-          <div className="text-lg font-semibold text-foreground">
-            CRO Intelligence
-          </div>
-          <nav className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollToSection('platform')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Platform
-            </button>
-            <button onClick={() => scrollToSection('features')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-              Get Started
-            </Button>
-          </nav>
-        </div>
-      </header>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-32 overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background"></div>
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Automated AB test Workflow',
+      text: 'From Data to Ready to Launch AB test in 1 clicks. Join the waitlist!',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link copied!",
+          description: "Share this link with others.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="w-full max-w-2xl text-center space-y-8">
+        {/* Main title */}
+        <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
+          Automated AB test Workflow
+        </h1>
         
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)`,
-          backgroundSize: '24px 24px'
-        }}></div>
+        {/* Subtitle */}
+        <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+          From Data to Ready to Launch AB test in 1 clicks
+        </p>
         
-        <div className="container relative max-w-6xl mx-auto px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background/50 backdrop-blur-sm mb-8">
-              <span className="text-sm text-muted-foreground">✨ Intelligence artificielle contextuelle</span>
-            </div>
-            
-            {/* Main headline */}
-            <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-8 leading-[0.9] tracking-tighter">
-              De la donnée au
-              <span className="block bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                test AB
-              </span>
-              <span className="block text-5xl md:text-6xl">en un clic</span>
-            </h1>
-            
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-muted-foreground mb-16 leading-relaxed max-w-3xl mx-auto">
-              Déployez des tests AB puissants et contextuels sur votre site web grâce à l'IA
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-              <Button 
-                size="lg" 
-                onClick={() => navigate('/auth')} 
-                className="text-base px-8 py-6 h-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+        {/* Email form */}
+        <form onSubmit={handleEmailSubmit} className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting || isSubmitted}
+              className="flex-1"
+              required
+            />
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                disabled={isSubmitting || isSubmitted}
+                className="whitespace-nowrap"
               >
-                Demander l'accès
+                {isSubmitting ? (
+                  "Joining..."
+                ) : isSubmitted ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Joined!
+                  </>
+                ) : (
+                  "Wait-list for early adopter"
+                )}
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                onClick={() => scrollToSection('platform')}
-                className="text-base px-8 py-6 h-auto border-border hover:bg-muted/50"
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleShare}
+                title="Share this page"
               >
-                Voir la démo
+                <Share className="w-4 h-4" />
               </Button>
             </div>
-            
-            {/* Social proof */}
-            <div className="flex justify-center items-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <span>Accès anticipé</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <span>50% de réduction</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <span>Support prioritaire</span>
-              </div>
-            </div>
           </div>
-        </div>
+        </form>
         
-        {/* Floating elements */}
-        <div className="absolute top-1/4 left-10 w-20 h-20 bg-primary/5 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-10 w-32 h-32 bg-accent/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
-      </section>
-
-      {/* Results */}
-      <section className="py-24 border-t border-border bg-muted/20">
-        <div className="container max-w-4xl mx-auto px-8 text-center">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">+24.2%</div>
-              <div className="text-sm text-muted-foreground">Augmentation du taux de conversion</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">+9%</div>
-              <div className="text-sm text-muted-foreground">Croissance des visiteurs récurrents</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">87h</div>
-              <div className="text-sm text-muted-foreground">Gagnées par mois</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-foreground">8x</div>
-              <div className="text-sm text-muted-foreground">ROI</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="py-24 border-t border-border">
-        <div className="container max-w-5xl mx-auto px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl font-bold text-foreground mb-6">
-              Most A/B tests fail because they lack context
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Generic testing approaches ignore your business specifics, user behavior patterns, 
-              and organizational knowledge.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-16">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-6">Traditional Testing</h3>
-              <div className="space-y-4">
-                {["Generic best practices", "Manual hypothesis creation", "Isolated from business context", "Low success rates", "Slow iteration cycles"].map((item, index) => <div key={index} className="flex items-start gap-3">
-                    <div className="w-1 h-1 bg-muted-foreground rounded-full mt-3 flex-shrink-0"></div>
-                    <span className="text-muted-foreground">{item}</span>
-                  </div>)}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-6">Context-Aware Testing</h3>
-              <div className="space-y-4">
-                {["Business-specific recommendations", "AI-powered hypothesis generation", "Organizational knowledge integration", "High significance rates", "Rapid experiment cycles"].map((item, index) => <div key={index} className="flex items-start gap-3">
-                    <div className="w-1 h-1 bg-foreground rounded-full mt-3 flex-shrink-0"></div>
-                    <span className="text-foreground">{item}</span>
-                  </div>)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Platform */}
-      <section id="platform" className="py-24 border-t border-border bg-muted/20">
-        
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 border-t border-border">
-        <div className="container max-w-5xl mx-auto px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl font-bold text-foreground mb-6">
-              Enterprise-grade experimentation
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built for high-velocity product teams that need reliable, 
-              context-aware testing at scale.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            {[{
-            title: "Universal Integration",
-            description: "Connect any data source or deployment platform. Real-time API connections to analytics, research tools, and testing platforms."
-          }, {
-            title: "Contextual Generation",
-            description: "Generate test variations grounded in your business context, user behavior patterns, and organizational knowledge."
-          }, {
-            title: "One-Click Deployment",
-            description: "Deploy experiments to any platform instantly. Lightweight SDK with built-in statistical monitoring."
-          }, {
-            title: "Automated Documentation",
-            description: "Auto-generate comprehensive test documentation with hypotheses, sample size calculations, and statistical analysis."
-          }, {
-            title: "Continuous Learning",
-            description: "Each test result enriches your knowledge base, improving future recommendations and building institutional memory."
-          }, {
-            title: "Enterprise Security",
-            description: "SOC 2 compliance, GDPR-ready data handling, on-premise deployment options, and comprehensive audit logging."
-          }].map((feature, index) => <div key={index} className="border-l-2 border-border pl-6">
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics */}
-      <section className="py-24 border-t border-border bg-muted/20">
-        <div className="container max-w-4xl mx-auto px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-6">
-              Performance metrics
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Enterprise infrastructure designed for teams running hundreds of experiments per quarter.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[{
-            number: "<30s",
-            label: "Analysis Time"
-          }, {
-            number: "9",
-            label: "Test Variations"
-          }, {
-            number: "99.9%",
-            label: "Uptime SLA"
-          }, {
-            number: "15+",
-            label: "Integrations"
-          }].map((metric, index) => <div key={index} className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">{metric.number}</div>
-                <div className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
-                  {metric.label}
-                </div>
-              </div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-24 border-t border-border">
-        <div className="container max-w-3xl mx-auto px-8 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-6">
-            Ready to start testing smarter?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-12">
-            Join enterprise teams using context-aware experimentation to build products that perform.
-          </p>
-          
-          <div className="flex justify-center gap-8 mb-12">
-            {["Early Access", "50% Discount", "Setup Training", "Priority Support"].map((benefit, index) => <div key={index} className="text-center">
-                <div className="w-2 h-2 bg-foreground rounded-full mx-auto mb-2"></div>
-                <span className="text-sm text-muted-foreground">{benefit}</span>
-              </div>)}
-          </div>
-          
-          <Button size="lg" onClick={() => navigate('/auth')} className="text-base px-8">
-            Request Access
-          </Button>
-        </div>
-      </section>
-    </div>;
+        {/* Beta benefits message */}
+        <p className="text-sm text-muted-foreground">
+          Beta testers will have lifetime benefits
+        </p>
+      </div>
+    </div>
+  );
 };
+
 export default Landing;
