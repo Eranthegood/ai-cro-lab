@@ -139,7 +139,7 @@ const Landing = () => {
               {/* Secondary CTA */}
               <div className="text-center">
                 <p className="text-info font-medium text-lg cursor-pointer hover:underline">
-                  Start building
+                  Ship faster and better product
                 </p>
               </div>
               
