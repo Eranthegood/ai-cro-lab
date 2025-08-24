@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Share, CheckCircle, ArrowRight, Zap, Target, BarChart3, Users, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { FeaturesSectionWithHoverEffects } from '@/components/ui/feature-section-with-hover-effects';
+import { Feature } from '@/components/ui/feature-with-advantages';
 
 const Landing = () => {
   const [email, setEmail] = useState('');
@@ -305,7 +305,7 @@ const Landing = () => {
               Transform your AB testing from manual chaos to automated intelligence
             </p>
           </div>
-          <FeaturesSectionWithHoverEffects />
+          <Feature />
         </div>
       </div>
       
