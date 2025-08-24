@@ -97,13 +97,6 @@ const Landing = () => {
               Fast Ship
             </div>
           </div>
-          <Button 
-            variant="secondary"
-            size="lg"
-            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-6"
-          >
-            Get a demo
-          </Button>
         </div>
       </nav>
 
@@ -150,7 +143,7 @@ const Landing = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-info-foreground mr-2" />
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
                           Joining...
                         </>
                       ) : isSubmitted ? (
@@ -159,7 +152,7 @@ const Landing = () => {
                           Joined!
                         </>
                       ) : (
-                        "Get a demo"
+                        "Join waitlist"
                       )}
                     </Button>
                     <Button
@@ -311,6 +304,55 @@ const Landing = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom Waitlist CTA */}
+      <div className="bg-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center space-y-6 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground">
+              Ready to ship faster?
+            </h2>
+            <p className="text-lg text-primary-foreground/80">
+              Join the waitlist and be the first to experience automated AB testing
+            </p>
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <div className="flex-1">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting || isSubmitted}
+                    className="h-12 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20"
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isSubmitted}
+                  size="lg"
+                  className="h-12 px-6 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                      Joining...
+                    </>
+                  ) : isSubmitted ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Joined!
+                    </>
+                  ) : (
+                    "Join waitlist"
+                  )}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
