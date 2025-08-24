@@ -111,7 +111,7 @@ const Landing = () => {
           <div className="text-center space-y-8 max-w-4xl mx-auto">
             {/* Main headline */}
             <div className="space-y-4">
-              <h1 className="text-[10rem] sm:text-[12rem] lg:text-[15rem] xl:text-[17.5rem] font-bold text-primary-foreground leading-tight tracking-tight">
+              <h1 className="text-[7rem] sm:text-[8.5rem] lg:text-[10.5rem] xl:text-[12.25rem] font-bold text-primary-foreground leading-tight tracking-tight">
                 Make AB testing
                 <span className="block text-muted-foreground">
                   boring.
