@@ -200,63 +200,93 @@ const Landing = () => {
             </div>
             
             <div className="space-y-8">
-              {/* Velocity Crisis */}
+              {/* Analysis Paralysis Over Action */}
               <div className="border-l-4 border-destructive pl-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  VELOCITY CRISIS
+                  Analysis Paralysis Over Action
                 </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "We spend 80% of our time analyzing data and only 20% actually testing hypotheses"
+                </p>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• 2-3 weeks from insight to live test (should be 2-3 days)</li>
-                  <li>• 15h/week wasted on manual analysis vs strategic work</li>
-                  <li>• Low testing velocity = low learning rate = competitive disadvantage</li>
+                  <li>• 15+ hours weekly drowning in Contentsquare exports, heatmaps, and user session recordings</li>
+                  <li>• Manual cross-referencing between analytics tools creates analysis bottlenecks</li>
+                  <li>• Insights get lost in spreadsheets instead of becoming live tests</li>
                 </ul>
               </div>
 
-              {/* Operational Chaos */}
+              {/* Fragmented Decision-Making Process */}
               <div className="border-l-4 border-warning pl-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  OPERATIONAL CHAOS
+                  Fragmented Decision-Making Process
                 </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "A/B testing drives every business decision, but our process is scattered across 8+ tools"
+                </p>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• Juggling 8-12 different tools daily (CS → Excel → Linear → AB Tasty...)</li>
-                  <li>• Dev teams overloaded, CRO tests deprioritized</li>
-                  <li>• Tool fragmentation kills momentum and creates errors</li>
+                  <li>• No centralized hub connecting insights → hypotheses → tests → results</li>
+                  <li>• Research findings, test decks, analysis, and roadmaps live in different systems</li>
+                  <li>• Teams work in silos: Analytics finds issues, PM creates hypotheses, Dev builds tests</li>
                 </ul>
               </div>
 
-              {/* Analysis Paralysis */}
+              {/* Insight-to-Launch Velocity Crisis */}
               <div className="border-l-4 border-info pl-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  ANALYSIS PARALYSIS
+                  Insight-to-Launch Velocity Crisis
                 </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "It takes 2-3 weeks to go from 'we found something interesting' to 'test is live'"
+                </p>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• Massive time sink ensuring you're targeting the right issues</li>
-                  <li>• Previous test learnings get lost in spreadsheets</li>
-                  <li>• Tests not backed by proper qual + quant data foundation</li>
+                  <li>• Manual hypothesis creation from raw data insights</li>
+                  <li>• Time-consuming test specification and design handoffs</li>
+                  <li>• Too much complex feature test, unbalance risk / velocity matrix</li>
                 </ul>
               </div>
 
-              {/* Organizational Pressure */}
+              {/* Data Centralization Challenge */}
               <div className="border-l-4 border-primary pl-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  ORGANIZATIONAL PRESSURE
+                  Data Centralization Challenge
                 </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "Our best insights are trapped in isolated tools, preventing compound learning"
+                </p>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• Constant ROI pressure from leadership on every test</li>
-                  <li>• Hard to justify testing program value</li>
-                  <li>• AB testing should drive decisions, not slow them down</li>
+                  <li>• Historical test results don't inform new hypothesis generation</li>
+                  <li>• User research insights aren't systematically integrated into test planning</li>
+                  <li>• No learning loop: each test starts from scratch instead of building on previous learnings</li>
                 </ul>
               </div>
 
-              {/* Scale Limitations */}
+              {/* ROI Pressure vs. Professional Process */}
               <div className="border-l-4 border-success pl-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  SCALE LIMITATIONS
+                  ROI Pressure vs. Professional Process
                 </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "Leadership demands faster growth, but we lack the systematic process to scale CRO professionally"
+                </p>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• Manual processes don't scale with company growth</li>
-                  <li>• CRO expertise concentrated in 1-2 people (bottleneck)</li>
-                  <li>• Brand compliance issues with rapid test iterations</li>
+                  <li>• Ad-hoc testing approach limits velocity and learning</li>
+                  <li>• No standardized methodology for hypothesis prioritization</li>
+                  <li>• Difficulty justifying test resource allocation without clear ROI pipeline</li>
+                </ul>
+              </div>
+
+              {/* Scaling Ambitions Require Automation */}
+              <div className="border-l-4 border-accent pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  Scaling Ambitions Require Automation
+                </h3>
+                <p className="text-lg italic text-muted-foreground mb-3">
+                  "Our conversion rate goals are ambitious, but manual processes cap our testing velocity"
+                </p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Current capacity: 2-3 tests/month vs. need for 8-12 tests/month</li>
+                  <li>• Team bandwidth stretched thin across analysis, execution, and reporting</li>
+                  <li>• Cannot achieve competitive advantage through testing volume with current workflow</li>
                 </ul>
               </div>
             </div>
