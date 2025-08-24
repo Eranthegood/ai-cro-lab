@@ -108,9 +108,7 @@ const Landing = () => {
             </div>
             
             {/* Description */}
-            <p className="text-lg sm:text-xl text-primary-foreground/80 leading-relaxed max-w-3xl mx-auto font-light">
-              Automated Ab Test platform for teams to take control of every test—combining data analysis, hypothesis generation, and automated workflows to ship faster, de-risk every experiment, and build without guesswork.
-            </p>
+            <p className="text-lg sm:text-xl leading-relaxed max-w-3xl mx-auto font-light text-slate-50">Automate your AB testing process — combining data analysis, hypothesis generation, ready to deploy AB test and automated workflows to ship faster, de-risk every experiment, and build without guesswork.</p>
             
             {/* CTA Section */}
             <div className="space-y-6 pt-8">
