@@ -188,7 +188,7 @@ const Landing = () => {
       {/* Pain Points Section */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
                 join if your pain points are :
@@ -198,110 +198,65 @@ const Landing = () => {
               </p>
             </div>
             
-            <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+            <div className="space-y-8">
               {/* Velocity Crisis */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-destructive" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      VELOCITY CRISIS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>2-3 weeks from insight to live test (should be 2-3 days)</li>
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>15h/week wasted on manual analysis vs strategic work</li>
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>Low testing velocity = low learning rate = competitive disadvantage</li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="border-l-4 border-destructive pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  VELOCITY CRISIS
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• 2-3 weeks from insight to live test (should be 2-3 days)</li>
+                  <li>• 15h/week wasted on manual analysis vs strategic work</li>
+                  <li>• Low testing velocity = low learning rate = competitive disadvantage</li>
+                </ul>
               </div>
 
               {/* Operational Chaos */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-warning" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      OPERATIONAL CHAOS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Juggling 8-12 different tools daily (CS → Excel → Linear → AB Tasty...)</li>
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Dev teams overloaded, CRO tests deprioritized</li>
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Tool fragmentation kills momentum and creates errors</li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="border-l-4 border-warning pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  OPERATIONAL CHAOS
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Juggling 8-12 different tools daily (CS → Excel → Linear → AB Tasty...)</li>
+                  <li>• Dev teams overloaded, CRO tests deprioritized</li>
+                  <li>• Tool fragmentation kills momentum and creates errors</li>
+                </ul>
               </div>
 
               {/* Analysis Paralysis */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-info" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      ANALYSIS PARALYSIS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Massive time sink ensuring you're targeting the right issues</li>
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Previous test learnings get lost in spreadsheets</li>
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Tests not backed by proper qual + quant data foundation</li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="border-l-4 border-info pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  ANALYSIS PARALYSIS
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Massive time sink ensuring you're targeting the right issues</li>
+                  <li>• Previous test learnings get lost in spreadsheets</li>
+                  <li>• Tests not backed by proper qual + quant data foundation</li>
+                </ul>
               </div>
 
               {/* Organizational Pressure */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      ORGANIZATIONAL PRESSURE
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>Constant ROI pressure from leadership on every test</li>
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>Hard to justify testing program value</li>
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>AB testing should drive decisions, not slow them down</li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="border-l-4 border-primary pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  ORGANIZATIONAL PRESSURE
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Constant ROI pressure from leadership on every test</li>
+                  <li>• Hard to justify testing program value</li>
+                  <li>• AB testing should drive decisions, not slow them down</li>
+                </ul>
               </div>
 
-              {/* Scale Limitations - Full width on larger screens */}
-              <div className="group lg:col-span-2 p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                      <Target className="w-6 h-6 text-success" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      SCALE LIMITATIONS
-                    </h3>
-                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">Manual processes don't scale with company growth</span></div>
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">CRO expertise concentrated in 1-2 people (bottleneck)</span></div>
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">Brand compliance issues with rapid test iterations</span></div>
-                    </div>
-                  </div>
-                </div>
+              {/* Scale Limitations */}
+              <div className="border-l-4 border-success pl-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  SCALE LIMITATIONS
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Manual processes don't scale with company growth</li>
+                  <li>• CRO expertise concentrated in 1-2 people (bottleneck)</li>
+                  <li>• Brand compliance issues with rapid test iterations</li>
+                </ul>
               </div>
             </div>
           </div>
