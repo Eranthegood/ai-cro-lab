@@ -185,123 +185,40 @@ const Landing = () => {
         </div>
       </div>
         
-      {/* Pain Points Section */}
+      {/* Simplified Pain Points Section */}
       <div className="bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-                join if your pain points are :
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="space-y-12">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+                Testing automation
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Enterprise teams are struggling with outdated workflows that slow down innovation
-              </p>
             </div>
             
-            <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
-              {/* Velocity Crisis */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-destructive" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      VELOCITY CRISIS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>2-3 weeks from insight to live test (should be 2-3 days)</li>
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>15h/week wasted on manual analysis vs strategic work</li>
-                      <li className="flex items-start"><span className="text-destructive mr-2 font-semibold">•</span>Low testing velocity = low learning rate = competitive disadvantage</li>
-                    </ul>
-                  </div>
-                </div>
+            <div className="space-y-6 max-w-2xl mx-auto">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-lg text-foreground">From insight to live test in 2-3 days (not weeks)</span>
               </div>
-
-              {/* Operational Chaos */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-warning" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      OPERATIONAL CHAOS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Juggling 8-12 different tools daily (CS → Excel → Linear → AB Tasty...)</li>
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Dev teams overloaded, CRO tests deprioritized</li>
-                      <li className="flex items-start"><span className="text-warning mr-2 font-semibold">•</span>Tool fragmentation kills momentum and creates errors</li>
-                    </ul>
-                  </div>
-                </div>
+              
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-lg text-foreground">Automated hypothesis generation</span>
               </div>
-
-              {/* Analysis Paralysis */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-info" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      ANALYSIS PARALYSIS
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Massive time sink ensuring you're targeting the right issues</li>
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Previous test learnings get lost in spreadsheets</li>
-                      <li className="flex items-start"><span className="text-info mr-2 font-semibold">•</span>Tests not backed by proper qual + quant data foundation</li>
-                    </ul>
-                  </div>
-                </div>
+              
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-lg text-foreground">One-click test deployment</span>
               </div>
-
-              {/* Organizational Pressure */}
-              <div className="group p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      ORGANIZATIONAL PRESSURE
-                    </h3>
-                    <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>Constant ROI pressure from leadership on every test</li>
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>Hard to justify testing program value</li>
-                      <li className="flex items-start"><span className="text-primary mr-2 font-semibold">•</span>AB testing should drive decisions, not slow them down</li>
-                    </ul>
-                  </div>
-                </div>
+              
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-lg text-foreground">Real-time performance monitoring</span>
               </div>
-
-              {/* Scale Limitations - Full width on larger screens */}
-              <div className="group lg:col-span-2 p-6 lg:p-8 rounded-2xl border border-border bg-card gradient-card shadow-professional hover:shadow-elevated transition-all duration-300">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                      <Target className="w-6 h-6 text-success" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      SCALE LIMITATIONS
-                    </h3>
-                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">Manual processes don't scale with company growth</span></div>
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">CRO expertise concentrated in 1-2 people (bottleneck)</span></div>
-                      <div className="flex items-start"><span className="text-success mr-2 font-semibold">•</span><span className="text-sm text-muted-foreground leading-relaxed">Brand compliance issues with rapid test iterations</span></div>
-                    </div>
-                  </div>
-                </div>
+              
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-lg text-foreground">Automated rollbacks when needed</span>
               </div>
             </div>
           </div>
