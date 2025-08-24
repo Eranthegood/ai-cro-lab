@@ -98,7 +98,7 @@ const Landing = () => {
           <Button 
             variant="secondary"
             size="lg"
-            className="bg-info text-info-foreground hover:bg-info/90 font-semibold px-6"
+            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold px-6"
           >
             Get a demo
           </Button>
@@ -121,7 +121,7 @@ const Landing = () => {
             
             {/* Description */}
             <p className="text-lg sm:text-xl text-primary-foreground/80 leading-relaxed max-w-3xl mx-auto font-light">
-              One platform for teams to take control of every test—combining data analysis, hypothesis generation, and automated workflows to ship faster, de-risk every experiment, and build without guesswork.
+              Automated Ab Test platform for teams to take control of every test—combining data analysis, hypothesis generation, and automated workflows to ship faster, de-risk every experiment, and build without guesswork.
             </p>
             
             {/* CTA Section */}
@@ -144,7 +144,7 @@ const Landing = () => {
                       type="submit"
                       disabled={isSubmitting || isSubmitted}
                       size="lg"
-                      className="flex-1 sm:flex-none h-14 px-8 text-base font-semibold bg-info text-info-foreground hover:bg-info/90 transition-all duration-200"
+                      className="flex-1 sm:flex-none h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200"
                     >
                       {isSubmitting ? (
                         <>
@@ -196,7 +196,7 @@ const Landing = () => {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-                The Reality of AB Testing Today
+                join if your pain points are :
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Enterprise teams are struggling with outdated workflows that slow down innovation
