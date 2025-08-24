@@ -89,11 +89,13 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="text-primary-foreground font-bold text-xl">
-              CRO Lab
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary-foreground/10 border border-primary-foreground/20">
+              <div className="w-4 h-4 rounded-sm bg-primary-foreground transform rotate-45"></div>
             </div>
-            <ArrowRight className="w-5 h-5 text-primary-foreground" />
+            <div className="text-primary-foreground font-semibold text-xl tracking-tight">
+              Fast Ship
+            </div>
           </div>
           <Button 
             variant="secondary"
