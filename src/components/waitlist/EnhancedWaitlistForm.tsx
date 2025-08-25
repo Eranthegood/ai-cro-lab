@@ -114,10 +114,6 @@ const EnhancedWaitlistForm = ({
             Continue <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </form>
-
-        <p className="text-xs text-primary-foreground/60 max-w-md mx-auto leading-relaxed">
-          By continuing, you agree to receive updates about our product. Unsubscribe anytime.
-        </p>
       </div>;
   }
   return <div className={`space-y-6 ${className}`}>
