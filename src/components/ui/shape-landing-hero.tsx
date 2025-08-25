@@ -54,7 +54,7 @@ function HeroGeometric({
   badge = "Fast Ship",
   title1 = "Make AB testing",
   title2 = "boring.",
-  description = "From data to ready-to-launch AB test in one click."
+  description = "4x your testing velocity"
 }: {
   badge?: string;
   title1?: string;
