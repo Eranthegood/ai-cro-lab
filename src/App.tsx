@@ -9,6 +9,7 @@ import { ProjectsProvider } from "@/hooks/useProjects";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { BackgroundTaskPanel } from "@/components/notifications/BackgroundTaskPanel";
+import { RandomNotificationWidget } from "@/components/notifications/RandomNotificationWidget";
 import { ChatProvider } from "@/context/ChatContext";
 // import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider"; // Disabled temporarily
 import Landing from "./pages/Landing";
@@ -41,6 +42,7 @@ const App = () => (
                   <Sonner />
                   <BrowserRouter>
                     <BackgroundTaskPanel />
+                    <RandomNotificationWidget />
                     <Routes>
                       <Route path="/" element={<Landing />} />
                       <Route path="/auth" element={<Auth />} />
