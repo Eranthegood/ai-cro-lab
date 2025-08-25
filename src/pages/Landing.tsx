@@ -115,58 +115,18 @@ const Landing = () => {
           </div>
         </div>
       </div>
-
-      {/* What's in it for me Section */}
-      <div className="bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              What's in it for me?
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join early and unlock exclusive benefits that will accelerate your AB testing success
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center space-y-4 p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Lifetime Premium Access</h3>
-              <p className="text-sm text-muted-foreground">Get lifetime access to all premium features worth $299/month - completely free for early adopters</p>
-            </div>
-            
-            <div className="text-center space-y-4 p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Early Access</h3>
-              <p className="text-sm text-muted-foreground">Be among the first to experience the platform before public launch and shape the product roadmap</p>
-            </div>
-            
-            <div className="text-center space-y-4 p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Headphones className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Priority Support</h3>
-              <p className="text-sm text-muted-foreground">Direct line to our team with priority customer support and personalized onboarding assistance</p>
-            </div>
-            
-            <div className="text-center space-y-4 p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-foreground">Influence Roadmap</h3>
-              <p className="text-sm text-muted-foreground">Your feedback directly influences new features and integrations we build next</p>
-            </div>
-          </div>
-        </div>
-      </div>
         
       {/* Pain Points Section */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <p className="text-lg text-muted-foreground">
+                What's in it for me? "Lifetime access to premium feature."
+              </p>
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="flex flex-row gap-6 w-full items-start">
               <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
