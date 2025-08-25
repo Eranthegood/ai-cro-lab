@@ -139,7 +139,7 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
         <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <p className="text-xs text-primary-foreground/60 leading-relaxed">
-            What's in it for me? "Lifetime access to premium feature."
+            What's in it for me? Lifetime access to premium feature.
           </p>
         </div>
       </div>
