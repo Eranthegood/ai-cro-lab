@@ -188,17 +188,9 @@ const Landing = () => {
         </div>
       </div>
       
-      {/* How we solve this Section */}
+      {/* Features Section */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              How we solve this
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transform your AB testing from manual chaos to automated intelligence
-            </p>
-          </div>
           <FeaturesSectionWithHoverEffects />
         </div>
       </div>
