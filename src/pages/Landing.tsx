@@ -111,15 +111,15 @@ const Landing = () => {
               items={[
                 {
                   quarter: "Q3 2025",
-                  title: "Core platform",
+                  title: "Core platform",  
                   description: "Core platform and Multilayers prompts and AI engineered AB-Test.",
-                  status: "upcoming"
+                  status: "done"
                 },
                 {
-                  quarter: "Q4 2025", 
+                  quarter: "Q4 2025",
                   title: "Data is fully exploited by LLM",
                   description: "Fully integrated data set in the vault and vault exploitation by LLM",
-                  status: "upcoming"
+                  status: "in-progress"
                 },
                 {
                   quarter: "Q1 2026",

@@ -44,6 +44,8 @@ export function RoadmapCard({
                 {/* Timeline Dot */}
                 <motion.div
                   whileHover={{ scale: 1.2 }}
+                  animate={item.status === "in-progress" ? { scale: [1, 1.1, 1] } : {}}
+                  transition={item.status === "in-progress" ? { duration: 2, repeat: Infinity } : {}}
                   className={`absolute left-1/2 top-2 -translate-x-1/2 h-4 w-4 rounded-full flex items-center justify-center ${
                     item.status === "done" || item.status === "in-progress"
                       ? "bg-primary"
