@@ -9,6 +9,7 @@ import SocialProofSection from '@/components/waitlist/SocialProofSection';
 import EnhancedWaitlistForm from '@/components/waitlist/EnhancedWaitlistForm';
 import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
+import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,39 +83,14 @@ const Landing = () => {
       console.error('Error sharing:', error);
     }
   };
-  return <div className="min-h-screen bg-primary">
-      {/* Navigation */}
-      <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary-foreground/10 border border-primary-foreground/20">
-              <div className="w-4 h-4 rounded-sm bg-primary-foreground transform rotate-45"></div>
-            </div>
-            <div className="text-primary-foreground font-semibold text-xl tracking-tight">
-              Fast Ship
-            </div>
-          </div>
-        </div>
-      </nav>
-
+  return <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-          <div className="text-center space-y-8">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
-              Make AB testing boring.
-            </h1>
-            
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              From data to ready-to-launch AB test in one click.
-            </p>
-            
-            <div className="pt-8">
-              <EnhancedWaitlistForm />
-            </div>
-          </div>
-        </div>
-      </div>
+      <HeroGeometric 
+        badge="Fast Ship"
+        title1="Make AB testing"
+        title2="boring."
+        description="From data to ready-to-launch AB test in one click."
+      />
         
       {/* Pain Points Section */}
       <div className="bg-background">

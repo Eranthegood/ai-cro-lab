@@ -55,7 +55,7 @@
     "cmdk": "^0.2.0",
     "date-fns": "^2.30.0",
     "embla-carousel-react": "^8.0.0-rc22",
-    "framer-motion": "^10.16.16",
+    "framer-motion": "^12.23.12",
     "input-otp": "^1.2.4",
     "launchdarkly-react-client-sdk": "^3.3.0",
     "lucide-react": "^0.344.0",
