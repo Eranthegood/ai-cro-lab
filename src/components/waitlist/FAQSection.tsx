@@ -25,7 +25,7 @@ const FAQSection = ({ className = "" }: FAQSectionProps) => {
     },
     {
       question: "When will the beta be available?",
-      answer: "We're launching the private beta in Q1 2024 with the first 500 users. Beta participants get lifetime access to premium features, priority support, and the ability to shape our roadmap based on their feedback."
+      answer: "We're launching the private beta in Q1 2026 with the first 500 users. Beta participants get lifetime access to premium features, priority support, and the ability to shape our roadmap based on their feedback."
     },
     {
       question: "What happens to my data?",
