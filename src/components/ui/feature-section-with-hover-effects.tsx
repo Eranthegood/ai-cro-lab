@@ -104,7 +104,7 @@ const Feature = ({
     improvement: string;
   };
 }) => {
-  return <div className="p-6 border border-border rounded-lg hover:border-muted-foreground/20 transition-colors">
+  return <div className="group p-6 border border-border rounded-lg hover:border-muted-foreground/20 transition-colors">
       {/* Title */}
       <h3 className="text-xl font-semibold mb-3">
         {title}
@@ -124,7 +124,10 @@ const Feature = ({
       {/* KPI Improvement */}
       <div className="pt-3 border-t border-border/50">
         <div className="text-sm text-muted-foreground mb-1">Output:</div>
-        <div className="font-semibold text-foreground">{beforeAfter.improvement}</div>
+        <div className="font-semibold text-foreground relative">
+          {beforeAfter.improvement}
+          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+        </div>
       </div>
     </div>;
 };
