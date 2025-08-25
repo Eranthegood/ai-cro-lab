@@ -102,7 +102,23 @@ const EnhancedWaitlistForm = ({
       </div>;
   }
   if (step === 1) {
-    return;
+    return <div className={`space-y-6 ${className}`}>
+        <form onSubmit={handleEmailSubmit} className="space-y-4">
+          <div className="max-w-lg mx-auto">
+            <Input type="email" placeholder="Enter your work email" value={formData.email} onChange={e => setFormData(prev => ({
+            ...prev,
+            email: e.target.value
+          }))} className="h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
+          </div>
+          <Button type="submit" size="lg" className="h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
+            Continue <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </form>
+
+        <p className="text-xs text-primary-foreground/60 max-w-md mx-auto leading-relaxed">
+          By continuing, you agree to receive updates about our product. Unsubscribe anytime.
+        </p>
+      </div>;
   }
   return <div className={`space-y-6 ${className}`}>
       <div className="text-center space-y-2">
