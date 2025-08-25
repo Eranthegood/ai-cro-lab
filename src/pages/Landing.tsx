@@ -10,6 +10,7 @@ import EnhancedWaitlistForm from '@/components/waitlist/EnhancedWaitlistForm';
 import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import TestimonialSection from '@/components/ui/testimonials';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,6 +92,9 @@ const Landing = () => {
         title2="boring."
         description="From data to ready-to-launch AB test in one click."
       />
+
+      {/* Testimonial Section */}
+      <TestimonialSection />
         
       {/* Pain Points Section */}
       <div className="bg-background">
