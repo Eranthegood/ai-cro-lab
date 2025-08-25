@@ -11,6 +11,7 @@ import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 import TestimonialSection from '@/components/ui/testimonials';
+import { RoadmapCard } from '@/components/ui/roadmap-card';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,12 +93,12 @@ const Landing = () => {
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <p className="text-lg text-muted-foreground">
-                What's in it for me? "Lifetime access to premium feature."
-              </p>
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              The challenges you face every day
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Stop losing time and revenue on manual, fragmented AB testing workflows
+            </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="flex flex-row gap-6 w-full items-start">
@@ -192,6 +193,50 @@ const Landing = () => {
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <FeaturesSectionWithHoverEffects />
+        </div>
+      </div>
+
+      {/* Roadmap Section */}
+      <div className="bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Product Roadmap
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Here's what we're building for you
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <RoadmapCard
+              items={[
+                {
+                  quarter: "Q1 2025",
+                  title: "Private Beta",
+                  description: "500 early users, core workflow automation",
+                  status: "in-progress"
+                },
+                {
+                  quarter: "Q2 2025", 
+                  title: "AI Insights",
+                  description: "Automatic hypothesis generation from data",
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q3 2025",
+                  title: "Integrations",
+                  description: "Connect all your existing tools seamlessly", 
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q4 2025",
+                  title: "Enterprise",
+                  description: "Advanced features for scaling teams",
+                  status: "upcoming"
+                }
+              ]}
+            />
+          </div>
         </div>
       </div>
 

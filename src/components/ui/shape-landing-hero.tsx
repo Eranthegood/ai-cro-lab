@@ -118,6 +118,15 @@ function HeroGeometric({
                             <EnhancedWaitlistForm />
                         </div>
                     </motion.div>
+
+                    <motion.div custom={4} variants={fadeUpVariants} initial="hidden" animate="visible">
+                        <div className="flex items-center justify-center gap-3 mt-6">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <p className="text-white/60 text-sm">
+                                What's in it for me? "Lifetime access to premium features."
+                            </p>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
 
