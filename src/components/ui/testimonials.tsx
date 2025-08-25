@@ -10,6 +10,33 @@ export default function TestimonialSection() {
         >
             <div className="py-24">
                 <div className="mx-auto w-full max-w-5xl px-6">
+                    {/* Section Header */}
+                    <motion.div 
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        viewport={{ once: true }}
+                    >
+                        <motion.h2 
+                            className="text-4xl md:text-5xl font-bold mb-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                            viewport={{ once: true }}
+                        >
+                            Test fast, learn fast
+                        </motion.h2>
+                        <motion.p 
+                            className="text-xl text-muted-foreground max-w-2xl mx-auto"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+                            viewport={{ once: true }}
+                        >
+                            4x your testing velocity with automated end to end workflow
+                        </motion.p>
+                    </motion.div>
                     <div className="relative">
                         {/* Velocity Testing Bar Background */}
                         <motion.div 
