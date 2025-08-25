@@ -5,6 +5,10 @@ import { Share, CheckCircle, ArrowRight, Zap, Target, BarChart3, Users, Clock } 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FeaturesSectionWithHoverEffects } from '@/components/ui/feature-section-with-hover-effects';
+import SocialProofSection from '@/components/waitlist/SocialProofSection';
+import EnhancedWaitlistForm from '@/components/waitlist/EnhancedWaitlistForm';
+import TrustSignals from '@/components/waitlist/TrustSignals';
+import FAQSection from '@/components/waitlist/FAQSection';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,42 +114,29 @@ const Landing = () => {
             {/* Description */}
             <p className="text-lg sm:text-xl leading-relaxed max-w-3xl mx-auto font-light text-slate-50">Automate your AB testing process — combining data analysis, hypothesis generation, ready to deploy AB test and automated workflows to ship faster, de-risk every experiment, and build without guesswork.</p>
             
-            {/* CTA Section */}
-            <div className="space-y-6 pt-8">
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                  <div className="flex-1">
-                    <Input type="email" placeholder="Enter your work email" value={email} onChange={e => setEmail(e.target.value)} disabled={isSubmitting || isSubmitted} className="h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
-                  </div>
-                  <div className="flex gap-2 sm:flex-shrink-0">
-                    <Button type="submit" disabled={isSubmitting || isSubmitted} size="lg" className="flex-1 sm:flex-none h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
-                      {isSubmitting ? <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                          Joining...
-                        </> : isSubmitted ? <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Joined!
-                        </> : "Join waitlist"}
-                    </Button>
-                    <Button type="button" variant="ghost" size="lg" onClick={handleShare} title="Share this page" className="h-14 w-14 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200">
-                      <Share className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </form>
+            {/* Enhanced CTA Section */}
+            <div className="space-y-8 pt-8">
+              <EnhancedWaitlistForm />
               
-              {/* Secondary CTA */}
-              <div className="text-center">
-                <p className="text-info font-medium text-lg cursor-pointer hover:underline">
-                  Ship faster and better product
-                </p>
+              {/* Social Proof */}
+              <SocialProofSection />
+              
+              {/* Trust Signals */}
+              <TrustSignals />
+              
+              {/* Share Button */}
+              <div className="flex justify-center">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="lg" 
+                  onClick={handleShare} 
+                  className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200"
+                >
+                  <Share className="w-4 h-4 mr-2" />
+                  Share with your team
+                </Button>
               </div>
-              
-              {/* Beta benefits message */}
-              <p className="text-sm text-primary-foreground/60">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse inline-block mr-2"></span>
-                <strong className="text-primary-foreground">Beta testers</strong> get lifetime benefits and priority access
-              </p>
             </div>
           </div>
         </div>
@@ -265,34 +256,31 @@ const Landing = () => {
           <FeaturesSectionWithHoverEffects />
         </div>
       </div>
+
+      {/* FAQ Section */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <FAQSection />
+        </div>
+      </div>
       
       
       {/* Bottom Waitlist CTA */}
       <div className="bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="text-center space-y-6 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground">
-              Ready to ship faster?
-            </h2>
-            <p className="text-lg text-primary-foreground/80">
-              Join the waitlist and be the first to experience automated AB testing
-            </p>
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <div className="flex-1">
-                  <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} disabled={isSubmitting || isSubmitted} className="h-12 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
-                </div>
-                <Button type="submit" disabled={isSubmitting || isSubmitted} size="lg" className="h-12 px-6 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
-                  {isSubmitting ? <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                      Joining...
-                    </> : isSubmitted ? <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Joined!
-                    </> : "Join waitlist"}
-                </Button>
-              </div>
-            </form>
+          <div className="text-center space-y-8 max-w-2xl mx-auto">
+            <div className="space-y-4">
+              <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground">
+                Ready to ship faster?
+              </h2>
+              <p className="text-lg text-primary-foreground/80">
+                Join the waitlist and be the first to experience automated AB testing
+              </p>
+            </div>
+            
+            <EnhancedWaitlistForm />
+            
+            <TrustSignals className="pt-4" />
           </div>
         </div>
       </div>
