@@ -141,7 +141,7 @@ const Feature = ({
 
       {/* KPI Improvement */}
       <div className="pt-3 border-t border-border/50">
-        <div className="text-sm text-muted-foreground mb-1">KPI Improvement:</div>
+        <div className="text-sm text-muted-foreground mb-1">Output:</div>
         <div className="font-semibold text-foreground">{beforeAfter.improvement}</div>
       </div>
     </div>
