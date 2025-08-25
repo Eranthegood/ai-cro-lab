@@ -86,7 +86,7 @@ const Landing = () => {
   return <div className="min-h-screen">
       {/* Hero Section */}
       <HeroGeometric 
-        badge="Fast Ship"
+        badge="Join Wait list"
         title1="Make AB testing"
         title2="boring."
         description="From data to ready-to-launch AB test in one click."
