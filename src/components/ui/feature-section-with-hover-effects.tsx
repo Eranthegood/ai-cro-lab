@@ -1,8 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import codeSnippet from "@/assets/code-snippet.png";
-import { useEffect, useState } from "react";
-import { loadImageFromUrl, removeBackground } from "@/utils/backgroundRemoval";
 export function FeaturesSectionWithHoverEffects() {
   const features = [{
     title: "Automated End-to-End Workflow",
@@ -107,40 +104,6 @@ const Feature = ({
     improvement: string;
   };
 }) => {
-  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    if (title === "Instant Time-to-Launch") {
-      const processImage = async () => {
-        try {
-          setIsProcessing(true);
-          const imageElement = await loadImageFromUrl(codeSnippet);
-          const processedBlob = await removeBackground(imageElement);
-          const url = URL.createObjectURL(processedBlob);
-          setProcessedImageUrl(url);
-        } catch (error) {
-          console.error('Failed to process image:', error);
-          // Fallback to original image
-          setProcessedImageUrl(codeSnippet);
-        } finally {
-          setIsProcessing(false);
-        }
-      };
-
-      processImage();
-    }
-  }, [title]);
-
-  useEffect(() => {
-    // Cleanup URL when component unmounts or processedImageUrl changes
-    return () => {
-      if (processedImageUrl && processedImageUrl !== codeSnippet) {
-        URL.revokeObjectURL(processedImageUrl);
-      }
-    };
-  }, [processedImageUrl]);
-
   return (
     <article 
       className="group p-8 border border-border rounded-xl hover:border-muted-foreground/20 hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20"
@@ -176,27 +139,9 @@ const Feature = ({
         role="section" 
         aria-label="Expected output"
       >
-        {/* Code Image for Instant Time-to-Launch - above title */}
-        {title === "Instant Time-to-Launch" && (
-          <div className="mb-3 overflow-hidden rounded-md p-2">
-            {isProcessing ? (
-              <div className="w-full h-16 bg-muted/30 rounded animate-pulse flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">Processing...</span>
-              </div>
-            ) : (
-              <img 
-                src={processedImageUrl || codeSnippet} 
-                alt="JavaScript code snippet for test deployment"
-                className="w-full h-16 object-cover"
-              />
-            )}
-          </div>
-        )}
-        
         <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
           Output:
         </div>
-        
         <div className="font-bold text-foreground text-lg relative">
           {beforeAfter.improvement}
           <span 
