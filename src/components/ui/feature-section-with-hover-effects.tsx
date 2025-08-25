@@ -74,16 +74,16 @@ export function FeaturesSectionWithHoverEffects() {
       improvement: "95% faster cycles"
     }
   }];
-  return <div className="py-20 lg:py-40">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
+  return <div className="py-12 sm:py-20 lg:py-40">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 sm:mb-16">
           <Badge className="mb-4">Our Solution</Badge>
-          <h2 className="text-3xl md:text-5xl font-regular tracking-tighter mb-6">From insight to live test in minutes, not weeks. That's the velocity modern CRO teams need.</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-regular tracking-tighter mb-4 sm:mb-6 px-4 sm:px-0">From insight to live test in minutes, not weeks. That's the velocity modern CRO teams need.</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
             The competitive advantage isn't better insights—it's faster execution.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto gap-4 sm:gap-6">
           {features.map(feature => <Feature key={feature.title} {...feature} />)}
         </div>
       </div>
@@ -106,43 +106,43 @@ const Feature = ({
 }) => {
   return (
     <article 
-      className="group p-8 border border-border rounded-xl hover:border-muted-foreground/20 hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20"
+      className="group p-4 sm:p-6 lg:p-8 border border-border rounded-xl hover:border-muted-foreground/20 hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20"
       role="article"
       aria-labelledby={`feature-${title.replace(/\s+/g, '-').toLowerCase()}`}
     >
       {/* Title */}
       <h3 
         id={`feature-${title.replace(/\s+/g, '-').toLowerCase()}`}
-        className="text-xl font-semibold mb-4 text-foreground leading-tight"
+        className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground leading-tight"
       >
         {title}
       </h3>
 
       {/* Pain Point */}
-      <div className="mb-6" role="section" aria-label="Pain point addressed">
-        <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+      <div className="mb-4 sm:mb-6" role="section" aria-label="Pain point addressed">
+        <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
           Pain Point:
         </div>
-        <div className="text-foreground font-medium leading-relaxed">
+        <div className="text-sm sm:text-base text-foreground font-medium leading-relaxed">
           {solves}
         </div>
       </div>
 
       {/* Solution Description */}
-      <p className="text-muted-foreground mb-6 leading-relaxed text-base">
+      <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
         {description}
       </p>
 
       {/* KPI Improvement */}
       <div 
-        className="pt-4 border-t border-border/50" 
+        className="pt-3 sm:pt-4 border-t border-border/50" 
         role="section" 
         aria-label="Expected output"
       >
-        <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+        <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
           Output:
         </div>
-        <div className="font-bold text-foreground text-lg relative">
+        <div className="font-bold text-foreground text-base sm:text-lg relative">
           {beforeAfter.improvement}
           <span 
             className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"
