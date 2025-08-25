@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import vscodeJavascript from "@/assets/vscode-javascript.png";
 export function FeaturesSectionWithHoverEffects() {
   const features = [{
     title: "Automated End-to-End Workflow",
@@ -142,6 +143,18 @@ const Feature = ({
         <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
           Output:
         </div>
+        
+        {/* Code Image for Instant Time-to-Launch */}
+        {title === "Instant Time-to-Launch" && (
+          <div className="mb-4 overflow-hidden rounded-lg border border-border/20">
+            <img 
+              src={vscodeJavascript} 
+              alt="Visual Studio Code interface showing JavaScript deployment code"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
+        
         <div className="font-bold text-foreground text-lg relative">
           {beforeAfter.improvement}
           <span 
