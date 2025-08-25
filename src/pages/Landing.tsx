@@ -143,7 +143,10 @@ const Landing = () => {
               
               {/* Beta benefits message */}
               <p className="text-sm text-primary-foreground/60">
-                <strong className="text-primary-foreground">Beta testers</strong> get lifetime benefits and priority access
+                <strong className="text-primary-foreground flex items-center gap-2">
+                  Beta testers
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                </strong> get lifetime benefits and priority access
               </p>
             </div>
           </div>
