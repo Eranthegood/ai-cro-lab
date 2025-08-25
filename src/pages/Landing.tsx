@@ -100,7 +100,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Product Roadmap
+              Roadmap
             </h2>
             <p className="text-lg text-muted-foreground">
               Here's what we're building for you
@@ -110,27 +110,33 @@ const Landing = () => {
             <RoadmapCard
               items={[
                 {
-                  quarter: "Q1 2025",
-                  title: "Private Beta",
-                  description: "500 early users, core workflow automation",
-                  status: "in-progress"
-                },
-                {
-                  quarter: "Q2 2025", 
-                  title: "AI Insights",
-                  description: "Automatic hypothesis generation from data",
-                  status: "upcoming"
-                },
-                {
                   quarter: "Q3 2025",
-                  title: "Integrations",
-                  description: "Connect all your existing tools seamlessly", 
+                  title: "Core platform",
+                  description: "Core platform and Multilayers prompts and AI engineered AB-Test.",
                   status: "upcoming"
                 },
                 {
-                  quarter: "Q4 2025",
-                  title: "Enterprise",
-                  description: "Advanced features for scaling teams",
+                  quarter: "Q4 2025", 
+                  title: "Data is fully exploited by LLM",
+                  description: "Fully integrated data set in the vault and vault exploitation by LLM",
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q1 2026",
+                  title: "Ready to deployed AB-test",
+                  description: "Cursor and Vibecoding preview with fully compatible codebase compliant.", 
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q2 2026",
+                  title: "Launch !",
+                  description: "",
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q3 2026",
+                  title: "100% automated workflow",
+                  description: "Fully AB test workflow integrated (Backlog, roadmap, archive, auto-deck)",
                   status: "upcoming"
                 }
               ]}
