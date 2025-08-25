@@ -10,6 +10,7 @@ import EnhancedWaitlistForm from '@/components/waitlist/EnhancedWaitlistForm';
 import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import TestimonialSection from '@/components/ui/testimonials';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -201,6 +202,9 @@ const Landing = () => {
           <FeaturesSectionWithHoverEffects />
         </div>
       </div>
+
+      {/* Testimonial Section */}
+      <TestimonialSection />
 
       {/* FAQ Section */}
       <div className="bg-background">
