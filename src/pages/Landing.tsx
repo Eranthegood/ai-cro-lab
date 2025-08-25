@@ -294,7 +294,12 @@ const Landing = () => {
             
             <EnhancedWaitlistForm />
             
-            <TrustSignals className="pt-4" />
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <p className="text-sm text-primary-foreground/70">
+                Lifetime access to premium features
+              </p>
+            </div>
           </div>
         </div>
       </div>
