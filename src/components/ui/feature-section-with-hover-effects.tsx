@@ -104,30 +104,52 @@ const Feature = ({
     improvement: string;
   };
 }) => {
-  return <div className="group p-6 border border-border rounded-lg hover:border-muted-foreground/20 transition-colors">
+  return (
+    <article 
+      className="group p-8 border border-border rounded-xl hover:border-muted-foreground/20 hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20"
+      role="article"
+      aria-labelledby={`feature-${title.replace(/\s+/g, '-').toLowerCase()}`}
+    >
       {/* Title */}
-      <h3 className="text-xl font-semibold mb-3">
+      <h3 
+        id={`feature-${title.replace(/\s+/g, '-').toLowerCase()}`}
+        className="text-xl font-semibold mb-4 text-foreground leading-tight"
+      >
         {title}
       </h3>
 
       {/* Pain Point */}
-      <div className="mb-4">
-        <div className="text-sm text-muted-foreground mb-1">Pain Point:</div>
-        <div className="text-foreground">{solves}</div>
+      <div className="mb-6" role="section" aria-label="Pain point addressed">
+        <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+          Pain Point:
+        </div>
+        <div className="text-foreground font-medium leading-relaxed">
+          {solves}
+        </div>
       </div>
 
       {/* Solution Description */}
-      <p className="text-muted-foreground mb-4 leading-relaxed">
+      <p className="text-muted-foreground mb-6 leading-relaxed text-base">
         {description}
       </p>
 
       {/* KPI Improvement */}
-      <div className="pt-3 border-t border-border/50">
-        <div className="text-sm text-muted-foreground mb-1">Output:</div>
-        <div className="font-semibold text-foreground relative">
+      <div 
+        className="pt-4 border-t border-border/50" 
+        role="section" 
+        aria-label="Expected output"
+      >
+        <div className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+          Output:
+        </div>
+        <div className="font-bold text-foreground text-lg relative">
           {beforeAfter.improvement}
-          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></span>
+          <span 
+            className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"
+            aria-hidden="true"
+          ></span>
         </div>
       </div>
-    </div>;
+    </article>
+  );
 };
