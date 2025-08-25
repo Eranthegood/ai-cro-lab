@@ -80,7 +80,7 @@ export function FeaturesSectionWithHoverEffects() {
           <Badge className="mb-4">Our Solution</Badge>
           <h2 className="text-3xl md:text-5xl font-regular tracking-tighter mb-6">From insight to live test in minutes, not weeks. That's the velocity modern CRO teams need.</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Each feature directly addresses a specific pain point, transforming your CRO workflow from manual to automated
+            The competitive advantage isn't better insights—it's faster execution.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto gap-6">
