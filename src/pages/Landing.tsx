@@ -11,6 +11,7 @@ import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 import TestimonialSection from '@/components/ui/testimonials';
+import { RoadmapCard } from '@/components/ui/roadmap-card';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +101,56 @@ const Landing = () => {
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-16 sm:pb-20">
           <FeaturesSectionWithHoverEffects />
+        </div>
+      </div>
+
+      {/* Roadmap Section */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Our Roadmap</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Here's what we're building to revolutionize AB testing automation
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <RoadmapCard
+              title="Development Timeline"
+              description="Key milestones on our journey to automated AB testing"
+              items={[
+                {
+                  quarter: "Q3 2025",
+                  title: "Core Platform",
+                  description: "Core platform and multi-layer prompts with AI-engineered AB-Tests",
+                  status: "upcoming",
+                },
+                {
+                  quarter: "Q4 2025",
+                  title: "Data Fully Exploited by LLM",
+                  description: "Fully integrated dataset in the vault and vault exploitation by LLM",
+                  status: "upcoming",
+                },
+                {
+                  quarter: "Q1 2026",
+                  title: "Ready-to-Deploy AB-Tests",
+                  description: "Cursor and Vibecoding preview with fully compatible and compliant codebase",
+                  status: "upcoming",
+                },
+                {
+                  quarter: "Q2 2026",
+                  title: "Launch!",
+                  description: "Official launch of the automated AB testing platform",
+                  status: "upcoming",
+                },
+                {
+                  quarter: "Q3 2026",
+                  title: "100% Automated Workflow",
+                  description: "Fully integrated AB test workflow (backlog, roadmap, archive, auto-deck)",
+                  status: "upcoming",
+                },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
