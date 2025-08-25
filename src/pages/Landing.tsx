@@ -99,44 +99,18 @@ const Landing = () => {
 
       {/* Hero Section */}
       <div className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-32">
-          <div className="text-center space-y-8 max-w-4xl mx-auto">
-            {/* Main headline */}
-            <div className="space-y-4">
-            <h1 className="text-[3.5rem] sm:text-[4.25rem] lg:text-[5.25rem] xl:text-[6.125rem] font-bold text-primary-foreground leading-tight tracking-tight">
-              Make AB testing
-                <span className="block text-muted-foreground">
-                  boring.
-                </span>
-              </h1>
-            </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+          <div className="text-center space-y-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
+              Make AB testing boring.
+            </h1>
             
-            {/* Description */}
-            <p className="text-lg sm:text-xl leading-relaxed max-w-3xl mx-auto font-light text-slate-50">Automate your AB testing process — combining data analysis, hypothesis generation, ready to deploy AB test and automated workflows to ship faster, de-risk every experiment, and build without guesswork.</p>
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+              From data to ready-to-launch AB test in one click.
+            </p>
             
-            {/* Enhanced CTA Section */}
-            <div className="space-y-8 pt-8">
+            <div className="pt-8">
               <EnhancedWaitlistForm />
-              
-              {/* Social Proof */}
-              <SocialProofSection />
-              
-              {/* Trust Signals */}
-              <TrustSignals />
-              
-              {/* Share Button */}
-              <div className="flex justify-center">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="lg" 
-                  onClick={handleShare} 
-                  className="text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-200"
-                >
-                  <Share className="w-4 h-4 mr-2" />
-                  Share with your team
-                </Button>
-              </div>
             </div>
           </div>
         </div>
