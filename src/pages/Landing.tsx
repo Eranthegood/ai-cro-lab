@@ -10,8 +10,6 @@ import EnhancedWaitlistForm from '@/components/waitlist/EnhancedWaitlistForm';
 import TrustSignals from '@/components/waitlist/TrustSignals';
 import FAQSection from '@/components/waitlist/FAQSection';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
-import TestimonialSection from '@/components/ui/testimonials';
-import { RoadmapCard } from '@/components/ui/roadmap-card';
 const Landing = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,70 +85,120 @@ const Landing = () => {
   };
   return <div className="min-h-screen">
       {/* Hero Section */}
-      <HeroGeometric 
-        badge="Join Wait list"
-        title1="Make AB testing"
-        title2="boring."
-        description="From data to ready-to-launch AB test in one click."
-      />
-
-      {/* Testimonial Section */}
-      <TestimonialSection />
+      <HeroGeometric badge="Join Wait list" title1="Make AB testing" title2="boring." description="From data to ready-to-launch AB test in one click." />
         
-      {/* How we solve this Section */}
-      <div className="bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-16 sm:pb-20">
-          <FeaturesSectionWithHoverEffects />
-        </div>
-      </div>
-
-      {/* Roadmap Section */}
+      {/* Pain Points Section */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Our Roadmap</h2>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <p className="text-lg text-muted-foreground">
+                What's in it for me? "Lifetime access to premium feature."
+              </p>
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="flex flex-row gap-6 w-full items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "We spend 80% of our time analyzing data and only 20% actually testing hypotheses"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• 15+ hours weekly drowning in Contentsquare exports, heatmaps, and user session recordings</li>
+                  <li>• Manual cross-referencing between analytics tools creates analysis bottlenecks</li>
+                  <li>• Insights get lost in spreadsheets instead of becoming live tests</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-row gap-6 items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-foreground">Fragmented Decision-Making Process</p>
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "A/B testing drives every business decision, but our process is scattered across 8+ tools"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• No centralized hub connecting insights → hypotheses → tests → results</li>
+                  <li>• Research findings, test decks, analysis, and roadmaps live in different systems</li>
+                  <li>• Teams work in silos: Analytics finds issues, PM creates hypotheses, Dev builds tests</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-row gap-6 items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-foreground">Insight-to-Launch Velocity Crisis</p>
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "It takes 2-3 weeks to go from 'we found something interesting' to 'test is live'"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• Manual hypothesis creation from raw data insights</li>
+                  <li>• Time-consuming test specification and design handoffs</li>
+                  <li>• Too much complex feature test, unbalance risk / velocity matrix</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-row gap-6 w-full items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-foreground">Data Centralization Challenge</p>
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "Our best insights are trapped in isolated tools, preventing compound learning"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• Historical test results don't inform new hypothesis generation</li>
+                  <li>• User research insights aren't systematically integrated into test planning</li>
+                  <li>• No learning loop: each test starts from scratch instead of building on previous learnings</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-row gap-6 items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-foreground">ROI Pressure vs. Professional Process</p>
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "Leadership demands faster growth, but we lack the systematic process to scale CRO professionally"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• Ad-hoc testing approach limits velocity and learning</li>
+                  <li>• No standardized methodology for hypothesis prioritization</li>
+                  <li>• Difficulty justifying test resource allocation without clear ROI pipeline</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-row gap-6 items-start">
+              <CheckCircle className="w-5 h-5 mt-2 text-primary flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-foreground">Scaling Ambitions Require Automation</p>
+                <p className="text-muted-foreground text-sm italic mb-2">
+                  "Our conversion rate goals are ambitious, but manual processes cap our testing velocity"
+                </p>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• Current capacity: 2-3 tests/month vs. need for 8-12 tests/month</li>
+                  <li>• Team bandwidth stretched thin across analysis, execution, and reporting</li>
+                  <li>• Cannot achieve competitive advantage through testing volume with current workflow</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* How we solve this Section */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              How we solve this
+            </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Here's what we're building to revolutionize AB testing automation
+              Transform your AB testing from manual chaos to automated intelligence
             </p>
           </div>
-          <div className="flex justify-center">
-            <RoadmapCard
-              title="Development Timeline"
-              description="Key milestones on our journey to automated AB testing"
-              items={[
-                {
-                  quarter: "Q3 2025",
-                  title: "Core Platform",
-                  description: "Core platform and multi-layer prompts with AI-engineered AB-Tests",
-                  status: "upcoming",
-                },
-                {
-                  quarter: "Q4 2025",
-                  title: "Data Fully Exploited by LLM",
-                  description: "Fully integrated dataset in the vault and vault exploitation by LLM",
-                  status: "upcoming",
-                },
-                {
-                  quarter: "Q1 2026",
-                  title: "Ready-to-Deploy AB-Tests",
-                  description: "Cursor and Vibecoding preview with fully compatible and compliant codebase",
-                  status: "upcoming",
-                },
-                {
-                  quarter: "Q2 2026",
-                  title: "Launch!",
-                  description: "Official launch of the automated AB testing platform",
-                  status: "upcoming",
-                },
-                {
-                  quarter: "Q3 2026",
-                  title: "100% Automated Workflow",
-                  description: "Fully integrated AB test workflow (backlog, roadmap, archive, auto-deck)",
-                  status: "upcoming",
-                },
-              ]}
-            />
-          </div>
+          <FeaturesSectionWithHoverEffects />
         </div>
       </div>
 
