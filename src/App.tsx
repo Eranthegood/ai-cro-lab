@@ -42,7 +42,7 @@ const App = () => (
                   <Sonner />
                   <BrowserRouter>
                     <BackgroundTaskPanel />
-                    <RandomNotificationWidget />
+                    <RandomNotificationWidget maxDelay={60} />
                     <Routes>
                       <Route path="/" element={<Landing />} />
                       <Route path="/auth" element={<Auth />} />
