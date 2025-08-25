@@ -5,20 +5,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
 interface FormData {
   email: string;
   companySize: string;
   role: string;
   currentTools: string;
 }
-
 interface EnhancedWaitlistFormProps {
   onSuccess?: () => void;
   className?: string;
 }
-
-const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFormProps) => {
+const EnhancedWaitlistForm = ({
+  onSuccess,
+  className = ""
+}: EnhancedWaitlistFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     companySize: '',
@@ -28,8 +28,9 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [step, setStep] = useState(1); // 1: email, 2: qualification
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.email.includes('@')) {
@@ -42,13 +43,13 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
     }
     setStep(2);
   };
-
   const handleQualificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const { error } = await supabase.from('waitlist').insert({
+      const {
+        error
+      } = await supabase.from('waitlist').insert({
         email: formData.email.toLowerCase(),
         referral_source: 'enhanced_form',
         user_agent: JSON.stringify({
@@ -58,7 +59,6 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
           currentTools: formData.currentTools
         })
       });
-
       if (error) {
         if (error.code === '23505') {
           toast({
@@ -87,10 +87,8 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
       setIsSubmitting(false);
     }
   };
-
   if (isSubmitted) {
-    return (
-      <div className={`space-y-6 text-center ${className}`}>
+    return <div className={`space-y-6 text-center ${className}`}>
         <div className="flex items-center justify-center w-16 h-16 mx-auto bg-success/20 rounded-full">
           <CheckCircle className="w-8 h-8 text-success" />
         </div>
@@ -100,54 +98,29 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
             We'll keep you updated on our progress and give you priority access when we launch.
           </p>
         </div>
-        <div className="bg-primary-foreground/10 rounded-lg p-4 space-y-2">
-          <h4 className="font-medium text-primary-foreground">What happens next?</h4>
-          <ul className="text-sm text-primary-foreground/80 space-y-1 text-left">
-            <li>• Get exclusive beta access (limited to first 500 users)</li>
-            <li>• Receive weekly insights on AB testing automation</li>
-            <li>• Free consultation on your current testing workflow</li>
-            <li>• Lifetime discount on our premium features</li>
-          </ul>
-        </div>
-      </div>
-    );
+        
+      </div>;
   }
-
   if (step === 1) {
-    return (
-      <div className={`space-y-6 ${className}`}>
+    return <div className={`space-y-6 ${className}`}>
         <form onSubmit={handleEmailSubmit} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-            <Input
-              type="email"
-              placeholder="Enter your work email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20 flex-1"
-              required
-            />
-            <Button
-              type="submit"
-              size="lg"
-              className="h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200 whitespace-nowrap"
-            >
-              Continue <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+          <div className="max-w-lg mx-auto">
+            <Input type="email" placeholder="Enter your work email" value={formData.email} onChange={e => setFormData(prev => ({
+            ...prev,
+            email: e.target.value
+          }))} className="h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
           </div>
+          <Button type="submit" size="lg" className="h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
+            Continue <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </form>
 
-        <div className="flex items-center justify-center gap-2 max-w-md mx-auto">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <p className="text-xs text-primary-foreground/60 leading-relaxed">
-            What's in it for me? Lifetime access to premium feature.
-          </p>
-        </div>
-      </div>
-    );
+        <p className="text-xs text-primary-foreground/60 max-w-md mx-auto leading-relaxed">
+          By continuing, you agree to receive updates about our product. Unsubscribe anytime.
+        </p>
+      </div>;
   }
-
-  return (
-    <div className={`space-y-6 ${className}`}>
+  return <div className={`space-y-6 ${className}`}>
       <div className="text-center space-y-2">
         <h3 className="text-lg font-semibold text-primary-foreground">
           Tell us about your workflow
@@ -158,7 +131,10 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
       </div>
 
       <form onSubmit={handleQualificationSubmit} className="space-y-4 max-w-md mx-auto">
-        <Select onValueChange={(value) => setFormData(prev => ({ ...prev, companySize: value }))}>
+        <Select onValueChange={value => setFormData(prev => ({
+        ...prev,
+        companySize: value
+      }))}>
           <SelectTrigger className="h-12 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
             <SelectValue placeholder="Company size" />
           </SelectTrigger>
@@ -169,7 +145,10 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+        <Select onValueChange={value => setFormData(prev => ({
+        ...prev,
+        role: value
+      }))}>
           <SelectTrigger className="h-12 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
             <SelectValue placeholder="Your role" />
           </SelectTrigger>
@@ -183,7 +162,10 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(value) => setFormData(prev => ({ ...prev, currentTools: value }))}>
+        <Select onValueChange={value => setFormData(prev => ({
+        ...prev,
+        currentTools: value
+      }))}>
           <SelectTrigger className="h-12 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
             <SelectValue placeholder="Primary AB testing tool" />
           </SelectTrigger>
@@ -198,31 +180,17 @@ const EnhancedWaitlistForm = ({ onSuccess, className = "" }: EnhancedWaitlistFor
           </SelectContent>
         </Select>
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          size="lg"
-          className="w-full h-12 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200"
-        >
-          {isSubmitting ? (
-            <>
+        <Button type="submit" disabled={isSubmitting} size="lg" className="w-full h-12 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
+          {isSubmitting ? <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
               Joining waitlist...
-            </>
-          ) : (
-            "Join waitlist"
-          )}
+            </> : "Join waitlist"}
         </Button>
       </form>
 
-      <button
-        onClick={() => setStep(1)}
-        className="text-sm text-primary-foreground/60 hover:text-primary-foreground/80 underline"
-      >
+      <button onClick={() => setStep(1)} className="text-sm text-primary-foreground/60 hover:text-primary-foreground/80 underline">
         ← Back to email
       </button>
-    </div>
-  );
+    </div>;
 };
-
 export default EnhancedWaitlistForm;
