@@ -110,7 +110,7 @@ const EnhancedWaitlistForm = ({
             email: e.target.value
           }))} className="flex-1 h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
             <Button type="submit" size="lg" className="h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
-              Continue <ArrowRight className="w-4 h-4 ml-2" />
+              Join wait list <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </form>
