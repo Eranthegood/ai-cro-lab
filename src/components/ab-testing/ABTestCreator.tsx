@@ -24,6 +24,7 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
   const { files, uploading, uploadFile } = useSimpleVault();
   const [pageUrl, setPageUrl] = useState('');
   const [goalType, setGoalType] = useState('conversion');
+  const [pageType, setPageType] = useState('homepage');
   const [useVaultKnowledge, setUseVaultKnowledge] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [businessContext, setBusinessContext] = useState('');
@@ -112,13 +113,14 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
     try {
       const analysisData = {
         pageUrl,
+        pageType,
         goalType,
         businessContext,
         currentPain,
         useVaultKnowledge,
         selectedFiles: filesToAnalyze,
         context: {
-          pageType: determinePageType(pageUrl),
+          pageType: pageType, // Use selected page type instead of URL analysis
           brand: extractBrandFromUrl(pageUrl),
           industry: extractIndustryFromUrl(pageUrl)
         },
@@ -315,7 +317,7 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
           <CardTitle>Configuration du test</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="page-url">URL de la page *</Label>
               <Input
@@ -328,14 +330,43 @@ export const ABTestCreator = ({ onDataUploaded }: ABTestCreatorProps) => {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="page-type">Type de page *</Label>
+              <Select value={pageType} onValueChange={setPageType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background border-border z-50 max-h-60 overflow-y-auto">
+                  <SelectItem value="homepage">🏠 Page d'accueil</SelectItem>
+                  <SelectItem value="listing">📂 Page de catégorie/listing</SelectItem>
+                  <SelectItem value="product">📦 Page produit</SelectItem>
+                  <SelectItem value="search">🔍 Page de recherche</SelectItem>
+                  <SelectItem value="cart">🛒 Page panier</SelectItem>
+                  <SelectItem value="checkout">💳 Page de checkout</SelectItem>
+                  <SelectItem value="shipping">🚚 Page de livraison</SelectItem>
+                  <SelectItem value="payment">💰 Page de paiement</SelectItem>
+                  <SelectItem value="pricing">🏷️ Page de prix</SelectItem>
+                  <SelectItem value="signup">✍️ Page d'inscription</SelectItem>
+                  <SelectItem value="login">🔐 Page de connexion</SelectItem>
+                  <SelectItem value="contact">📞 Page de contact</SelectItem>
+                  <SelectItem value="about">ℹ️ Page à propos</SelectItem>
+                  <SelectItem value="blog">📝 Blog/Article</SelectItem>
+                  <SelectItem value="landing">🎯 Landing page</SelectItem>
+                  <SelectItem value="dashboard">📊 Dashboard</SelectItem>
+                  <SelectItem value="other">📄 Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="goal-type">Objectif principal</Label>
               <Select value={goalType} onValueChange={setGoalType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border z-50">
                   <SelectItem value="conversion">🎯 Augmenter le taux de conversion</SelectItem>
                   <SelectItem value="cart">🛒 Réduire l'abandon de panier</SelectItem>
+                  <SelectItem value="add-to-cart">🛍️ Augmenter l'ajout au panier</SelectItem>
                   <SelectItem value="form">📝 Améliorer la completion de formulaires</SelectItem>
                   <SelectItem value="ctr">👆 Augmenter le taux de clic</SelectItem>
                   <SelectItem value="engagement">⏱️ Améliorer l'engagement</SelectItem>
