@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles, Download, FileText, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,12 +55,11 @@ interface Suggestion {
 
 interface ABTestSuggestionsProps {
   data: any;
-  onSuggestionSelected: (suggestion: Suggestion) => void;
   onBack: () => void;
   onRegenerateRequested?: (iterationCount: number) => void;
 }
 
-export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegenerateRequested }: ABTestSuggestionsProps) => {
+export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTestSuggestionsProps) => {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -182,9 +181,34 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
     }
   };
 
-  const SuggestionCard = ({ suggestion, onSelect }: {
+  const exportSuggestions = () => {
+    const exportData = {
+      pageUrl: data.pageUrl,
+      goalType: data.goalType,
+      analysisDate: new Date().toISOString(),
+      suggestions: suggestions.map(s => ({
+        title: s.title,
+        approach: s.approach,
+        problem: s.problem_detected || s.problem,
+        solution: s.solution_description || s.solution,
+        psychologyInsight: s.psychology_insight || s.psychologyInsight,
+        expectedImpact: s.expected_impact || s.expectedImpact,
+        difficulty: s.difficulty || s.code_complexity
+      }))
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ab-test-suggestions-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const SuggestionCard = ({ suggestion }: {
   suggestion: Suggestion;
-  onSelect: (suggestion: Suggestion) => void;
 }) => (
   <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border-border/50">
     <CardHeader className="pb-4">
@@ -237,13 +261,6 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
              'Behavioral analysis pending'}
           </p>
         </div>
-
-        <Button 
-          className="w-full mt-4" 
-          onClick={() => onSelect(suggestion)}
-        >
-          Select This Test
-        </Button>
       </div>
     </CardContent>
   </Card>
@@ -346,7 +363,6 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
                    <SuggestionCard 
                      key={suggestion.id} 
                      suggestion={suggestion} 
-                     onSelect={onSuggestionSelected}
                    />
                 ))}
             </div>
@@ -370,7 +386,6 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
                    <SuggestionCard 
                      key={suggestion.id} 
                      suggestion={suggestion} 
-                     onSelect={onSuggestionSelected}
                    />
                 ))}
             </div>
@@ -394,7 +409,6 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
                    <SuggestionCard 
                      key={suggestion.id} 
                      suggestion={suggestion} 
-                     onSelect={onSuggestionSelected}
                    />
                 ))}
             </div>
@@ -408,14 +422,24 @@ export const ABTestSuggestions = ({ data, onSuggestionSelected, onBack, onRegene
             variant="outline"
             className="flex-1"
           >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Setup
           </Button>
           <Button 
-            onClick={handleRegenerate}
+            onClick={exportSuggestions}
             variant="outline"
+            className="flex-1"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Suggestions
+          </Button>
+          <Button 
+            onClick={handleRegenerate}
+            variant="default"
             className="flex-1"
             disabled={isGenerating}
           >
+            <RefreshCw className="w-4 h-4 mr-2" />
             {isGenerating ? 'Generating...' : 
              iterationCount > 0 ? `Regenerate (${iterationCount + 1})` : 'Generate New Suggestions'
             }
