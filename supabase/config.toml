@@ -25,6 +25,9 @@ verify_jwt = false
 [functions.smart-alerts]
 verify_jwt = false
 
+[functions.fast-ship-api]
+verify_jwt = true
+
 [db]
 port = 54322
 
