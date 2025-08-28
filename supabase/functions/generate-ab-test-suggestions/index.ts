@@ -110,7 +110,8 @@ serve(async (req) => {
       },
       userPreferences, 
       suggestionMemory,
-      iterationCount
+      iterationCount,
+      context?.pageType // Pass user-selected page type
     );
 
     console.log(`🧠 [${requestId}] Calling Claude Sonnet 4 for intelligent suggestions`);
@@ -402,10 +403,15 @@ function generateAdaptivePrompt(
   vaultData: any,
   userPreferences: any,
   suggestionMemory: any,
-  iterationCount: number
+  iterationCount: number,
+  userSelectedPageType?: string
 ) {
-  // Analyze page context
-  const pageType = analyzePageType(pageUrl);
+  // Use user-selected page type if available, otherwise analyze from URL
+  const pageType = userSelectedPageType || analyzePageType(pageUrl);
+  const pageTypeSource = userSelectedPageType ? 'user-selected' : 'auto-detected';
+  
+  console.log(`🎯 Page type: ${pageType} (${pageTypeSource})`);
+  
   const industry = extractIndustryFromUrl(pageUrl);
   const brandName = extractBrandFromUrl(pageUrl);
   const region = 'Global'; // Could be enhanced with geo-detection
@@ -468,6 +474,21 @@ Based on ${pageType} page psychology, users typically experience:
 - Trust-building requirements
 - Cognitive load challenges
 - Social proof needs
+
+${pageType === 'listing_page' ? `
+LISTING PAGE SPECIFIC OPTIMIZATION FOCUS:
+For listing/category pages, prioritize these high-impact areas:
+- Product grid layout and information hierarchy
+- Filtering and sorting functionality optimization  
+- Search and navigation flow improvements
+- Product discovery and browsing experience
+- Mobile-first grid layouts and interactions
+- Loading performance for product lists
+- Comparison features and quick actions
+- Category navigation and breadcrumbs
+- Product preview and quick view features
+- Pagination vs infinite scroll optimization
+` : ''}
 
 TASK: Generate exactly 9 AB test suggestions using 3 different methodological approaches:
 
@@ -575,15 +596,30 @@ Respond with valid JSON only, no additional text.`;
 // Helper functions for the comprehensive prompt
 function analyzePageType(url: string): string {
   const lowerUrl = url.toLowerCase();
+  
+  // Product pages
   if (lowerUrl.includes('/product/') || lowerUrl.includes('/p/')) return 'product_page';
+  
+  // Checkout and cart
   if (lowerUrl.includes('/checkout') || lowerUrl.includes('/cart')) return 'checkout';
-  if (lowerUrl.includes('/category/') || lowerUrl.includes('/shop')) return 'category_listing';
+  
+  // Listing pages - enhanced detection
+  if (lowerUrl.includes('/category/') || lowerUrl.includes('/shop') || 
+      lowerUrl.includes('/boutiques/') || lowerUrl.includes('/magasins/') || 
+      lowerUrl.includes('/stores/') || lowerUrl.includes('/listing/') ||
+      lowerUrl.includes('/list/') || lowerUrl.includes('/search/') ||
+      lowerUrl.includes('/browse/') || lowerUrl.includes('/collection/')) {
+    return 'listing_page';
+  }
+  
+  // Other page types
   if (lowerUrl.includes('/about') || lowerUrl.includes('/company')) return 'about_page';
   if (lowerUrl.includes('/contact') || lowerUrl.includes('/support')) return 'contact_page';
   if (lowerUrl.includes('/pricing') || lowerUrl.includes('/plans')) return 'pricing_page';
   if (lowerUrl.includes('/signup') || lowerUrl.includes('/register')) return 'signup_page';
   if (lowerUrl.includes('/login') || lowerUrl.includes('/signin')) return 'login_page';
   if (lowerUrl.includes('/blog') || lowerUrl.includes('/article')) return 'content_page';
+  
   return 'landing_page';
 }
 
