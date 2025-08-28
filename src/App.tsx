@@ -8,6 +8,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import { ChatProvider } from "@/context/ChatContext";
 import { LaunchDarklyProvider } from "@/context/LaunchDarklyProvider";
 import { AuthProvider } from "@/hooks/useAuth";
+import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import Landing from "@/pages/Landing";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -30,9 +31,10 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <LaunchDarklyProvider>
-        <NotificationProvider>
-          <ChatProvider>
+      <WorkspaceProvider>
+        <LaunchDarklyProvider>
+          <NotificationProvider>
+            <ChatProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -104,10 +106,11 @@ const App = () => (
                 </Routes>
               </Router>
             </TooltipProvider>
-          </ChatProvider>
-        </NotificationProvider>
-      </LaunchDarklyProvider>
-    </AuthProvider>
+           </ChatProvider>
+         </NotificationProvider>
+       </LaunchDarklyProvider>
+     </WorkspaceProvider>
+   </AuthProvider>
   </QueryClientProvider>
 );
 
