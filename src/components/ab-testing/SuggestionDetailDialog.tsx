@@ -18,7 +18,14 @@ import {
   AlertCircle,
   Lightbulb,
   CheckCircle,
-  Wrench
+  Wrench,
+  Clock,
+  Users,
+  BarChart3,
+  AlertTriangle,
+  List,
+  Palette,
+  Star
 } from 'lucide-react';
 
 interface GroupedSuggestion {
@@ -34,6 +41,18 @@ interface GroupedSuggestion {
   goalType: string;
   createdAt: string;
   sessionId: string;
+  // Additional fields
+  code_complexity?: string;
+  implementation_steps?: string[];
+  success_metrics?: string[];
+  testing_strategy?: string;
+  design_variations?: string[];
+  target_audience?: string;
+  priority?: string;
+  estimated_time?: string;
+  confidence_level?: string;
+  risk_factors?: string[];
+  original_data?: any;
 }
 
 interface SuggestionDetailDialogProps {
@@ -197,6 +216,168 @@ export const SuggestionDetailDialog = ({
               </CardHeader>
               <CardContent>
                 <p className="text-sm leading-relaxed">{suggestion.psychology_insight}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Implementation Steps */}
+          {suggestion.implementation_steps && suggestion.implementation_steps.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <List className="h-5 w-5 text-blue-600" />
+                  Étapes d'implémentation
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ol className="list-decimal list-inside space-y-2">
+                  {suggestion.implementation_steps.map((step, index) => (
+                    <li key={index} className="text-sm leading-relaxed">{step}</li>
+                  ))}
+                </ol>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Success Metrics */}
+          {suggestion.success_metrics && suggestion.success_metrics.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-green-600" />
+                  Métriques de succès
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc list-inside space-y-1">
+                  {suggestion.success_metrics.map((metric, index) => (
+                    <li key={index} className="text-sm leading-relaxed">{metric}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Testing Strategy */}
+          {suggestion.testing_strategy && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Target className="h-5 w-5 text-purple-600" />
+                  Stratégie de test
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed">{suggestion.testing_strategy}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Design Variations */}
+          {suggestion.design_variations && suggestion.design_variations.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-pink-600" />
+                  Variations de design
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc list-inside space-y-1">
+                  {suggestion.design_variations.map((variation, index) => (
+                    <li key={index} className="text-sm leading-relaxed">{variation}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Additional Information Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Target Audience */}
+            {suggestion.target_audience && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Audience cible</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{suggestion.target_audience}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Priority */}
+            {suggestion.priority && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Priorité</p>
+                  </div>
+                  <Badge variant="secondary">{suggestion.priority}</Badge>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Estimated Time */}
+            {suggestion.estimated_time && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Temps estimé</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{suggestion.estimated_time}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Confidence Level */}
+            {suggestion.confidence_level && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">Niveau de confiance</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{suggestion.confidence_level}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Risk Factors */}
+          {suggestion.risk_factors && suggestion.risk_factors.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  Facteurs de risque
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc list-inside space-y-1">
+                  {suggestion.risk_factors.map((risk, index) => (
+                    <li key={index} className="text-sm leading-relaxed text-orange-700">{risk}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Debug Info */}
+          {process.env.NODE_ENV === 'development' && suggestion.original_data && (
+            <Card className="border-dashed">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm text-muted-foreground">
+                  Données brutes (développement)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-40">
+                  {JSON.stringify(suggestion.original_data, null, 2)}
+                </pre>
               </CardContent>
             </Card>
           )}

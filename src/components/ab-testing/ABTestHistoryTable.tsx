@@ -59,6 +59,18 @@ interface GroupedSuggestion {
   goalType: string;
   createdAt: string;
   sessionId: string;
+  // Additional fields that might be in the original data
+  code_complexity?: string;
+  implementation_steps?: string[];
+  success_metrics?: string[];
+  testing_strategy?: string;
+  design_variations?: string[];
+  target_audience?: string;
+  priority?: string;
+  estimated_time?: string;
+  confidence_level?: string;
+  risk_factors?: string[];
+  original_data?: any; // Store the full original suggestion data
 }
 
 interface PageTypeGroup {
@@ -297,7 +309,19 @@ export const ABTestHistoryTable = ({
             pageUrl: item.page_url,
             goalType: item.goal_type,
             createdAt: item.created_at,
-            sessionId: item.session_id
+            sessionId: item.session_id,
+            // Extract additional fields
+            code_complexity: suggestion.code_complexity,
+            implementation_steps: suggestion.implementation_steps || suggestion.steps,
+            success_metrics: suggestion.success_metrics || suggestion.metrics,
+            testing_strategy: extractStringValue(suggestion.testing_strategy || suggestion.strategy, ''),
+            design_variations: suggestion.design_variations || suggestion.variations,
+            target_audience: extractStringValue(suggestion.target_audience || suggestion.audience, ''),
+            priority: suggestion.priority,
+            estimated_time: suggestion.estimated_time || suggestion.time,
+            confidence_level: extractStringValue(suggestion.confidence_level, ''),
+            risk_factors: suggestion.risk_factors || suggestion.risks,
+            original_data: suggestion // Store the full original data
           });
         });
       }
