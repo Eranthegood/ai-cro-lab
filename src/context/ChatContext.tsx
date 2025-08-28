@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspace } from '@/hooks/useWorkspace';
+import { useWorkspace, WorkspaceContext } from '@/hooks/useWorkspace';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ChatMessage {
@@ -49,7 +49,8 @@ interface ChatProviderProps {
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const workspaceCtx = useContext(WorkspaceContext as any);
+  const currentWorkspace = (workspaceCtx as any)?.currentWorkspace || null;
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [currentConversation, setCurrentConversationState] = useState<ChatConversation | null>(null);
   const [isLoading, setIsLoading] = useState(false);

@@ -24,7 +24,7 @@ interface WorkspaceContextType {
   refreshWorkspaces: () => Promise<void>;
 }
 
-const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
+export const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const useWorkspace = () => {
   const context = useContext(WorkspaceContext);
