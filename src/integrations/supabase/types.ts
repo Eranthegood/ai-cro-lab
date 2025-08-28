@@ -721,6 +721,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_rate_limits: {
+        Row: {
+          attempts_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          operation_type: string
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          attempts_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          operation_type: string
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          attempts_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          operation_type?: string
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       semantic_cache: {
         Row: {
           created_at: string
@@ -962,6 +992,15 @@ export type Database = {
         Args: { kb_workspace_id: string }
         Returns: boolean
       }
+      check_rate_limit: {
+        Args: {
+          p_max_attempts?: number
+          p_operation_type: string
+          p_user_id: string
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_workspace_permission: {
         Args: {
           required_role?: string
@@ -1001,6 +1040,15 @@ export type Database = {
           p_resource_id?: string
           p_resource_type: string
           p_workspace_id: string
+        }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          p_details?: Json
+          p_event_type: string
+          p_user_id: string
+          p_workspace_id?: string
         }
         Returns: undefined
       }
