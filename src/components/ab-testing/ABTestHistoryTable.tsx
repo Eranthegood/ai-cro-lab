@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ABTestHistoryFilters } from "./ABTestHistoryFilters";
 import { SuggestionDetailModal } from "./SuggestionDetailModal";
+import { SuggestionDetailDialog } from "./SuggestionDetailDialog";
 import { 
   Eye, 
   Download, 
@@ -67,7 +68,7 @@ interface PageTypeGroup {
   totalSessions: number;
 }
 
-const SuggestionCard = ({ suggestion }: { suggestion: GroupedSuggestion }) => {
+const SuggestionCard = ({ suggestion, onClick }: { suggestion: GroupedSuggestion; onClick: () => void }) => {
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty?.toLowerCase()) {
       case 'simple css':
@@ -100,7 +101,7 @@ const SuggestionCard = ({ suggestion }: { suggestion: GroupedSuggestion }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 border-border/50 h-full">
+    <Card className="hover:shadow-md transition-all duration-200 border-border/50 h-full cursor-pointer" onClick={onClick}>
       <CardContent className="p-4">
         <div className="space-y-3 h-full flex flex-col">
           <div className="flex items-start justify-between gap-2">
@@ -164,7 +165,7 @@ const SuggestionCard = ({ suggestion }: { suggestion: GroupedSuggestion }) => {
   );
 };
 
-const PageTypeSection = ({ group }: { group: PageTypeGroup }) => {
+const PageTypeSection = ({ group, onSuggestionClick }: { group: PageTypeGroup; onSuggestionClick: (suggestion: GroupedSuggestion) => void }) => {
   const getPageTypeIcon = (pageType: string) => {
     if (pageType.includes('accueil') || pageType.includes('homepage') || pageType.includes('home')) return '🏠';
     if (pageType.includes('produit') || pageType.includes('product')) return '📦';
@@ -201,7 +202,11 @@ const PageTypeSection = ({ group }: { group: PageTypeGroup }) => {
       
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {group.suggestions.map((suggestion, index) => (
-          <SuggestionCard key={`${suggestion.sessionId}-${suggestion.id}-${index}`} suggestion={suggestion} />
+          <SuggestionCard 
+            key={`${suggestion.sessionId}-${suggestion.id}-${index}`} 
+            suggestion={suggestion} 
+            onClick={() => onSuggestionClick(suggestion)}
+          />
         ))}
       </div>
     </div>
@@ -217,6 +222,7 @@ export const ABTestHistoryTable = ({
   onRefresh
 }: ABTestHistoryTableProps) => {
   const [selectedSession, setSelectedSession] = useState<HistoryItem | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<GroupedSuggestion | null>(null);
 
   // Determine page type from URL or existing data
   const determinePageType = (item: HistoryItem): string => {
@@ -388,7 +394,11 @@ export const ABTestHistoryTable = ({
             </div>
           ) : (
             groupedData.map((group) => (
-              <PageTypeSection key={group.pageType} group={group} />
+              <PageTypeSection 
+                key={group.pageType} 
+                group={group} 
+                onSuggestionClick={setSelectedSuggestion}
+              />
             ))
           )}
         </CardContent>
@@ -400,6 +410,15 @@ export const ABTestHistoryTable = ({
           session={selectedSession}
           isOpen={!!selectedSession}
           onClose={() => setSelectedSession(null)}
+        />
+      )}
+
+      {/* Suggestion Detail Dialog */}
+      {selectedSuggestion && (
+        <SuggestionDetailDialog
+          suggestion={selectedSuggestion}
+          isOpen={!!selectedSuggestion}
+          onClose={() => setSelectedSuggestion(null)}
         />
       )}
     </>
