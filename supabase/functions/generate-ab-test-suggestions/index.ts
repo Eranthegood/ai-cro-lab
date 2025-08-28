@@ -187,8 +187,11 @@ serve(async (req) => {
       supabase, workspaceId, userId, suggestions, userPreferences
     );
 
+    // Trigger cleanup of old suggestions (3+ months) once per day
+    const cleanupTask = triggerPeriodicCleanup(supabase, workspaceId, requestId);
+
     // Use background tasks to not block response
-    EdgeRuntime.waitUntil(Promise.all([backgroundStorageTask, preferenceLearningTask]));
+    EdgeRuntime.waitUntil(Promise.all([backgroundStorageTask, preferenceLearningTask, cleanupTask]));
 
     console.log(`🎯 [${requestId}] Enhanced AB test suggestions generated: ${Date.now() - requestStart}ms`);
 
@@ -953,5 +956,41 @@ async function updateUserPreferences(
     console.log(`🧠 User preferences updated with learning insights`);
   } catch (error) {
     console.error(`⚠️ Failed to update user preferences:`, error);
+  }
+}
+
+async function triggerPeriodicCleanup(supabase: any, workspaceId: string, requestId: string) {
+  try {
+    // Check if cleanup was run in the last 24 hours for this workspace
+    const { data: recentCleanup } = await supabase
+      .from('knowledge_vault_audit')
+      .select('created_at')
+      .eq('workspace_id', workspaceId)
+      .eq('action', 'cleanup')
+      .eq('resource_type', 'ab_test_history')
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(1)
+      .single();
+
+    if (recentCleanup) {
+      console.log(`⏩ [${requestId}] Cleanup already run in last 24h for workspace ${workspaceId}`);
+      return;
+    }
+
+    // Trigger cleanup function
+    console.log(`🧹 [${requestId}] Triggering periodic cleanup for workspace ${workspaceId}`);
+    
+    const cleanupResponse = await supabase.functions.invoke('cleanup-suggestions-history', {
+      body: { workspaceId }
+    });
+
+    if (cleanupResponse.error) {
+      console.error(`❌ [${requestId}] Cleanup failed:`, cleanupResponse.error);
+    } else {
+      console.log(`✅ [${requestId}] Cleanup completed:`, cleanupResponse.data);
+    }
+  } catch (error) {
+    console.error(`⚠️ [${requestId}] Cleanup trigger failed:`, error);
+    // Don't fail the main request if cleanup fails
   }
 }

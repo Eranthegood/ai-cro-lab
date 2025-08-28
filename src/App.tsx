@@ -19,6 +19,7 @@ import KnowledgeBase from "@/pages/KnowledgeBase";
 import Analytics from "@/pages/Analytics";
 import { JourneyMapper } from "@/pages/JourneyMapper";
 import ABTestGenerator from "@/pages/ABTestGenerator";
+import ABTestHistory from "@/pages/ABTestHistory";
 import CodeGenerator from "@/pages/CodeGenerator";
 import AIInsights from "@/pages/AIInsights";
 import AIInsightsV2 from "@/pages/AIInsightsV2";
@@ -138,6 +139,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <KnowledgeVaultConfig />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/ab-test-history"
+                        element={
+                          <ProtectedRoute>
+                            <ABTestHistory />
                           </ProtectedRoute>
                         }
                       />

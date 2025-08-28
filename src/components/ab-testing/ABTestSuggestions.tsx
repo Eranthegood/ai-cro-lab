@@ -416,7 +416,7 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t">
           <Button 
             onClick={onBack}
             variant="outline"
@@ -424,6 +424,14 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Setup
+          </Button>
+          <Button 
+            onClick={() => window.open('/ab-test-history', '_blank')}
+            variant="outline"
+            className="flex-1"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            View History
           </Button>
           <Button 
             onClick={exportSuggestions}
