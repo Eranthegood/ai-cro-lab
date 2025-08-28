@@ -3,21 +3,42 @@
 export function determinePageType(url: string): string {
   if (!url) return 'unknown';
   
-  const path = new URL(url).pathname.toLowerCase();
-  
-  if (path === '/' || path === '/home') return 'homepage';
-  if (path.includes('/product') || path.includes('/item') || path.includes('/p/')) return 'product';
-  if (path.includes('/checkout') || path.includes('/cart') || path.includes('/payment')) return 'checkout';
-  if (path.includes('/login') || path.includes('/signin') || path.includes('/auth')) return 'login';
-  if (path.includes('/signup') || path.includes('/register') || path.includes('/join')) return 'signup';
-  if (path.includes('/pricing') || path.includes('/plans')) return 'pricing';
-  if (path.includes('/contact') || path.includes('/support')) return 'contact';
-  if (path.includes('/about') || path.includes('/company')) return 'about';
-  if (path.includes('/blog') || path.includes('/news') || path.includes('/article')) return 'content';
-  if (path.includes('/category') || path.includes('/collection') || path.includes('/shop')) return 'category';
-  if (path.includes('/search') || path.includes('/results')) return 'search';
-  
-  return 'other';
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    const domain = new URL(url).hostname.toLowerCase();
+    
+    // Homepage variants
+    if (path === '/' || path === '/home' || path === '/index') return 'Page d\'accueil';
+    
+    // E-commerce pages
+    if (path.includes('/product') || path.includes('/item') || path.includes('/p/')) return 'Page produit';
+    if (path.includes('/checkout') || path.includes('/cart') || path.includes('/payment')) return 'Checkout & Panier';
+    if (path.includes('/category') || path.includes('/collection') || path.includes('/shop')) return 'Page catégorie';
+    
+    // Authentication pages
+    if (path.includes('/login') || path.includes('/signin') || path.includes('/auth')) return 'Page de connexion';
+    if (path.includes('/signup') || path.includes('/register') || path.includes('/join')) return 'Page d\'inscription';
+    
+    // Business pages
+    if (path.includes('/pricing') || path.includes('/plans') || path.includes('/tarif')) return 'Page de prix';
+    if (path.includes('/contact') || path.includes('/support') || path.includes('/aide')) return 'Page de contact';
+    if (path.includes('/about') || path.includes('/company') || path.includes('/qui-sommes-nous')) return 'Page à propos';
+    
+    // Content pages
+    if (path.includes('/blog') || path.includes('/news') || path.includes('/article')) return 'Blog & Articles';
+    if (path.includes('/search') || path.includes('/results') || path.includes('/recherche')) return 'Page de recherche';
+    
+    // SaaS specific
+    if (path.includes('/dashboard') || path.includes('/app') || path.includes('/admin')) return 'Dashboard & App';
+    if (path.includes('/settings') || path.includes('/profile') || path.includes('/account')) return 'Paramètres utilisateur';
+    
+    // Landing pages
+    if (path.includes('/landing') || path.includes('/lp/') || domain.includes('pages.')) return 'Landing page';
+    
+    return 'Autre page';
+  } catch {
+    return 'unknown';
+  }
 }
 
 export function extractBrandFromUrl(url: string): string {
