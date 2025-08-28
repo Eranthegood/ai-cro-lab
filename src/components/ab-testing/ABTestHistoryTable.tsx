@@ -122,13 +122,21 @@ const SuggestionCard = ({ suggestion }: { suggestion: GroupedSuggestion }) => {
           
           {suggestion.expected_impact && (
             <p className="text-xs text-muted-foreground line-clamp-2 flex-1">
-              <span className="font-medium">Impact:</span> {suggestion.expected_impact}
+              <span className="font-medium">Impact:</span> {
+                typeof suggestion.expected_impact === 'object' && suggestion.expected_impact !== null
+                  ? (suggestion.expected_impact as any).primary_metric || 'Amélioration attendue'
+                  : suggestion.expected_impact
+              }
             </p>
           )}
           
           {suggestion.problem_detected && (
             <p className="text-xs text-muted-foreground line-clamp-3 flex-1">
-              <span className="font-medium">Problème:</span> {suggestion.problem_detected}
+              <span className="font-medium">Problème:</span> {
+                typeof suggestion.problem_detected === 'object' && suggestion.problem_detected !== null
+                  ? (suggestion.problem_detected as any).issue || 'Problème identifié'
+                  : suggestion.problem_detected
+              }
             </p>
           )}
 
@@ -259,15 +267,26 @@ export const ABTestHistoryTable = ({
       // Add all suggestions from this item
       if (item.suggestion_data?.suggestions) {
         item.suggestion_data.suggestions.forEach((suggestion: any) => {
+          // Helper function to safely extract string values from objects
+          const extractStringValue = (value: any, fallback: string = '') => {
+            if (!value) return fallback;
+            if (typeof value === 'string') return value;
+            if (typeof value === 'object') {
+              // Try common object keys
+              return value.primary_metric || value.issue || value.description || value.content || fallback;
+            }
+            return String(value);
+          };
+
           group.suggestions.push({
             id: suggestion.id || Math.random().toString(),
             title: suggestion.title || 'Untitled Suggestion',
             approach: suggestion.approach,
-            problem_detected: suggestion.problem_detected || suggestion.problem,
-            solution_description: suggestion.solution_description || suggestion.solution,
-            expected_impact: suggestion.expected_impact || suggestion.expectedImpact,
-            psychology_insight: suggestion.psychology_insight || suggestion.psychologyInsight,
-            difficulty: suggestion.difficulty || suggestion.code_complexity,
+            problem_detected: extractStringValue(suggestion.problem_detected || suggestion.problem, 'Problème identifié'),
+            solution_description: extractStringValue(suggestion.solution_description || suggestion.solution, 'Solution proposée'),
+            expected_impact: extractStringValue(suggestion.expected_impact || suggestion.expectedImpact, 'Impact attendu'),
+            psychology_insight: extractStringValue(suggestion.psychology_insight || suggestion.psychologyInsight, 'Insight psychologique'),
+            difficulty: suggestion.difficulty || suggestion.code_complexity || 'medium',
             pageUrl: item.page_url,
             goalType: item.goal_type,
             createdAt: item.created_at,
