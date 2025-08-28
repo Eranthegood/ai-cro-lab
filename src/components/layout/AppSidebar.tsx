@@ -51,14 +51,26 @@ const AppSidebar = () => {
     return path.startsWith('/vault-') || path === '/knowledge-base' || path === '/journey-mapper';
   };
   
+  // Check if current route is in A/B Testing submenu
+  const isABTestingRoute = (path: string) => {
+    return path.startsWith('/dashboard/ab-testing') || path === '/ab-test-generator';
+  };
+  
   const [knowledgeExpanded, setKnowledgeExpanded] = useState(() => 
     isKnowledgeRoute(location.pathname)
+  );
+  
+  const [abTestingExpanded, setAbTestingExpanded] = useState(() => 
+    isABTestingRoute(location.pathname)
   );
 
   // Update expansion when route changes
   useEffect(() => {
     if (isKnowledgeRoute(location.pathname)) {
       setKnowledgeExpanded(true);
+    }
+    if (isABTestingRoute(location.pathname)) {
+      setAbTestingExpanded(true);
     }
   }, [location.pathname]);
 
@@ -76,7 +88,15 @@ const AppSidebar = () => {
         { title: "Journey Mapper", url: "/journey-mapper", icon: Map }
       ]
     },
-    { title: "A/B Testing", url: "/dashboard/ab-testing", icon: TestTube },
+    { 
+      title: "A/B Testing", 
+      url: "/dashboard/ab-testing", 
+      icon: TestTube,
+      submenu: [
+        { title: "Generator", url: "/ab-test-generator", icon: Target },
+        { title: "Analytics", url: "/dashboard/ab-testing", icon: BarChart3 }
+      ]
+    },
     { title: "Code Generator", url: "/dashboard/generator", icon: Code },
   ];
 
@@ -127,7 +147,13 @@ const AppSidebar = () => {
                           open ? "mx-4 px-3 py-2 rounded-sm" : "mx-2 px-2 py-2 rounded-sm justify-center",
                           (isActive(item.url) || isParentActive(item)) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
                         )}
-                        onClick={() => setKnowledgeExpanded(!knowledgeExpanded)}
+                        onClick={() => {
+                          if (item.title === "Knowledge Vault") {
+                            setKnowledgeExpanded(!knowledgeExpanded);
+                          } else if (item.title === "A/B Testing") {
+                            setAbTestingExpanded(!abTestingExpanded);
+                          }
+                        }}
                         tooltip={!open ? item.title : undefined}
                       >
                         <div className={cn("flex items-center", open ? "gap-3" : "justify-center")}>
@@ -145,12 +171,17 @@ const AppSidebar = () => {
                                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
                                  )}
                                </span>
-                               <ChevronDown className={cn("h-4 w-4 transition-transform", knowledgeExpanded && "rotate-180")} />
+                                <ChevronDown className={cn(
+                                  "h-4 w-4 transition-transform", 
+                                  ((item.title === "Knowledge Vault" && knowledgeExpanded) || 
+                                   (item.title === "A/B Testing" && abTestingExpanded)) && "rotate-180"
+                                )} />
                              </>
                            )}
                         </div>
                       </SidebarMenuButton>
-                      {knowledgeExpanded && open && (
+                      {((item.title === "Knowledge Vault" && knowledgeExpanded) || 
+                        (item.title === "A/B Testing" && abTestingExpanded)) && open && (
                         <div className="ml-4 space-y-1">
                           {item.submenu.map((subItem) => (
                             <SidebarMenuButton
