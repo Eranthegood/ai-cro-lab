@@ -987,6 +987,13 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: string[]
       }
+      get_workspace_profile_names: {
+        Args: { workspace_uuid: string }
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
       log_knowledge_vault_action: {
         Args: {
           p_action: string
