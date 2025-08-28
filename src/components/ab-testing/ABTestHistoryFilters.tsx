@@ -85,12 +85,12 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
         </div>
 
         {/* Goal Type */}
-        <Select value={filters.goalType} onValueChange={(value) => updateFilter('goalType', value)}>
+        <Select value={filters.goalType || "all"} onValueChange={(value) => updateFilter('goalType', value === "all" ? "" : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Goal Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Goals</SelectItem>
+            <SelectItem value="all">All Goals</SelectItem>
             <SelectItem value="conversion">Conversion</SelectItem>
             <SelectItem value="ctr">Click-through Rate</SelectItem>
             <SelectItem value="engagement">Engagement</SelectItem>
@@ -102,12 +102,12 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
         </Select>
 
         {/* Approach */}
-        <Select value={filters.approach} onValueChange={(value) => updateFilter('approach', value)}>
+        <Select value={filters.approach || "all"} onValueChange={(value) => updateFilter('approach', value === "all" ? "" : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Approach" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Approaches</SelectItem>
+            <SelectItem value="all">All Approaches</SelectItem>
             <SelectItem value="Technical UX">Technical UX</SelectItem>
             <SelectItem value="Psychology">Psychology</SelectItem>
             <SelectItem value="Brand Differentiation">Brand Differentiation</SelectItem>
