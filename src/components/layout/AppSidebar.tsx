@@ -48,7 +48,7 @@ const AppSidebar = () => {
   
   // Check if current route is in Knowledge Vault submenu
   const isKnowledgeRoute = (path: string) => {
-    return path.startsWith('/dashboard/knowledge');
+    return path.startsWith('/vault-') || path === '/knowledge-base' || path === '/journey-mapper';
   };
   
   const [knowledgeExpanded, setKnowledgeExpanded] = useState(() => 
@@ -71,9 +71,9 @@ const AppSidebar = () => {
       icon: BookOpen,
       submenu: [
         { title: "Ask your vault", url: "/vault-simple", icon: Brain },
-        { title: "Overview", url: "/dashboard/knowledge", icon: FileText },
-        { title: "Configuration", url: "/dashboard/knowledge/config", icon: Settings },
-        { title: "Journey Mapper", url: "/dashboard/knowledge/journey-mapper", icon: Map }
+        { title: "Overview", url: "/knowledge-base", icon: FileText },
+        { title: "Configuration", url: "/vault-config", icon: Settings },
+        { title: "Journey Mapper", url: "/journey-mapper", icon: Map }
       ]
     },
     { title: "A/B Testing", url: "/dashboard/ab-testing", icon: TestTube },
