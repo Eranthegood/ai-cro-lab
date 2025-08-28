@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,8 +26,11 @@ import {
   AlertTriangle,
   List,
   Palette,
-  Star
+  Star,
+  Bookmark
 } from 'lucide-react';
+import { CreateTicketModal } from './CreateTicketModal';
+import { AddToBacklogModal } from './AddToBacklogModal';
 
 interface GroupedSuggestion {
   id: string;
@@ -66,7 +70,31 @@ export const SuggestionDetailDialog = ({
   isOpen,
   onClose
 }: SuggestionDetailDialogProps) => {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBacklogModalOpen, setIsBacklogModalOpen] = useState(false);
+  
   if (!suggestion) return null;
+
+  // Convert suggestion format to match what the modals expect
+  const convertedSuggestion = {
+    id: suggestion.id,
+    title: suggestion.title,
+    approach: suggestion.approach,
+    problem_detected: suggestion.problem_detected,
+    solution_description: suggestion.solution_description,
+    expected_impact: suggestion.expected_impact,
+    psychology_insight: suggestion.psychology_insight,
+    difficulty: suggestion.difficulty,
+    ...suggestion.original_data // Include any additional data
+  };
+
+  const handleCreateTest = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleAddToBacklog = () => {
+    setIsBacklogModalOpen(true);
+  };
 
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty?.toLowerCase()) {
@@ -386,7 +414,38 @@ export const SuggestionDetailDialog = ({
           <div className="text-xs text-muted-foreground border-t pt-3">
             Session ID: {suggestion.sessionId}
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t">
+            <Button
+              onClick={handleAddToBacklog}
+              variant="outline"
+              className="flex-1"
+            >
+              <Bookmark className="w-4 h-4 mr-2" />
+              Ajouter au Backlog
+            </Button>
+            <Button
+              onClick={handleCreateTest}
+              className="flex-1"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Créer AB Test
+            </Button>
+          </div>
         </div>
+
+        {/* Modals */}
+        <CreateTicketModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          suggestion={convertedSuggestion}
+        />
+        <AddToBacklogModal
+          isOpen={isBacklogModalOpen}
+          onClose={() => setIsBacklogModalOpen(false)}
+          suggestion={convertedSuggestion}
+        />
       </DialogContent>
     </Dialog>
   );
