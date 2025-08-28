@@ -54,7 +54,7 @@ const AppSidebar = () => {
   
   // Check if current route is in A/B Testing submenu
   const isABTestingRoute = (path: string) => {
-    return path.startsWith('/dashboard/ab-testing') || path === '/ab-test-generator' || path === '/ab-test-history';
+    return path.startsWith('/dashboard/ab-testing') || path === '/ab-test-generator' || path === '/ab-test-history' || path === '/ab-test-backlog';
   };
   
   const [knowledgeExpanded, setKnowledgeExpanded] = useState(() => 
@@ -95,6 +95,7 @@ const AppSidebar = () => {
       icon: TestTube,
       submenu: [
         { title: "Generator", url: "/ab-test-generator", icon: Target },
+        { title: "Backlog", url: "/ab-test-backlog", icon: BookOpen },
         { title: "History", url: "/ab-test-history", icon: History },
         { title: "Analytics", url: "/dashboard/ab-testing", icon: BarChart3 }
       ]

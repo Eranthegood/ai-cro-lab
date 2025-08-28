@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles, Download, FileText, Save } from 'lucide-react';
+import { ArrowLeft, Brain, Zap, Target, Users, TrendingUp, RefreshCw, Sparkles, Download, FileText, Save, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { CreateTicketModal } from "./CreateTicketModal";
+import { AddToBacklogModal } from "./AddToBacklogModal";
 
 interface Suggestion {
   id: string;
@@ -68,6 +70,9 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
   const [currentAnalysisStep, setCurrentAnalysisStep] = useState('');
   const [iterationCount, setIterationCount] = useState(0);
   const [engineVersion, setEngineVersion] = useState<string>('');
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBacklogModalOpen, setIsBacklogModalOpen] = useState(false);
 
   const analyzePageContext = (url: string) => {
     const lowerUrl = url.toLowerCase();
@@ -207,6 +212,16 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
     URL.revokeObjectURL(url);
   };
 
+  const handleCreateTest = (suggestion: Suggestion) => {
+    setSelectedSuggestion(suggestion);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleAddToBacklog = (suggestion: Suggestion) => {
+    setSelectedSuggestion(suggestion);
+    setIsBacklogModalOpen(true);
+  };
+
   const SuggestionCard = ({ suggestion }: {
   suggestion: Suggestion;
 }) => (
@@ -260,6 +275,27 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
              (typeof suggestion.solution === 'object' ? suggestion.solution.psychological_rationale : suggestion.psychologyInsight) ||
              'Behavioral analysis pending'}
           </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-3 border-t">
+          <Button
+            onClick={() => handleCreateTest(suggestion)}
+            size="sm"
+            className="flex-1"
+          >
+            <Target className="w-4 h-4 mr-2" />
+            Create AB Test
+          </Button>
+          <Button
+            onClick={() => handleAddToBacklog(suggestion)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <Bookmark className="w-4 h-4 mr-2" />
+            Backlog
+          </Button>
         </div>
       </div>
     </CardContent>
@@ -458,6 +494,28 @@ export const ABTestSuggestions = ({ data, onBack, onRegenerateRequested }: ABTes
           <div className="text-center text-xs text-muted-foreground mt-2">
             Powered by {engineVersion} • Iteration {iterationCount + 1}
           </div>
+        )}
+
+        {/* Modals */}
+        {selectedSuggestion && (
+          <>
+            <CreateTicketModal
+              isOpen={isCreateModalOpen}
+              onClose={() => {
+                setIsCreateModalOpen(false);
+                setSelectedSuggestion(null);
+              }}
+              suggestion={selectedSuggestion}
+            />
+            <AddToBacklogModal
+              isOpen={isBacklogModalOpen}
+              onClose={() => {
+                setIsBacklogModalOpen(false);
+                setSelectedSuggestion(null);
+              }}
+              suggestion={selectedSuggestion}
+            />
+          </>
         )}
       </div>
     </div>

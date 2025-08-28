@@ -20,6 +20,7 @@ import Analytics from "@/pages/Analytics";
 import { JourneyMapper } from "@/pages/JourneyMapper";
 import ABTestGenerator from "@/pages/ABTestGenerator";
 import ABTestHistory from "@/pages/ABTestHistory";
+import ABTestBacklog from "@/pages/ABTestBacklog";
 import CodeGenerator from "@/pages/CodeGenerator";
 import AIInsights from "@/pages/AIInsights";
 import AIInsightsV2 from "@/pages/AIInsightsV2";
@@ -142,14 +143,22 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/ab-test-history"
-                        element={
-                          <ProtectedRoute>
-                            <ABTestHistory />
-                          </ProtectedRoute>
-                        }
-                      />
+                       <Route
+                         path="/ab-test-history"
+                         element={
+                           <ProtectedRoute>
+                             <ABTestHistory />
+                           </ProtectedRoute>
+                         }
+                       />
+                       <Route
+                         path="/ab-test-backlog"
+                         element={
+                           <ProtectedRoute>
+                             <ABTestBacklog />
+                           </ProtectedRoute>
+                         }
+                       />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Router>

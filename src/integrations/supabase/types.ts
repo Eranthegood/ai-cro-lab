@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_backlog: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          original_suggestion_data: Json
+          priority: string | null
+          status: string | null
+          suggestion_id: string
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          original_suggestion_data?: Json
+          priority?: string | null
+          status?: string | null
+          suggestion_id: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          original_suggestion_data?: Json
+          priority?: string | null
+          status?: string | null
+          suggestion_id?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       ab_test_suggestions_history: {
         Row: {
           created_at: string
@@ -95,12 +137,15 @@ export type Database = {
           code_generated: string | null
           created_at: string
           created_by: string
+          external_ticket_id: string | null
+          external_ticket_url: string | null
           framework: string | null
           hypothesis: string | null
           id: string
           metrics: Json | null
           name: string
           priority: string | null
+          source_suggestion_id: string | null
           status: string | null
           updated_at: string
           workspace_id: string
@@ -110,12 +155,15 @@ export type Database = {
           code_generated?: string | null
           created_at?: string
           created_by: string
+          external_ticket_id?: string | null
+          external_ticket_url?: string | null
           framework?: string | null
           hypothesis?: string | null
           id?: string
           metrics?: Json | null
           name: string
           priority?: string | null
+          source_suggestion_id?: string | null
           status?: string | null
           updated_at?: string
           workspace_id: string
@@ -125,12 +173,15 @@ export type Database = {
           code_generated?: string | null
           created_at?: string
           created_by?: string
+          external_ticket_id?: string | null
+          external_ticket_url?: string | null
           framework?: string | null
           hypothesis?: string | null
           id?: string
           metrics?: Json | null
           name?: string
           priority?: string | null
+          source_suggestion_id?: string | null
           status?: string | null
           updated_at?: string
           workspace_id?: string
