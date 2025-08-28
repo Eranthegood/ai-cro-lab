@@ -38,6 +38,7 @@ interface ABTestHistoryTableProps {
     dateTo: string;
     approach: string;
     pageUrl: string;
+    pageType: string;
   };
   onFiltersChange: (filters: any) => void;
   onExport: () => void;

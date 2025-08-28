@@ -28,7 +28,8 @@ const ABTestHistory = () => {
     dateFrom: '',
     dateTo: '',
     approach: '',
-    pageUrl: ''
+    pageUrl: '',
+    pageType: ''
   });
 
   const fetchHistory = async () => {

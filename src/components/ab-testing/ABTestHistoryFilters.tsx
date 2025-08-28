@@ -13,6 +13,7 @@ interface FiltersProps {
     dateTo: string;
     approach: string;
     pageUrl: string;
+    pageType: string;
   };
   onFiltersChange: (filters: any) => void;
 }
@@ -32,7 +33,8 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
       dateFrom: '',
       dateTo: '',
       approach: '',
-      pageUrl: ''
+      pageUrl: '',
+      pageType: ''
     });
   };
 
@@ -70,7 +72,7 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3">
         {/* Search */}
         <div className="lg:col-span-2">
           <div className="relative">
@@ -84,30 +86,60 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
           </div>
         </div>
 
+        {/* Page Type */}
+        <Select value={filters.pageType || "all"} onValueChange={(value) => updateFilter('pageType', value === "all" ? "" : value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Type de page" />
+          </SelectTrigger>
+          <SelectContent className="bg-background border-border z-50 max-h-60 overflow-y-auto">
+            <SelectItem value="all">Toutes les pages</SelectItem>
+            <SelectItem value="homepage">🏠 Page d'accueil</SelectItem>
+            <SelectItem value="listing">📂 Page de catégorie</SelectItem>
+            <SelectItem value="product">📦 Page produit</SelectItem>
+            <SelectItem value="search">🔍 Page de recherche</SelectItem>
+            <SelectItem value="cart">🛒 Page panier</SelectItem>
+            <SelectItem value="checkout">💳 Page de checkout</SelectItem>
+            <SelectItem value="shipping">🚚 Page de livraison</SelectItem>
+            <SelectItem value="payment">💰 Page de paiement</SelectItem>
+            <SelectItem value="pricing">🏷️ Page de prix</SelectItem>
+            <SelectItem value="signup">✍️ Page d'inscription</SelectItem>
+            <SelectItem value="login">🔐 Page de connexion</SelectItem>
+            <SelectItem value="contact">📞 Page de contact</SelectItem>
+            <SelectItem value="about">ℹ️ Page à propos</SelectItem>
+            <SelectItem value="blog">📝 Blog/Article</SelectItem>
+            <SelectItem value="landing">🎯 Landing page</SelectItem>
+            <SelectItem value="dashboard">📊 Dashboard</SelectItem>
+            <SelectItem value="other">📄 Autre</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Goal Type */}
         <Select value={filters.goalType || "all"} onValueChange={(value) => updateFilter('goalType', value === "all" ? "" : value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Goal Type" />
+            <SelectValue placeholder="Objectif" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Goals</SelectItem>
-            <SelectItem value="conversion">Conversion</SelectItem>
-            <SelectItem value="ctr">Click-through Rate</SelectItem>
-            <SelectItem value="engagement">Engagement</SelectItem>
-            <SelectItem value="retention">Retention</SelectItem>
-            <SelectItem value="revenue">Revenue</SelectItem>
-            <SelectItem value="signup">Sign-up</SelectItem>
-            <SelectItem value="lead_generation">Lead Generation</SelectItem>
+          <SelectContent className="bg-background border-border z-50">
+            <SelectItem value="all">Tous les objectifs</SelectItem>
+            <SelectItem value="conversion">🎯 Taux de conversion</SelectItem>
+            <SelectItem value="cart">🛒 Abandon de panier</SelectItem>
+            <SelectItem value="add-to-cart">🛍️ Ajout au panier</SelectItem>
+            <SelectItem value="form">📝 Completion de formulaires</SelectItem>
+            <SelectItem value="ctr">👆 Taux de clic</SelectItem>
+            <SelectItem value="engagement">⏱️ Engagement</SelectItem>
+            <SelectItem value="retention">🔄 Rétention</SelectItem>
+            <SelectItem value="revenue">💰 Revenus</SelectItem>
+            <SelectItem value="signup">✍️ Inscription</SelectItem>
+            <SelectItem value="lead_generation">🎯 Génération de leads</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Approach */}
         <Select value={filters.approach || "all"} onValueChange={(value) => updateFilter('approach', value === "all" ? "" : value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Approach" />
+            <SelectValue placeholder="Approche" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Approaches</SelectItem>
+          <SelectContent className="bg-background border-border z-50">
+            <SelectItem value="all">Toutes approches</SelectItem>
             <SelectItem value="Technical UX">Technical UX</SelectItem>
             <SelectItem value="Psychology">Psychology</SelectItem>
             <SelectItem value="Brand Differentiation">Brand Differentiation</SelectItem>
@@ -198,6 +230,19 @@ export const ABTestHistoryFilters = ({ filters, onFiltersChange }: FiltersProps)
                 variant="ghost"
                 size="sm"
                 onClick={() => updateFilter('pageUrl', '')}
+                className="h-auto p-0 ml-1"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+          {filters.pageType && (
+            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded text-xs">
+              Type: {filters.pageType}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => updateFilter('pageType', '')}
                 className="h-auto p-0 ml-1"
               >
                 <X className="w-3 h-3" />
