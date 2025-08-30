@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertTriangle, RefreshCw, Users } from 'lucide-react';
+import { CheckCircle, AlertTriangle, RefreshCw, Users, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLoops } from '@/hooks/useLoops';
 import { toast } from 'sonner';
@@ -32,6 +32,53 @@ const WaitlistSyncToLoops = () => {
   const [isComplete, setIsComplete] = useState(false);
   
   const { createContact } = useLoops();
+
+  const handleExportCSV = async () => {
+    try {
+      // Récupérer toutes les entrées de la waitlist
+      const { data: waitlistEntries, error } = await supabase
+        .from('waitlist')
+        .select('id, email, referral_source, created_at, company_size, role, current_tools')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!waitlistEntries || waitlistEntries.length === 0) {
+        toast.error('Aucune entrée dans la waitlist');
+        return;
+      }
+
+      // Convertir en CSV
+      const csvHeaders = ['Email', 'Source', 'Date d\'inscription', 'Taille entreprise', 'Rôle', 'Outils actuels'];
+      const csvRows = waitlistEntries.map(entry => [
+        entry.email,
+        entry.referral_source || '',
+        new Date(entry.created_at).toLocaleDateString('fr-FR'),
+        entry.company_size || '',
+        entry.role || '',
+        entry.current_tools?.join(', ') || ''
+      ]);
+
+      const csvContent = [
+        csvHeaders.join(','),
+        ...csvRows.map(row => row.map(field => `"${field}"`).join(','))
+      ].join('\n');
+
+      // Créer et télécharger le fichier
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `waitlist_export_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+
+      toast.success(`Export CSV terminé (${waitlistEntries.length} entrées)`);
+    } catch (error: any) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      toast.error('Erreur lors de l\'export CSV');
+    }
+  };
 
   const handleSyncWaitlist = async () => {
     setIsLoading(true);
@@ -114,10 +161,16 @@ const WaitlistSyncToLoops = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {!isLoading && !isComplete && (
-          <Button onClick={handleSyncWaitlist} className="w-full">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Démarrer la synchronisation
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={handleSyncWaitlist} className="w-full">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Démarrer la synchronisation
+            </Button>
+            <Button onClick={handleExportCSV} variant="outline" className="w-full">
+              <Download className="w-4 h-4 mr-2" />
+              Exporter en CSV
+            </Button>
+          </div>
         )}
 
         {isLoading && (
