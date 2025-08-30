@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useLoops } from '@/hooks/useLoops';
 interface FormData {
   email: string;
   companySize: string;
@@ -31,6 +32,7 @@ const EnhancedWaitlistForm = ({
   const {
     toast
   } = useToast();
+  const { createContact } = useLoops();
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.email.includes('@')) {
@@ -69,6 +71,20 @@ const EnhancedWaitlistForm = ({
           throw error;
         }
       } else {
+        // Envoyer le contact à Loops
+        try {
+          await createContact({
+            email: formData.email.toLowerCase(),
+            source: 'waitlist',
+            subscribed: true,
+            userGroup: 'waitlist_members'
+          });
+          console.log('Contact envoyé à Loops avec succès');
+        } catch (loopsError) {
+          // Ne pas faire échouer l'inscription si Loops échoue
+          console.warn('Erreur lors de l\'envoi à Loops:', loopsError);
+        }
+
         setIsSubmitted(true);
         onSuccess?.();
         toast({
