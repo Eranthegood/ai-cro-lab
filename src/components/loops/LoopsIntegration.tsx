@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLoops } from '@/hooks/useLoops';
 import { Loader2, Mail, Users, Send } from 'lucide-react';
+import WaitlistSyncToLoops from './WaitlistSyncToLoops';
 
 export const LoopsIntegration = () => {
   const {
@@ -89,7 +90,7 @@ export const LoopsIntegration = () => {
       </Card>
 
       <Tabs defaultValue="contacts" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="contacts" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Contacts
@@ -99,6 +100,10 @@ export const LoopsIntegration = () => {
             Emails
           </TabsTrigger>
           <TabsTrigger value="lists">Listes</TabsTrigger>
+          <TabsTrigger value="sync" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Sync Waitlist
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="contacts">
@@ -273,6 +278,10 @@ export const LoopsIntegration = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="sync">
+          <WaitlistSyncToLoops />
         </TabsContent>
       </Tabs>
 
