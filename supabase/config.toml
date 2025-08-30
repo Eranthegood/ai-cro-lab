@@ -28,6 +28,9 @@ verify_jwt = false
 [functions.fast-ship-api]
 verify_jwt = true
 
+[functions.loops-integration]
+verify_jwt = true
+
 [db]
 port = 54322
 
