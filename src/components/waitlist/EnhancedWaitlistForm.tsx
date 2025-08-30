@@ -54,12 +54,10 @@ const EnhancedWaitlistForm = ({
       } = await supabase.from('waitlist').insert({
         email: formData.email.toLowerCase(),
         referral_source: 'enhanced_form',
-        user_agent: JSON.stringify({
-          userAgent: navigator.userAgent,
-          companySize: formData.companySize,
-          role: formData.role,
-          currentTools: formData.currentTools
-        })
+        user_agent: navigator.userAgent,
+        company_size: formData.companySize,
+        role: formData.role,
+        current_tools: [formData.currentTools] // Array format for the database
       });
       if (error) {
         if (error.code === '23505') {
@@ -77,7 +75,10 @@ const EnhancedWaitlistForm = ({
             email: formData.email.toLowerCase(),
             source: 'waitlist',
             subscribed: true,
-            userGroup: 'waitlist_members'
+            userGroup: 'waitlist_members',
+            companySize: formData.companySize,
+            role: formData.role,
+            currentTools: formData.currentTools
           });
           console.log('Contact envoyé à Loops avec succès');
         } catch (loopsError) {

@@ -827,29 +827,38 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          company_size: string | null
           created_at: string
+          current_tools: string[] | null
           email: string
           id: string
           ip_address: unknown | null
           referral_source: string | null
+          role: string | null
           user_agent: string | null
           workspace_id: string | null
         }
         Insert: {
+          company_size?: string | null
           created_at?: string
+          current_tools?: string[] | null
           email: string
           id?: string
           ip_address?: unknown | null
           referral_source?: string | null
+          role?: string | null
           user_agent?: string | null
           workspace_id?: string | null
         }
         Update: {
+          company_size?: string | null
           created_at?: string
+          current_tools?: string[] | null
           email?: string
           id?: string
           ip_address?: unknown | null
           referral_source?: string | null
+          role?: string | null
           user_agent?: string | null
           workspace_id?: string | null
         }

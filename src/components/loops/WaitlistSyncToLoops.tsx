@@ -13,6 +13,9 @@ interface WaitlistEntry {
   email: string;
   referral_source: string | null;
   created_at: string;
+  company_size: string | null;
+  role: string | null;
+  current_tools: string[] | null;
 }
 
 interface SyncStats {
@@ -40,7 +43,7 @@ const WaitlistSyncToLoops = () => {
       // Récupérer toutes les entrées de la waitlist
       const { data: waitlistEntries, error } = await supabase
         .from('waitlist')
-        .select('id, email, referral_source, created_at')
+        .select('id, email, referral_source, created_at, company_size, role, current_tools')
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -65,7 +68,10 @@ const WaitlistSyncToLoops = () => {
             email: entry.email.toLowerCase(),
             source: entry.referral_source || 'waitlist',
             subscribed: true,
-            userGroup: 'waitlist_members'
+            userGroup: 'waitlist_members',
+            companySize: entry.company_size,
+            role: entry.role,
+            currentTools: entry.current_tools?.[0] // Take first item from array
           });
 
           setSyncStats(prev => ({ ...prev, success: prev.success + 1 }));

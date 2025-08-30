@@ -10,6 +10,9 @@ interface LoopsContact {
   subscribed?: boolean;
   userGroup?: string;
   userId?: string;
+  companySize?: string;
+  role?: string;
+  currentTools?: string;
 }
 
 interface LoopsTransactionalEmail {
