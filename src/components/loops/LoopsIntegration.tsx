@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLoops } from '@/hooks/useLoops';
 import { Loader2, Mail, Users, Send } from 'lucide-react';
 import WaitlistSyncToLoops from './WaitlistSyncToLoops';
+import TestLoopsIntegration from './TestLoopsIntegration';
 
 export const LoopsIntegration = () => {
   const {
@@ -88,6 +89,8 @@ export const LoopsIntegration = () => {
           </CardDescription>
         </CardHeader>
       </Card>
+
+      <TestLoopsIntegration />
 
       <Tabs defaultValue="contacts" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">

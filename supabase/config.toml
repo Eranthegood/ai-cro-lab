@@ -31,6 +31,9 @@ verify_jwt = true
 [functions.loops-integration]
 verify_jwt = false
 
+[functions.test-loops-lead]
+verify_jwt = false
+
 [db]
 port = 54322
 
