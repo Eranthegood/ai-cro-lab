@@ -29,7 +29,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.loops-integration]
-verify_jwt = true
+verify_jwt = false
 
 [db]
 port = 54322
