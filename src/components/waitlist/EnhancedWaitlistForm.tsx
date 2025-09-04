@@ -126,7 +126,7 @@ const EnhancedWaitlistForm = ({
             ...prev,
             email: e.target.value
           }))} className="flex-1 h-14 text-base bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:border-primary-foreground focus:ring-2 focus:ring-primary-foreground/20" required />
-            <Button type="submit" size="lg" className="h-14 px-8 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
+            <Button type="submit" size="lg" className="h-14 px-8 text-base font-semibold bg-orange text-orange-foreground hover:bg-orange/90 transition-all duration-200">
               Join wait list <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -193,7 +193,7 @@ const EnhancedWaitlistForm = ({
           </SelectContent>
         </Select>
 
-        <Button type="submit" disabled={isSubmitting} size="lg" className="w-full h-12 text-base font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-200">
+        <Button type="submit" disabled={isSubmitting} size="lg" className="w-full h-12 text-base font-semibold bg-orange text-orange-foreground hover:bg-orange/90 transition-all duration-200">
           {isSubmitting ? <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
               Joining waitlist...
