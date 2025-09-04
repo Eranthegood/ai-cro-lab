@@ -55,6 +55,9 @@ All colors MUST be HSL.
     --content: 30 100% 60%;
     --content-foreground: 0 0% 98%;
 
+    --orange: 30 100% 50%;
+    --orange-foreground: 0 0% 0%;
+
     --border: 0 0% 90%;
     --input: 0 0% 90%;
     --ring: 0 0% 0%;
@@ -127,6 +130,9 @@ All colors MUST be HSL.
 
     --content: 30 100% 60%;
     --content-foreground: 0 0% 98%;
+
+    --orange: 30 100% 50%;
+    --orange-foreground: 0 0% 0%;
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
