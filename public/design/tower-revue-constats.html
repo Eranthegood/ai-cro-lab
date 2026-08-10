@@ -119,7 +119,7 @@ kbd{
 
 .states{
   display:flex;align-items:center;gap:10px;flex:none;
-  padding:2px 14px;min-height:48px;background:var(--bg-sunken);
+  padding:6px 14px;min-height:52px;background:var(--bg-sunken);
   border-bottom:1px solid var(--border);flex-wrap:wrap;
 }
 .states__label{
@@ -456,7 +456,7 @@ kbd{
   .shot svg{width:100%;height:auto}
   .verdict{
     grid-column:2;grid-row:2;border-left:none;border-top:1px solid var(--border);
-    max-height:min(56vh,340px);
+    max-height:min(66vh,430px);
   }
   .evidence{grid-column:2;grid-row:1;min-height:0}
   .queue{grid-row:1/span 2}
@@ -464,7 +464,7 @@ kbd{
   .verdict__scroll{padding:12px 14px 6px}
   .obs{font-size:13px;margin-bottom:12px}
   /* L'observation et l'impact priment : le contexte se replie. */
-  .persist__d,.resolved__d,.resolved__note,.story__btn,.story{display:none}
+  .persist__d,.resolved__d,.resolved__note,.story__btn,.story,.judge__note{display:none}
   .persist,.resolved{padding:8px 10px;margin-bottom:10px}
   .persist__t,.resolved__t{margin-bottom:6px}
   .runs{margin-top:6px}
@@ -555,6 +555,7 @@ const SHOTS = {
   pdp_drawer:  {page:"drawer",   box:[54,3,43.6,33.4]},
   cart_total:  {page:"cart",     box:[64.4,16.4,31.6,31]},
   cart_vide:   {page:"cart",     box:[3.3,15.9,59,15], vide:true},
+  cart_promo:  {page:"cart",     box:[66.2,28.2,27,6.2]},
   cart_cta:    {page:"cart",     box:[3.3,53,57.3,8]},
   ship_opts:   {page:"checkout", box:[3.3,21.8,57,22.4]},
   ship_country:{page:"checkout", box:[3.3,48.1,57.3,9.3]},
@@ -566,7 +567,7 @@ const SHOTS = {
   list_tri:    {page:"listing",  box:[73.3,11.6,24.4,6]},
   list_pager:  {page:"listing",  box:[43.3,84.5,25.6,7.3]},
   search_zero: {page:"search",   box:[3.3,19.2,63.3,22.6]},
-  search_bar:  {page:"search",   box:[3.3,8.6,93.3,6.7]},
+  search_bar:  {page:"resultats",box:[3.3,8.6,93.3,6.7]},
   home_hero:   {page:"home",     box:[1,6.5,98,42.7]},
   home_nav:    {page:"home",     box:[1,0.9,98,5.6]},
   home_trust:  {page:"home",     box:[10,52.2,80,4.5]},
@@ -738,7 +739,7 @@ const LIVE = [
    obs:"Sous le bouton d’ajout au panier, aucune mention du délai de livraison ni de la politique de retour. Le manque est identique à celui relevé sur la veste alpine aux runs 13, 12 et 11 : les deux fiches partagent le même gabarit.",
    imp:"Le manque ne tient pas à un produit mais au gabarit de fiche. Toutes les fiches du catalogue présentent la même zone vide."},
   {id:"C-1269", url:"/panier", cat:"tunnel", zone:"Champ de code promo",
-   shot:"cart_total", statut:"a_juger", runs:[14], page:12,
+   shot:"cart_promo", statut:"a_juger", runs:[14], page:12,
    obs:"Le champ « Code promo » est ouvert et placé au-dessus du bouton de commande, sans indication de l’existence d’un code en cours de validité.",
    imp:"Un champ vide et proéminent pose une question à laquelle la page ne répond pas, juste avant le paiement."},
   {id:"C-1270", url:"/produits/doudoune-cirrus", cat:"proposition_valeur", zone:"Haut de fiche produit",
@@ -751,8 +752,8 @@ const LIVE = [
    imp:"L’ordre du premier écran est déterminé par un critère qui n’a pas de sens hors d’une recherche."},
   {id:"C-1272", url:"/produits/doudoune-cirrus", cat:"friction_ui", zone:"Guide des tailles",
    shot:"pdp_size", statut:"a_juger", runs:[14], page:19,
-   obs:"Le lien « Guide des tailles » est aligné à droite du bloc, au-dessus du sélecteur, en gris clair et en corps 12. Il est plus discret que la mention de référence produit affichée quatre lignes plus haut.",
-   imp:"L’aide au choix de taille est traitée comme une note de bas de page, sur une fiche de vêtement technique."},
+   obs:"Le lien « Guide des tailles » est rejeté à droite du bloc, aligné sur le bord opposé au sélecteur de taille. Il est rendu au même corps et dans le même gris que la référence produit, et rien ne le désigne comme une aide au choix.",
+   imp:"L’aide au choix de taille est placée hors du parcours du regard, à l’opposé du contrôle qu’elle sert, sur une fiche de vêtement technique."},
   {id:"C-1273", url:"/commande/adresse", cat:"tunnel", zone:"Étapes de la commande",
    shot:"ck_steps", statut:"a_juger", runs:[14], page:23,
    obs:"Le tunnel demande la création d’un compte avant la saisie de l’adresse. Aucune option de commande sans compte n’est proposée, ni à cette étape ni ailleurs dans le parcours.",
@@ -765,13 +766,17 @@ const LIVE = [
    shot:"list_grid", statut:"a_juger", runs:[14], page:29,
    obs:"Les images de la grille se chargent après le texte, sans emplacement réservé. La grille se réorganise pendant environ deux secondes et les vignettes se déplacent sous le curseur.",
    imp:"La cible d’un clic se déplace pendant le temps de chargement, sur la page où se fait la présélection."},
-  {id:"C-1276", url:"/", cat:"reassurance", zone:"Bande de réassurance d’accueil",
-   shot:"home_trust", statut:"a_juger", runs:[14], page:32,
+  {id:"C-1249", url:"/", cat:"reassurance", zone:"Bande de réassurance d’accueil",
+   shot:"home_trust", statut:"a_juger", runs:[14,13], page:32,
    obs:"La bande sous le bandeau annonce « Livraison offerte, Retours faciles, Paiement sécurisé ». Aucun seuil, aucun délai, aucune condition n’accompagne les trois mentions.",
    imp:"Trois promesses sans seuil ni délai. Le doute qu’elles devraient lever reste entier après les avoir lues."}
 ];
 
-/* Constats du run 11, arrêté au plafond de budget.
+/* Un constat porte l'identité du problème, pas celle de la détection : le
+   même manque relevé à plusieurs runs garde son identifiant. C'est ce qui
+   permet de lire sa persistance au lieu de le voir revenir comme neuf.
+
+   Constats du run 11, arrêté au plafond de budget.
    Persona Marc : il entre par son compte, pas par l’accueil — les constats
    ne sont pas les mêmes que ceux d’une première visite. */
 const PARTIAL = [
@@ -795,11 +800,11 @@ const PARTIAL = [
    shot:"cart_vide", statut:"a_juger", runs:[11],
    obs:"Le panier constitué avant la connexion est vide après identification. Les deux articles ajoutés depuis les fiches produit n’y figurent plus, et aucun message ne signale la perte.",
    imp:"Le contenu mis de côté disparaît au moment précis où le client s’identifie, sans avertissement ni moyen de le retrouver."},
-  {id:"C-1215", url:"/commande/adresse", cat:"friction_ui", zone:"Adresse de livraison",
+  {id:"C-1255", url:"/commande/adresse", cat:"friction_ui", zone:"Adresse de livraison",
    shot:"form_zip", statut:"a_juger", runs:[11],
    obs:"L’adresse enregistrée au compte n’est pas préremplie. Les six champs sont vides, alors que la même adresse figure dans le détail des trois commandes passées.",
    imp:"Le compte ne sert à rien à l’étape où il servirait le plus : tout est à ressaisir."},
-  {id:"C-1216", url:"/produits/veste-alpine-3l", cat:"reassurance", zone:"Bloc d’ajout au panier",
+  {id:"C-1240", url:"/produits/veste-alpine-3l", cat:"reassurance", zone:"Bloc d’ajout au panier",
    shot:"pdp_cart", statut:"a_juger", runs:[11],
    obs:"Sous le bouton d’ajout au panier, aucune mention du délai de livraison ni de la politique de retour. L’information existe en pied de page, à deux écrans de défilement.",
    imp:"La question qui se pose au moment du clic n’a pas de réponse dans le champ de vision."},
@@ -811,7 +816,7 @@ const PARTIAL = [
    shot:"search_zero", statut:"a_juger", runs:[11],
    obs:"La recherche par référence produit renvoie zéro résultat. La référence ALP-3L-0421 est pourtant affichée sur la fiche et reprise dans l’e-mail de confirmation de commande.",
    imp:"La boutique imprime une référence sur ses pages et dans ses e-mails, puis ne sait pas la relire."},
-  {id:"C-1219", url:"/commande/livraison", cat:"tunnel", zone:"Choix du mode de livraison",
+  {id:"C-1245", url:"/commande/livraison", cat:"tunnel", zone:"Choix du mode de livraison",
    shot:"ship_opts", statut:"a_juger", runs:[11],
    obs:"Les deux modes de livraison s’appellent « Standard » et « Économique » et annoncent tous deux 3 à 5 jours ouvrés. Le mode retenu à la commande précédente n’est pas présélectionné.",
    imp:"Un choix sans critère est reposé à chaque commande, y compris à un client qui l’a déjà fait trois fois."},
@@ -819,7 +824,7 @@ const PARTIAL = [
    shot:"pdp_stock", statut:"a_juger", runs:[11],
    obs:"La mention « En stock » ne précise ni la quantité restante ni la date de réapprovisionnement pour les tailles épuisées. Aucune alerte de retour en stock n’est proposée.",
    imp:"Pour une taille épuisée, la page se termine sans proposer aucune suite."},
-  {id:"C-1221", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
+  {id:"C-1254", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
    shot:"policy", statut:"a_juger", runs:[11],
    obs:"La page indique « retours acceptés sous 14 jours » et précise ensuite que les frais de retour sont à la charge du client. Aucune de ces deux conditions n’est rappelée dans le compte ni dans le détail d’une commande.",
    imp:"Un client qui veut retourner un article doit quitter son compte pour trouver la règle qui s’y applique."}
@@ -989,7 +994,14 @@ const PAGES = {
   pdp(x){
     return `${siteHeader()}
     ${produit(x.p.fam,36,132,400,480)}
-    ${[0,1,2,3].map(i=>`<rect x="${36+i*68}" y="628" width="60" height="60" rx="4" fill="var(--shot-fill)" stroke="var(--shot-line)"/>`).join("")}
+    ${[0,1,2,3].map(i=>`
+      <rect x="${36+i*68}" y="628" width="60" height="60" rx="4" fill="var(--shot-fill)" stroke="var(--shot-line)"/>
+      <g transform="translate(${36+i*68},628) scale(0.13) ${i===1?"rotate(0)":""}" opacity=".8">
+        <g transform="${i===2?"translate(460,0) scale(-1,1)":"translate(0,0)"}">
+          ${(SILHOUETTES[x.p.fam]||SILHOUETTES.veste)(230,0,460,460)}
+        </g>
+      </g>
+      <text x="${36+i*68+4}" y="${684}" font-family="Inter,sans-serif" font-size="9" fill="var(--shot-mut)">${i+1}</text>`).join("")}
     <text x="${RX}" y="156" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">${esc(x.p.fil)}</text>
     <text x="${RX}" y="196" font-family="Inter,sans-serif" font-size="26" font-weight="600" fill="var(--shot-ink)">${esc(x.p.nom)}</text>
     <text x="${RX}" y="230" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Réf. ${esc(x.p.ref)} · ${esc(x.p.stock)}</text>
@@ -1134,9 +1146,13 @@ const PAGES = {
     <rect x="672" y="172" width="192" height="34" rx="5" fill="none" stroke="var(--shot-line)"/>
     <text x="686" y="194" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">Pertinence</text>
     <path d="M${844} 186 l7 7 l7 -7" fill="none" stroke="var(--shot-mut)" stroke-width="1.5"/>
-    ${Array.from({length:12},(_,i)=>{
+    ${Array.from({length:Math.min(x.c.n,12)},(_,i)=>{
       const cx=248+(i%4)*158, cy=228+Math.floor(i/4)*206;
-      return `<rect x="${cx}" y="${cy}" width="140" height="140" rx="4" fill="var(--shot-fill)"/>
+      return `<clipPath id="v${i}"><rect x="${cx}" y="${cy}" width="140" height="140" rx="4"/></clipPath>
+        <rect x="${cx}" y="${cy}" width="140" height="140" rx="4" fill="var(--shot-fill)"/>
+        <g clip-path="url(#v${i})" opacity=".8" transform="translate(${cx-26},${cy-34}) scale(0.42)">
+          ${(SILHOUETTES[["veste","doudoune","sac","chaussure","gant"][i%5]])(230,0,460,460)}
+        </g>
         ${lines(cx,cy+156,112,2,18)}`;
     }).join("")}
     ${btn(400,848,220,44,"Voir plus",false)}
@@ -1149,6 +1165,18 @@ const PAGES = {
     <text x="36" y="252" font-family="Inter,sans-serif" font-size="20" font-weight="600" fill="var(--shot-ink)">Aucun résultat pour « ${esc(x.q)} »</text>
     ${lines(36,286,540,2,26)}
     ${btn(36,376,240,48,"Retour à l’accueil",false)}
+    ${footer()}`;
+  },
+  resultats(x){
+    return `${siteHeader()}
+    <rect x="36" y="140" width="${W-72}" height="46" rx="6" fill="none" stroke="var(--shot-line)"/>
+    <text x="56" y="169" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-mut)">Rechercher un produit</text>
+    <text x="36" y="236" font-family="Inter,sans-serif" font-size="18" font-weight="600" fill="var(--shot-ink)">4 résultats</text>
+    ${[0,1,2,3].map(i=>{
+      const cx=36+(i%4)*206, cy=268;
+      return `<rect x="${cx}" y="${cy}" width="186" height="186" rx="4" fill="var(--shot-fill)"/>
+        ${lines(cx,cy+202,150,2,20)}`;
+    }).join("")}
     ${footer()}`;
   },
   home(x){
@@ -1216,7 +1244,7 @@ function renderShot(finding, dim, cadre){
   if(d.vide) ctx.vide = true;
   const body = (PAGES[d.page] || PAGES.pdp)(ctx);
   const bx = px(d.box[0],W), by = px(d.box[1],BODY)+TOP, bw = px(d.box[2],W), bh = px(d.box[3],BODY);
-  const above = by - 26 >= TOP + 6;
+  const above = by - 26 >= TOP + 34;
   const ly = above ? by - 26 : by + 5;
   const lw = 10 + finding.zone.length * 6.5;
   let vb = `0 0 ${W} ${H}`;
@@ -1325,7 +1353,7 @@ function renderRunbar(){
       '<span class="notice__mark" aria-hidden="true">!</span>'+
       '<p class="notice__body"><b>Run arrêté : plafond de budget atteint.</b> '+r.pages[0]+' pages parcourues sur les '+r.pages[1]+
       ' prévues. Le compte, l’historique de commandes et le tunnel ont été parcourus en entier ; '+
-      'le catalogue et les pages de contenu n’ont pas été atteints. Les '+items.length+
+      'le catalogue et les pages de contenu ne l’ont été qu’en partie. Les '+items.length+
       ' constats ci-dessous ont été vérifiés et sont exploitables. Les '+(r.pages[1]-r.pages[0])+
       ' pages restantes seront reprises en tête du prochain run. '+
       '<button class="notice__more" id="cov-btn" aria-expanded="false">Voir les pages non parcourues</button></p>';
@@ -1432,7 +1460,7 @@ function renderQueue(){
     const n = el("div","queue__note");
     n.innerHTML = nBruit+' constat'+(nBruit>1?'s':'')+' non remonté'+(nBruit>1?'s':'')+
       ' par vos règles de bruit. <button>Voir</button>';
-    n.querySelector("button").onclick = ()=>{ onlyTodo=false; sel=items.findIndex(f=>f.statut==="bruit"); render(); };
+    n.querySelector("button").onclick = ()=>{ onlyTodo=false; sel=visible().findIndex(f=>f.statut==="bruit"); render(); };
     col.appendChild(n);
   }
   col.appendChild(list);
@@ -1496,7 +1524,7 @@ function renderVerdict(f){
       titre = "Vu aux "+f.runs.length+" derniers runs, jamais jugé";
       corps = "Relevé pour la première fois le "+esc(f.first)+
         ". Il est resté à l’identique depuis : la zone n’a pas changé et le constat n’a pas été traité. "+
-        "Trois semaines que chaque visiteur de cette page rencontre le même manque.";
+        f.runs.length+" détections consécutives, la dernière au run "+f.runs[0]+".";
     }
     p.innerHTML =
       '<p class="persist__t">'+titre+'</p>'+
@@ -1713,6 +1741,7 @@ function render(opts){
    JUGEMENT — un geste, puis avance tout seul
    ============================================================ */
 const VERB = {actionnable:"classé actionnable", bruit:"classé bruit", exporte:"exporté vers Linear", a_juger:"remis en file"};
+const ETAT = {actionnable:"déjà classé actionnable", bruit:"déjà classé bruit", exporte:"déjà exporté vers Linear", a_juger:"à juger"};
 
 function judge(next){
   const f = current(); if(!f) return;
@@ -1787,9 +1816,18 @@ document.addEventListener("keydown", e=>{
   const v = visible();
   if(k==="j"||e.key==="ArrowDown"){ e.preventDefault(); sel=Math.min(sel+1,v.length-1); render(); }
   else if(k==="k"||e.key==="ArrowUp"){ e.preventDefault(); sel=Math.max(sel-1,0); render(); }
-  else if(k==="a"){ e.preventDefault(); if(current()&&current().statut==="a_juger") judge("actionnable"); }
-  else if(k==="b"){ e.preventDefault(); if(current()&&current().statut==="a_juger") judge("bruit"); }
-  else if(k==="e"){ e.preventDefault(); if(current()&&current().statut!=="exporte") judge("exporte"); }
+  else if(k==="a"||k==="b"){
+    e.preventDefault();
+    const c = current();
+    if(c && c.statut==="a_juger") judge(k==="a" ? "actionnable" : "bruit");
+    else if(c) toast(c.id+" est "+ETAT[c.statut]+" — U pour annuler le dernier jugement.");
+  }
+  else if(k==="e"){
+    e.preventDefault();
+    const c = current();
+    if(c && (c.statut==="a_juger" || c.statut==="actionnable")) judge("exporte");
+    else if(c) toast(c.id+" est "+ETAT[c.statut]+" — U pour annuler le dernier jugement.");
+  }
   else if(k==="u"){ e.preventDefault(); undo(); }
   else if(k==="f"){ e.preventDefault(); onlyTodo=!onlyTodo; sel=0; render(); }
   else if(k==="s"){ e.preventDefault(); dim=!dim; render(); }
