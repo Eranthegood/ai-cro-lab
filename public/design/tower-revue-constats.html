@@ -1721,7 +1721,7 @@ function setState(next){
       if(items.length >= LIVE.length){
         clearInterval(liveTimer); liveTimer=null;
         RUNS.encours.live = false;
-        RUNS.encours.fini = {heure:"06 h 41", pages:RUNS.encours.pages[1], n:items.length};
+        RUNS.encours.fini = {heure:"6 h 41", pages:RUNS.encours.pages[1], n:items.length};
         render();
         return;
       }
