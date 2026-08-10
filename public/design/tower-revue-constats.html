@@ -1,0 +1,1307 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tower — Revue des constats</title>
+<style>
+/* ============================================================
+   TOKENS — thème clair et sombre définis explicitement.
+   Contraste vérifié AA sur toutes les paires texte/fond.
+   ============================================================ */
+:root{
+  --bg:#ffffff;
+  --bg-sunken:#fafafa;
+  --surface:#ffffff;
+  --surface-hover:#f4f5f8;
+  --surface-sel:#eceef5;
+  --border:#e4e5e9;
+  --border-strong:#d0d2d8;
+  --text:#0d0e10;      /* 19.2:1 sur --bg */
+  --text-2:#3d3f45;    /* 10.5:1 sur --bg */
+  --text-3:#5f6168;    /* 5.7:1  sur --bg, 4.7:1 sur la ligne sélectionnée */
+  --accent:#4f5ac6;    /* 5.8:1  sur --bg */
+  --accent-fg:#ffffff; /* 5.8:1  sur --accent */
+  --accent-soft:#eceef8;
+  /* La capture est une photo du site réel : elle garde ses couleurs
+     dans les deux thèmes. Une preuve qui s'inverse n'est plus une preuve. */
+  --shot-page:#ffffff;
+  --shot-ink:#1b1c1f;
+  --shot-mut:#83868e;
+  --shot-line:#e3e4e8;
+  --shot-fill:#eceef1;
+  --shot-frame:#f1f2f4;
+  --dim:rgba(12,13,16,.38);
+  --shot-edge:#d0d2d8;
+  --shadow:0 1px 2px rgba(13,14,16,.06),0 8px 24px rgba(13,14,16,.08);
+  --ring:0 0 0 2px var(--bg),0 0 0 4px var(--accent);
+}
+:root[data-theme="dark"]{
+  --bg:#08090a;
+  --bg-sunken:#0b0c0d;
+  --surface:#101112;
+  --surface-hover:#17181a;
+  --surface-sel:#1d1e21;
+  --border:#1e2023;
+  --border-strong:#2c2e33;
+  --text:#f7f8f8;      /* 18.4:1 sur --bg */
+  --text-2:#a2a5ad;    /* 8.6:1  sur --bg */
+  --text-3:#8a8f98;    /* 6.1:1  sur --bg */
+  --accent:#7c86e8;    /* 6.1:1  sur --bg */
+  --accent-fg:#08090a; /* 6.4:1  sur --accent */
+  --accent-soft:#171a2e;
+  --dim:rgba(6,7,8,.46);
+  --shot-edge:#000000;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 28px rgba(0,0,0,.45);
+  --ring:0 0 0 2px var(--bg),0 0 0 4px var(--accent);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:13px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"cv05" 1,"ss01" 1;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:none;padding:0;margin:0;cursor:pointer}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:5px}
+::selection{background:var(--accent);color:var(--accent-fg)}
+kbd{
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  font-size:10px;line-height:15px;display:inline-block;min-width:16px;
+  padding:0 4px;text-align:center;border:1px solid var(--border-strong);
+  border-bottom-width:2px;border-radius:4px;color:var(--text-3);
+  background:var(--surface);vertical-align:middle;
+}
+
+/* ============================================================
+   COQUE
+   ============================================================ */
+.app{display:flex;flex-direction:column;height:100vh;min-height:0}
+
+/* --- Sélecteur d'état (outil de maquette, pas de produit) --- */
+/* Cibles : tous les contrôles secondaires ont une zone cliquable de 44 px
+   de haut ; seul le fond visible reste compact, pour tenir la densité. */
+.hit{
+  height:44px;flex:none;display:inline-flex;align-items:center;
+  padding:0 2px;border-radius:6px;
+}
+.hit>span{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;
+  border-radius:5px;font-size:12px;color:var(--text-3);white-space:nowrap;
+}
+.hit:hover>span{background:var(--surface-hover);color:var(--text)}
+.hit[aria-pressed="true"]>span{background:var(--surface-sel);color:var(--text);font-weight:500}
+
+.states{
+  display:flex;align-items:center;gap:10px;flex:none;
+  padding:0 14px;height:48px;background:var(--bg-sunken);
+  border-bottom:1px solid var(--border);
+}
+.states__label{
+  font-size:11px;color:var(--text-3);letter-spacing:.02em;
+  flex:none;padding-right:4px;border-right:1px solid var(--border);height:18px;line-height:18px;
+}
+.states__list{display:flex;gap:1px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.states__list::-webkit-scrollbar{display:none}
+.chip>span{color:var(--text-2)}
+.states__right{display:flex;align-items:center;gap:1px;flex:none}
+
+/* --- Barre de run --- */
+.runbar{flex:none;border-bottom:1px solid var(--border);background:var(--bg)}
+.runbar__main{display:flex;align-items:center;gap:0;height:48px;padding:0 16px}
+.runbar__title{font-size:14px;font-weight:600;letter-spacing:-.01em;margin-right:12px;white-space:nowrap}
+.meta{display:flex;align-items:center;gap:0;min-width:0;overflow:hidden}
+.meta span{font-size:12px;color:var(--text-2);white-space:nowrap}
+.meta span+span::before{content:"·";margin:0 8px;color:var(--border-strong)}
+.runbar__spacer{flex:1}
+.counts{display:flex;align-items:center;gap:10px;flex:none}
+.counts__text{font-size:12px;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.counts__text b{color:var(--text);font-weight:600}
+.bar{width:96px;height:3px;border-radius:2px;background:var(--border);overflow:hidden;flex:none}
+.bar i{display:block;height:100%;background:var(--text-3);border-radius:2px;transition:width .25s ease}
+
+/* pastille "en cours" */
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);white-space:nowrap}
+.live i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}}
+
+/* bandeau d'avertissement — calme, pas alarmant */
+.notice{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 16px;
+  border-top:1px solid var(--border);background:var(--bg-sunken);
+}
+.notice__mark{
+  flex:none;margin-top:1px;width:16px;height:16px;border-radius:4px;
+  border:1px solid var(--border-strong);color:var(--text-2);
+  font-size:11px;line-height:14px;text-align:center;font-weight:600;
+}
+.notice__body{font-size:12px;color:var(--text-2);max-width:88ch}
+.notice__body b{color:var(--text);font-weight:600}
+.notice__more{
+  color:var(--text);text-decoration:underline;text-underline-offset:2px;
+  text-decoration-color:var(--border-strong);
+  padding:13px 0;margin:-13px 0; /* 44 px de zone cliquable, zéro décalage */
+}
+.notice__more:hover{text-decoration-color:var(--text-3)}
+.coverage{display:none;padding:0 16px 12px 42px}
+.coverage[data-open="true"]{display:block}
+.coverage ul{margin:0;padding:0;list-style:none;columns:3;column-gap:24px}
+.coverage li{font-size:12px;color:var(--text-3);padding:2px 0;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+
+/* ============================================================
+   ESPACE DE TRAVAIL — 3 colonnes : file / preuve / verdict
+   ============================================================ */
+.workspace{flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 372px;min-height:0}
+.col{min-height:0;display:flex;flex-direction:column}
+.queue{border-right:1px solid var(--border);background:var(--bg-sunken)}
+.evidence{background:var(--bg)}
+.verdict{border-left:1px solid var(--border);background:var(--bg)}
+
+/* --- File --- */
+.queue__head{
+  flex:none;display:flex;align-items:center;gap:1px;height:44px;padding:0 8px 0 10px;
+  border-bottom:1px solid var(--border);
+}
+.filter b{font-variant-numeric:tabular-nums;font-weight:inherit;color:var(--text-2)}
+.filter[aria-pressed="true"] b{color:var(--text)}
+.queue__list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:4px 0 32px}
+.queue__list:focus-visible{box-shadow:inset var(--ring)}
+
+.row{
+  display:block;width:100%;text-align:left;position:relative;
+  padding:9px 12px 10px 14px;border-bottom:1px solid var(--border);
+  min-height:44px;
+}
+.row::before{content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:2px;background:transparent}
+.row:hover{background:var(--surface-hover)}
+.row[aria-selected="true"]{background:var(--surface-sel)}
+.row[aria-selected="true"]::before{background:var(--text)}
+.row:focus-visible{box-shadow:inset var(--ring)}
+.row__top{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.row__cat{
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);
+  font-weight:500;white-space:nowrap;flex:none;
+}
+.row__flags{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none}
+.flag{
+  font-size:10px;line-height:15px;padding:0 5px;border-radius:4px;
+  border:1px solid var(--border-strong);color:var(--text-2);white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.flag--quiet{border-color:transparent;color:var(--text-3);padding:0}
+.row__zone{
+  font-size:13px;color:var(--text);font-weight:500;letter-spacing:-.005em;
+  display:block;margin-bottom:2px;
+}
+.row[data-statut="bruit"] .row__zone,.row[data-statut="exporte"] .row__zone{color:var(--text-2);font-weight:400}
+.row__obs{
+  font-size:12px;color:var(--text-3);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.row__url{
+  font-size:11px;color:var(--text-3);margin-top:3px;
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;
+}
+.row--new{animation:slideIn .32s cubic-bezier(.2,.8,.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.row--new{animation:none}}
+
+.queue__pending{display:flex;align-items:center;gap:10px;padding:14px 14px}
+.skel{flex:1;height:8px;border-radius:4px;background:var(--border);animation:shim 1.6s ease-in-out infinite}
+.skel:nth-child(2){max-width:38%}
+@keyframes shim{0%,100%{opacity:.5}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+.queue__end{padding:14px 14px 0;font-size:11px;color:var(--text-3)}
+
+/* --- Preuve : la capture est le contenu principal --- */
+.evidence__head{
+  flex:none;display:flex;align-items:center;gap:8px;height:44px;padding:0 10px 0 16px;
+  border-bottom:1px solid var(--border);
+}
+.evidence__url{
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--text-2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;
+}
+.evidence__stage{
+  flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center;
+  padding:16px;background:var(--bg-sunken);overflow:hidden;
+}
+.shot{
+  height:100%;max-width:100%;border-radius:7px;overflow:hidden;
+  border:1px solid var(--shot-edge);box-shadow:var(--shadow);background:var(--shot-frame);
+  display:block;cursor:zoom-out;
+}
+.shot svg{display:block;height:100%;width:auto;max-width:100%}
+.shot[data-dim="off"]{cursor:zoom-in}
+.shot[data-dim="off"] .dimmer{opacity:0}
+.dimmer{transition:opacity .18s ease}
+@media (prefers-reduced-motion:reduce){.dimmer{transition:none}}
+
+/* --- Verdict --- */
+.verdict__scroll{flex:1;overflow-y:auto;padding:16px 18px 8px;min-height:0}
+.eyebrow{
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);
+  font-weight:500;margin:0 0 6px;
+}
+.obs{font-size:14px;line-height:1.58;color:var(--text);margin:0 0 16px;letter-spacing:-.005em}
+.impact{font-size:13px;line-height:1.55;color:var(--text-2);margin:0 0 16px}
+.facts{border-top:1px solid var(--border);padding-top:12px;margin-top:2px}
+.fact{display:flex;gap:12px;padding:3px 0;font-size:12px}
+.fact dt{flex:none;width:74px;color:var(--text-3)}
+.fact dd{margin:0;color:var(--text-2);min-width:0;word-break:break-word}
+.fact dd b{color:var(--text);font-weight:500}
+
+.persist{
+  border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;margin:0 0 16px;
+  background:var(--bg-sunken);
+}
+.persist__t{font-size:12px;font-weight:600;color:var(--text);margin:0 0 4px}
+.persist__d{font-size:12px;color:var(--text-2);margin:0}
+.runs{display:flex;gap:6px;margin-top:8px}
+.runs span{
+  font-size:11px;font-variant-numeric:tabular-nums;color:var(--text-2);
+  border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;
+}
+.runs span:first-child{color:var(--text);border-color:var(--text-3)}
+
+.resolved{
+  border:1px solid var(--border);border-radius:6px;padding:12px;margin:0 0 16px;background:var(--bg-sunken);
+}
+.resolved__t{font-size:12px;font-weight:600;margin:0 0 4px;color:var(--text)}
+.resolved__d{font-size:12px;color:var(--text-2);margin:0}
+.linear{
+  display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.linear__id{
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--text);font-weight:500;
+}
+.linear__state{font-size:11px;color:var(--text-2);border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px}
+.linear__link{
+  margin-left:auto;font-size:12px;color:var(--text);text-decoration:underline;
+  text-underline-offset:2px;text-decoration-color:var(--border-strong);
+  display:inline-flex;align-items:center;height:44px;margin-top:-13px;margin-bottom:-13px;
+}
+.linear__link:hover{text-decoration-color:var(--text-3)}
+
+/* --- Barre de jugement : un geste = une touche --- */
+.judge{
+  flex:none;border-top:1px solid var(--border);padding:10px 14px;
+  display:flex;gap:8px;background:var(--bg);
+}
+.btn{
+  height:44px;flex:1;border-radius:6px;border:1px solid var(--border-strong);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:13px;font-weight:500;color:var(--text);background:var(--surface);min-width:0;
+}
+.btn:hover{background:var(--surface-hover)}
+.btn:active{transform:translateY(.5px)}
+.btn small{font-size:10px;color:var(--text-3);font-weight:400}
+.btn--go{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);flex:1.25}
+.btn--go small{color:var(--accent-fg);opacity:.8}
+.btn--go:hover{background:var(--accent);filter:brightness(1.08)}
+.btn--wide{flex:1}
+.btn[disabled]{opacity:.45;cursor:default}
+.judge--single{padding:10px 14px}
+
+/* --- Toast d'annulation --- */
+.toast{
+  position:fixed;left:16px;bottom:16px;z-index:40;
+  display:flex;align-items:center;gap:12px;
+  padding:9px 10px 9px 14px;border-radius:7px;
+  background:var(--surface);border:1px solid var(--border-strong);box-shadow:var(--shadow);
+  font-size:12px;color:var(--text);
+  opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .16s ease,transform .16s ease;
+}
+.toast[data-open="true"]{opacity:1;transform:none;pointer-events:auto}
+.toast button{height:44px;display:inline-flex;align-items:center;padding:0}
+.toast button>span{
+  height:28px;padding:0 9px;border-radius:5px;border:1px solid var(--border-strong);
+  font-size:12px;display:inline-flex;align-items:center;gap:6px;color:var(--text);
+}
+.toast button:hover>span{background:var(--surface-hover)}
+
+/* --- États vides --- */
+.blank{
+  grid-column:1/-1;display:flex;align-items:flex-start;justify-content:center;
+  padding:64px 24px 24px;min-height:0;overflow-y:auto;
+}
+.blank__box{max-width:560px;width:100%}
+.blank__t{font-size:19px;font-weight:600;letter-spacing:-.015em;margin:0 0 8px}
+.blank__d{font-size:13px;line-height:1.6;color:var(--text-2);margin:0 0 20px;max-width:56ch}
+.steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--border)}
+.steps li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+.steps .n{
+  flex:none;width:18px;height:18px;border-radius:5px;border:1px solid var(--border-strong);
+  font-size:11px;line-height:16px;text-align:center;color:var(--text-3);margin-top:1px;
+}
+.steps .done{border-color:transparent;background:var(--surface-sel);color:var(--text)}
+.steps b{font-weight:500;display:block;color:var(--text)}
+.steps p{margin:2px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}
+.blank__foot{margin-top:20px;font-size:12px;color:var(--text-3);display:flex;gap:10px;align-items:center}
+
+/* --- Aide clavier --- */
+.help{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:var(--dim)}
+.help[data-open="true"]{display:flex}
+.help__box{
+  width:340px;background:var(--surface);border:1px solid var(--border-strong);
+  border-radius:9px;box-shadow:var(--shadow);padding:14px 16px 16px;
+}
+.help__t{font-size:13px;font-weight:600;margin:0 0 10px}
+.help dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:7px 12px;align-items:center}
+.help dt{font-size:12px;color:var(--text-2)}
+.help dd{margin:0;text-align:right;display:flex;gap:4px;justify-content:flex-end}
+
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ============================================================
+   TABLETTE — la colonne verdict passe sous la preuve
+   ============================================================ */
+@media (max-width:1180px){
+  .workspace{grid-template-columns:296px minmax(0,1fr)}
+  .verdict{
+    grid-column:2;grid-row:2;border-left:none;border-top:1px solid var(--border);
+    max-height:44vh;
+  }
+  .evidence{grid-column:2;grid-row:1;min-height:0}
+  .queue{grid-row:1/span 2}
+  .workspace{grid-template-rows:minmax(0,1fr) auto}
+  .verdict__scroll{padding:12px 14px 6px}
+  .obs{font-size:13px;margin-bottom:12px}
+  .blank{grid-column:1/-1;grid-row:1/span 2}
+}
+@media (max-width:820px){
+  .workspace{grid-template-columns:minmax(0,1fr)}
+  .queue{grid-row:1;grid-column:1;border-right:none;border-bottom:1px solid var(--border);max-height:34vh}
+  .evidence{grid-row:2;grid-column:1}
+  .verdict{grid-row:3;grid-column:1}
+  .workspace{grid-template-rows:auto minmax(0,1fr) auto}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Sélecteur d'état de la maquette -->
+  <div class="states" role="group" aria-label="État de la maquette">
+    <span class="states__label">État</span>
+    <div class="states__list" id="states"></div>
+    <div class="states__right">
+      <button class="hit iconbtn" id="help-btn" aria-haspopup="dialog"><span><kbd>?</kbd> Raccourcis</span></button>
+      <button class="hit iconbtn" id="theme-btn" aria-label="Basculer le thème"><span id="theme-lbl">Clair</span></button>
+    </div>
+  </div>
+
+  <!-- Barre de run -->
+  <div class="runbar">
+    <div class="runbar__main">
+      <span class="runbar__title" id="run-title">Run 12</span>
+      <div class="meta" id="run-meta"></div>
+      <div class="runbar__spacer"></div>
+      <div class="counts" id="run-counts"></div>
+    </div>
+    <div id="run-notice"></div>
+  </div>
+
+  <!-- Espace de travail -->
+  <main class="workspace" id="workspace"></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toast-text"></span>
+  <button id="toast-undo"><span>Annuler <kbd>U</kbd></span></button>
+</div>
+
+<div class="help" id="help" role="dialog" aria-modal="true" aria-label="Raccourcis clavier">
+  <div class="help__box">
+    <p class="help__t">Raccourcis</p>
+    <dl>
+      <dt>Constat suivant / précédent</dt><dd><kbd>J</kbd><kbd>K</kbd></dd>
+      <dt>Actionnable</dt><dd><kbd>A</kbd></dd>
+      <dt>Bruit</dt><dd><kbd>B</kbd></dd>
+      <dt>Exporter vers Linear</dt><dd><kbd>E</kbd></dd>
+      <dt>Annuler le dernier jugement</dt><dd><kbd>U</kbd></dd>
+      <dt>Afficher tout / à juger</dt><dd><kbd>F</kbd></dd>
+      <dt>Capture sans surlignage</dt><dd><kbd>S</kbd></dd>
+      <dt>Fermer</dt><dd><kbd>Esc</kbd></dd>
+    </dl>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   DONNÉES — boutique fictive alpinia.ch, contenu réel en prose.
+   Aucune métrique inventée : impact_estime est du texte.
+   ============================================================ */
+
+const SHOP = "www.alpinia.ch";
+
+/* Descripteurs de capture : type de page + zone surlignée (en %) */
+const SHOTS = {
+  pdp_cart:    {page:"pdp",      box:[51,42,47,16]},
+  pdp_top:     {page:"pdp",      box:[51,10.5,47,13.5]},
+  pdp_stock:   {page:"pdp",      box:[51,14.5,47,6]},
+  pdp_size:    {page:"pdp",      box:[51,25.5,47,7]},
+  pdp_gallery: {page:"pdp",      box:[3.5,7,45,56]},
+  pdp_reviews: {page:"pdp",      box:[3.5,74.5,93,15]},
+  pdp_desc:    {page:"pdp",      box:[51,49.5,47,17]},
+  pdp_drawer:  {page:"drawer",   box:[55,2.5,42,29]},
+  cart_total:  {page:"cart",     box:[64,14,32,27]},
+  cart_cta:    {page:"cart",     box:[3.5,61.7,58,7]},
+  ship_opts:   {page:"checkout", box:[3.5,19.3,57,19]},
+  pay_block:   {page:"checkout", box:[3.5,42,58,22]},
+  form_zip:    {page:"checkout", box:[3.5,44.7,28,9]},
+  ck_steps:    {page:"checkout", box:[3.5,12.2,94,7]},
+  list_filter: {page:"listing",  box:[3.5,16,18,50]},
+  list_grid:   {page:"listing",  box:[30,16,44,50]},
+  list_pager:  {page:"listing",  box:[38,82.8,26,7]},
+  search_zero: {page:"search",   box:[3.5,15.6,64,21.5]},
+  search_bar:  {page:"search",   box:[3.5,7,94,5]},
+  home_hero:   {page:"home",     box:[1,5.1,98,39]},
+  home_nav:    {page:"home",     box:[1,1,98,6.5]},
+  home_trust:  {page:"home",     box:[10,45.5,80,5.5]},
+  policy:      {page:"policy",   box:[3.5,16,74,17]},
+  footer:      {page:"policy",   box:[1,85.8,98,13]}
+};
+
+/* Les constats du run 12. Ordre = ordre de la file. */
+const F = [
+  {id:"C-1240", url:"/produits/veste-alpine-3l", cat:"reassurance", zone:"Bloc d'ajout au panier",
+   shot:"pdp_cart", statut:"a_juger", runs:[12,11,10], first:"21 juillet",
+   obs:"Sous le bouton d'ajout au panier, aucune mention du délai de livraison ni de la politique de retour. L'information existe en pied de page, à deux écrans de défilement. Un acheteur qui hésite sur la taille n'a pas de réponse au moment où il clique.",
+   imp:"Le doute sur la taille se règle après le clic, sur une page qu'il faut aller chercher. Ceux qui hésitent quittent la fiche plutôt que de la chercher."},
+
+  {id:"C-1241", url:"/panier", cat:"tunnel", zone:"Récapitulatif du panier",
+   shot:"cart_total", statut:"a_juger", runs:[12],
+   obs:"Le total affiché dans le panier n'inclut pas les frais de port. La ligne « Livraison : calculée à l'étape suivante » est en gris clair sous le montant. Le prix réel n'apparaît qu'après la saisie de l'adresse complète, trois champs plus loin.",
+   imp:"L'acheteur découvre le prix final après avoir donné son adresse. C'est le point de sortie le plus documenté d'un tunnel e-commerce."},
+
+  {id:"C-1242", url:"/produits/veste-alpine-3l", cat:"proposition_valeur", zone:"Haut de fiche produit",
+   shot:"pdp_top", statut:"a_juger", runs:[12,11],
+   obs:"La fiche s'ouvre sur le nom, le prix et le sélecteur de taille. Aucune phrase ne dit ce que cette veste fait de mieux qu'une autre. Le texte technique — membrane trois couches, coutures étanchées, garantie dix ans — est dans l'onglet « Détails », replié par défaut.",
+   imp:"Rien dans la zone de conversion ne justifie CHF 489. L'argument existe déjà, il est simplement plié."},
+
+  {id:"C-1243", url:"/collections/vestes-techniques", cat:"navigation", zone:"Barre de filtres",
+   shot:"list_filter", statut:"actionnable", runs:[12],
+   obs:"Le filtre « Taille » propose toutes les tailles sans indiquer lesquelles sont en stock. En sélectionnant M, la grille passe de 34 à 31 produits ; neuf d'entre eux affichent « épuisé » une fois la fiche ouverte.",
+   imp:"Le filtre promet une sélection disponible et n'en livre pas une. Trois clics pour une impasse, sur le chemin le plus emprunté du site."},
+
+  {id:"C-1244", url:"/produits/sac-trek-45", cat:"friction_ui", zone:"Galerie photo",
+   shot:"pdp_gallery", statut:"bruit", runs:[12], juge:"8 août",
+   obs:"La quatrième photo de la galerie montre le sac de dos, sur fond blanc, sans échelle ni mannequin. Prise seule, elle ne permet pas d'évaluer le volume réel.",
+   imp:"Les trois premières photos portent déjà l'information de volume. Celle-ci n'ajoute rien mais n'induit pas en erreur."},
+
+  {id:"C-1245", url:"/commande/livraison", cat:"tunnel", zone:"Choix du mode de livraison",
+   shot:"ship_opts", statut:"exporte", runs:[12,11], linear:{id:"TOW-214", state:"Backlog"},
+   obs:"Les deux modes de livraison s'appellent « Standard » et « Économique ». Les deux annoncent 3 à 5 jours ouvrés. Seul le prix diffère : CHF 7.90 et CHF 4.90. Rien n'explique ce qu'on obtient en payant trois francs de plus.",
+   imp:"Un choix sans critère arrête l'acheteur au moment le plus fragile du tunnel, juste avant le paiement."},
+
+  {id:"C-1246", url:"/produits/chaussures-approche-gtx", cat:"reassurance", zone:"Bloc avis clients",
+   shot:"pdp_reviews", statut:"a_juger", runs:[12],
+   obs:"La note « 4,6 / 5 » est affichée en haut de fiche. Le bloc d'avis, en bas de page, contient trois avis : aucun daté, tous en cinq étoiles, tous d'une seule ligne.",
+   imp:"Une moyenne sans avis lisibles derrière se lit comme une moyenne fabriquée. Elle retire de la confiance au lieu d'en donner."},
+
+  {id:"C-1247", url:"/produits/veste-alpine-3l", cat:"friction_ui", zone:"Guide des tailles",
+   shot:"pdp_size", statut:"a_juger", runs:[12],
+   obs:"Le guide des tailles s'ouvre dans une fenêtre modale qui recouvre le sélecteur. Pour comparer sa mesure au tableau puis choisir, il faut fermer la modale, ce qui fait perdre la ligne qu'on était en train de lire.",
+   imp:"Chaque aller-retour est une occasion d'abandonner. L'acheteur qui hésite sur la taille est exactement celui qu'on veut retenir."},
+
+  {id:"C-1248", url:"/", cat:"proposition_valeur", zone:"Bandeau d'accueil",
+   shot:"home_hero", statut:"a_juger", runs:[12,11],
+   obs:"Le bandeau d'accueil annonce « Nouvelle collection hiver ». Il ne dit ni ce que la boutique vend, ni pour qui, ni ce qui la distingue. Un visiteur arrivé par une recherche de marque ne sait pas s'il est chez un revendeur ou chez un fabricant.",
+   imp:"Le premier écran ne fait aucun travail de qualification. Tout le monde repart au menu pour comprendre où il est tombé."},
+
+  {id:"C-1249", url:"/commande/paiement", cat:"reassurance", zone:"Bloc de paiement",
+   shot:"pay_block", statut:"actionnable", runs:[12],
+   obs:"Aucun logo de moyen de paiement, aucune mention de sécurisation, aucun rappel du droit de retour au moment de saisir le numéro de carte. La page est plus nue que le panier qui la précède.",
+   imp:"La dernière page du tunnel est celle qui rassure le moins. L'acheteur saisit sa carte sans un seul signal de sécurité."},
+
+  {id:"C-1250", url:"/panier", cat:"friction_ui", zone:"Boutons du panier",
+   shot:"cart_cta", statut:"a_juger", runs:[12],
+   obs:"« Passer commande » et « Continuer mes achats » ont le même poids visuel : même taille, même contour, même gris. Le second est placé à gauche, à la position de lecture.",
+   imp:"Le bouton qui fait sortir du tunnel est le premier lu. Rien ne désigne l'action principale."},
+
+  {id:"C-1251", url:"/produits/gants-merinos-hiver", cat:"proposition_valeur", zone:"Description produit",
+   shot:"pdp_desc", statut:"a_juger", runs:[12],
+   obs:"La description tient en une phrase : « Gants en laine mérinos, confortables et chauds. » Les trois questions qu'un acheteur se pose — jusqu'à quelle température, compatibles écran tactile, comment ils taillent — n'ont de réponse nulle part sur la page.",
+   imp:"Sans réponse sur la fiche, l'acheteur va la chercher ailleurs. Le plus souvent chez un concurrent qui vend le même gant."},
+
+  {id:"C-1252", url:"/recherche?q=veste+impermeable", cat:"navigation", zone:"Résultats de recherche",
+   shot:"search_zero", statut:"actionnable", runs:[12,11,10], first:"21 juillet",
+   obs:"La recherche « veste imperméable » renvoie zéro résultat. Les mêmes vestes sont au catalogue sous « veste hardshell ». La page vide propose un retour à l'accueil, sans suggestion ni correction.",
+   imp:"Un acheteur qui utilise la recherche sait ce qu'il veut. C'est le trafic le plus proche de l'achat, et il tombe sur une page vide."},
+
+  {id:"C-1253", url:"/produits/veste-alpine-3l", cat:"friction_ui", zone:"Images produit",
+   shot:"pdp_gallery", statut:"a_juger", runs:[12,11],
+   obs:"Les cinq photos montrent la veste à plat, sur fond blanc, sous cinq angles. Aucune ne la montre portée. La capuche, mise en avant dans le titre du produit, n'apparaît ajustée sur aucune image.",
+   imp:"Sur un vêtement technique à CHF 489, la coupe portée est la question. Elle n'a pas d'image."},
+
+  {id:"C-1254", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
+   shot:"policy", statut:"a_juger", runs:[12],
+   obs:"La page indique « retours acceptés sous 14 jours ». Le paragraphe suivant précise que les frais de retour sont à la charge du client, en corps de texte, sans mise en avant. La fiche produit ne mentionne ni l'un ni l'autre.",
+   imp:"La condition qui compte est enterrée deux paragraphes plus bas. Découverte après l'achat, elle produit un retour et un client perdu."},
+
+  {id:"C-1255", url:"/commande/adresse", cat:"friction_ui", zone:"Formulaire d'adresse",
+   shot:"form_zip", statut:"actionnable", runs:[12],
+   obs:"Le champ « Code postal » refuse un code à quatre chiffres saisi avec un espace. Le message « Format invalide » apparaît sous le champ après soumission, sans indiquer le format attendu.",
+   imp:"L'erreur arrive après coup et ne dit pas comment la corriger. Sur mobile, elle suffit à faire fermer l'onglet."},
+
+  {id:"C-1256", url:"/produits/sac-trek-45", cat:"tunnel", zone:"Bloc d'ajout au panier",
+   shot:"pdp_cart", statut:"a_juger", runs:[12],
+   obs:"Le bouton « Ajouter au panier » reste actif alors qu'aucune couleur n'est sélectionnée. Le clic déclenche un message d'erreur rouge en haut de page, hors du champ de vision de quelqu'un qui regarde le bouton.",
+   imp:"Le clic principal échoue en silence, du point de vue de l'acheteur. Il recommence, puis il part."},
+
+  {id:"C-1257", url:"/collections/vestes-techniques", cat:"navigation", zone:"Pagination de la grille",
+   shot:"list_pager", statut:"a_juger", runs:[12],
+   obs:"La grille charge douze produits, puis un bouton « Voir plus ». Après trois clics, le retour en arrière depuis une fiche produit ramène en haut de la première série de douze.",
+   imp:"Le parcours de comparaison est effacé à chaque aller-retour. Comparer trois vestes demande de recharger trois fois."},
+
+  {id:"C-1258", url:"/produits/veste-alpine-3l", cat:"tunnel", zone:"Panier latéral",
+   shot:"pdp_drawer", statut:"exporte", runs:[12], linear:{id:"TOW-208", state:"En cours"},
+   obs:"Après l'ajout au panier, le tiroir latéral s'ouvre puis se referme seul au bout de trois secondes. La confirmation que le produit est bien dans le panier disparaît avant d'avoir été lue.",
+   imp:"L'acheteur n'a pas de preuve que son geste a fonctionné. Beaucoup rajoutent le produit une seconde fois."},
+
+  {id:"C-1259", url:"/mentions-legales", cat:"friction_ui", zone:"Pied de page",
+   shot:"footer", statut:"bruit", runs:[12], juge:"8 août",
+   obs:"Le lien « Mentions légales » du pied de page pointe vers une ancre vide en haut de la même page. Le clic ne produit aucun changement visible.",
+   imp:"Hors du parcours d'achat. Un lien cassé sur une page que personne n'ouvre avant de commander."},
+
+  {id:"C-1260", url:"/produits/chaussures-approche-gtx", cat:"proposition_valeur", zone:"Bloc de prix",
+   shot:"pdp_top", statut:"a_juger", runs:[12],
+   obs:"Le prix barré CHF 219 et le prix CHF 179 sont affichés sans date de fin ni motif. La même remise était affichée au run précédent, il y a sept jours, avec les mêmes montants.",
+   imp:"Une remise permanente cesse d'être une remise. Elle devient le prix, et le prix barré devient une information fausse."},
+
+  {id:"C-1261", url:"/commande/livraison", cat:"reassurance", zone:"Zone de livraison",
+   shot:"ship_opts", statut:"a_juger", runs:[12],
+   obs:"Le sélecteur de pays propose la Suisse et la France. Aucune mention des droits de douane ni de la TVA pour une adresse française, ni sur cette page ni dans le récapitulatif final.",
+   imp:"Le client français découvre les frais à la réception. Le colis revient, et l'avis avec."},
+
+  {id:"C-1262", url:"/collections/vestes-techniques", cat:"friction_ui", zone:"Vignettes de la grille",
+   shot:"list_grid", statut:"a_juger", runs:[12],
+   obs:"Les vignettes de la grille sont recadrées au carré depuis des photos verticales. Sur sept produits sur douze, le recadrage coupe la capuche ou le bas de la veste.",
+   imp:"La grille est l'endroit où se fait le choix. Sept produits sur douze y sont mal représentés."},
+
+  {id:"C-1263", url:"/produits/gants-merinos-hiver", cat:"tunnel", zone:"Sélecteur de quantité",
+   shot:"pdp_cart", statut:"a_juger", runs:[12],
+   obs:"Le sélecteur de quantité accepte la saisie mais ne se met à jour qu'après avoir cliqué en dehors du champ. Un ajout au panier immédiat après la saisie enregistre l'ancienne quantité.",
+   imp:"L'acheteur commande une paire au lieu de deux. Il s'en aperçoit au panier, ou après la livraison."},
+
+  {id:"C-1264", url:"/", cat:"navigation", zone:"Menu principal",
+   shot:"home_nav", statut:"a_juger", runs:[12],
+   obs:"Le menu principal compte onze entrées de premier niveau, dont « Nouveautés », « Nouvelle collection » et « Derniers arrivages », qui mènent à trois grilles se recoupant à quatre-vingts pour cent.",
+   imp:"Trois portes vers presque le même rayon. Le visiteur teste, revient, teste encore."},
+
+  {id:"C-1265", url:"/produits/sac-trek-45", cat:"reassurance", zone:"Disponibilité",
+   shot:"pdp_stock", statut:"actionnable", runs:[12],
+   obs:"La mention « En stock » est affichée en gris, à la même taille que la référence produit, sous le sélecteur de couleur. Pour la couleur épuisée, la mention devient « Indisponible » au même endroit, dans le même gris.",
+   imp:"L'information la plus décisive de la fiche est traitée comme une métadonnée. On la lit après avoir cliqué."},
+
+  {id:"C-1266", url:"/recherche?q=alpine", cat:"navigation", zone:"Barre de recherche",
+   shot:"search_bar", statut:"a_juger", runs:[12],
+   obs:"La recherche n'a pas de suggestion à la frappe. Il faut valider pour voir un résultat, et la page de résultats ne conserve pas le terme saisi dans le champ.",
+   imp:"Affiner une recherche demande de tout retaper. Deux essais et l'acheteur repasse par le menu."},
+
+  {id:"C-1267", url:"/livraison-et-retours", cat:"proposition_valeur", zone:"Délais annoncés",
+   shot:"policy", statut:"a_juger", runs:[12],
+   obs:"La page annonce « expédition sous 24 à 48 h ». La fiche produit n'affiche aucun délai. Le panier n'en affiche aucun. Le seul endroit où l'argument existe est une page que l'acheteur n'ouvre pas.",
+   imp:"Un délai court est un argument de vente. Ici il est rangé dans la documentation."}
+];
+
+/* Constats du run 13, en cours — arrivent au fil de l'eau */
+const LIVE = [
+  {id:"C-1268", url:"/produits/doudoune-cirrus", cat:"reassurance", zone:"Bloc d'ajout au panier",
+   shot:"pdp_cart", statut:"a_juger", runs:[13,12,11], first:"21 juillet",
+   obs:"Sous le bouton d'ajout au panier, aucune mention du délai de livraison ni de la politique de retour. Le constat est identique à celui relevé sur la veste alpine aux trois runs précédents : le gabarit de fiche produit est le même.",
+   imp:"Le manque ne tient pas à un produit mais au gabarit. Toutes les fiches du catalogue sont concernées."},
+  {id:"C-1269", url:"/panier", cat:"tunnel", zone:"Code promo",
+   shot:"cart_total", statut:"a_juger", runs:[13],
+   obs:"Le champ « Code promo » est ouvert et placé au-dessus du bouton de commande. Sans code en main, l'acheteur quitte le panier pour en chercher un.",
+   imp:"Un champ vide bien visible envoie chercher ailleurs, au dernier moment avant le paiement."},
+  {id:"C-1270", url:"/produits/doudoune-cirrus", cat:"proposition_valeur", zone:"Haut de fiche produit",
+   shot:"pdp_top", statut:"a_juger", runs:[13],
+   obs:"Le titre annonce « Doudoune Cirrus 800 ». Le chiffre 800 — le pouvoir gonflant du duvet — n'est expliqué nulle part sur la fiche. C'est pourtant le seul argument qui sépare ce modèle de celui à CHF 120 de moins.",
+   imp:"L'argument qui justifie l'écart de prix est écrit en jargon, sans traduction."},
+  {id:"C-1271", url:"/collections/doudounes", cat:"navigation", zone:"Tri de la grille",
+   shot:"list_filter", statut:"a_juger", runs:[13],
+   obs:"Le tri par défaut de la grille est « Pertinence ». Sur une grille de collection sans terme de recherche, l'ordre obtenu ne correspond ni aux ventes, ni aux nouveautés, ni au prix.",
+   imp:"Le premier produit vu est choisi par un critère qui n'a pas de sens ici."},
+  {id:"C-1272", url:"/produits/doudoune-cirrus", cat:"friction_ui", zone:"Sélecteur de couleur",
+   shot:"pdp_size", statut:"a_juger", runs:[13],
+   obs:"Les pastilles de couleur mesurent 18 pixels de côté et n'ont pas de libellé. Deux des cinq teintes — « ardoise » et « nuit » — sont indiscernables à cette taille.",
+   imp:"Choisir une couleur demande d'agrandir la page. Beaucoup choisissent au hasard, puis retournent le produit."},
+  {id:"C-1273", url:"/commande/adresse", cat:"tunnel", zone:"Création de compte",
+   shot:"ck_steps", statut:"a_juger", runs:[13],
+   obs:"Le tunnel demande la création d'un compte avant la saisie de l'adresse. Aucune option de commande sans compte n'est proposée, ni à cette étape ni ailleurs.",
+   imp:"Le compte obligatoire est le frein le mieux documenté du e-commerce, et il est ici placé avant toute autre saisie."},
+  {id:"C-1274", url:"/produits/doudoune-cirrus", cat:"reassurance", zone:"Garantie",
+   shot:"pdp_desc", statut:"a_juger", runs:[13],
+   obs:"La garantie dix ans est mentionnée dans le pied de page du site, jamais sur la fiche produit. C'est l'engagement le plus fort de la marque, et il n'apparaît pas là où l'on décide.",
+   imp:"L'argument le plus fort du site est absent de la seule zone où il pourrait servir."},
+  {id:"C-1275", url:"/collections/doudounes", cat:"friction_ui", zone:"Chargement de la grille",
+   shot:"list_grid", statut:"a_juger", runs:[13],
+   obs:"Les images de la grille se chargent après le texte, sans emplacement réservé. La grille se réorganise pendant deux secondes et le produit visé se déplace sous le curseur.",
+   imp:"Le clic tombe sur le mauvais produit. C'est une frustration qui se produit à chaque visite."},
+  {id:"C-1276", url:"/", cat:"proposition_valeur", zone:"Bloc de réassurance d'accueil",
+   shot:"home_trust", statut:"a_juger", runs:[13],
+   obs:"La bande sous le bandeau annonce « Livraison offerte, Retours faciles, Paiement sécurisé » sans aucun seuil, délai ni condition. Trois promesses invérifiables collées bout à bout.",
+   imp:"Des promesses sans chiffre ne rassurent pas ; elles ressemblent à du remplissage."}
+];
+
+/* Constats du run 14, interrompu au plafond de budget */
+const PARTIAL = F.slice(0, 17).map((f,i) => ({
+  ...f, id:"C-"+(1290+i), runs:[14], statut: i===3||i===8 ? "actionnable" : "a_juger", linear:null, juge:null
+}));
+
+const RUNS = {
+  vide:      null,
+  encours:   {n:13, date:"aujourd'hui, 06 h 12", agent:"Agent UX", persona:"Léa — première visite, compare trois boutiques", live:true, pages:[19,34]},
+  revue:     {n:12, date:"8 août 2026, 04 h 30", agent:"Agent UX", persona:"Léa — première visite, compare trois boutiques"},
+  interrompu:{n:14, date:"9 août 2026, 04 h 30", agent:"Agent UX", persona:"Marc — client fidèle, achat de renouvellement", stopped:true, pages:[14,34]}
+};
+
+const CAT_LABEL = {
+  tunnel:"Tunnel", reassurance:"Réassurance", proposition_valeur:"Proposition de valeur",
+  navigation:"Navigation", friction_ui:"Friction UI"
+};
+
+const STATES = [
+  {key:"vide",       label:"Aucun run"},
+  {key:"encours",    label:"Run en cours"},
+  {key:"recurrent",  label:"Constat récurrent"},
+  {key:"bruit",      label:"Constat jugé bruit"},
+  {key:"exporte",    label:"Constat exporté"},
+  {key:"interrompu", label:"Run interrompu"}
+];
+
+/* ============================================================
+   CAPTURES — SVG généré, aucune ressource externe.
+   Rendu volontairement sobre : c'est une preuve, pas une image.
+   ============================================================ */
+const W = 900, H = 1180;
+
+function px(v,total){return v*total/100}
+
+function chrome(url){
+  return `
+  <rect x="0" y="0" width="${W}" height="52" fill="var(--shot-frame)"/>
+  <circle cx="24" cy="26" r="5" fill="var(--shot-line)"/>
+  <circle cx="42" cy="26" r="5" fill="var(--shot-line)"/>
+  <circle cx="60" cy="26" r="5" fill="var(--shot-line)"/>
+  <rect x="84" y="13" width="${W-108}" height="26" rx="6" fill="var(--shot-page)" stroke="var(--shot-line)"/>
+  <text x="98" y="30" font-family="ui-monospace,Menlo,monospace" font-size="13" fill="var(--shot-mut)">${esc(url)}</text>
+  <line x1="0" y1="52" x2="${W}" y2="52" stroke="var(--shot-line)"/>`;
+}
+
+function siteHeader(y){
+  return `
+  <text x="36" y="${y+30}" font-family="Inter,sans-serif" font-size="19" font-weight="700" letter-spacing="2" fill="var(--shot-ink)">ALPINIA</text>
+  ${["Vestes","Chaussures","Sacs","Accessoires","Nouveautés"].map((t,i)=>
+    `<text x="${300+i*108}" y="${y+30}" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">${t}</text>`).join("")}
+  <circle cx="${W-52}" cy="${y+24}" r="9" fill="none" stroke="var(--shot-mut)" stroke-width="1.5"/>
+  <line x1="0" y1="${y+58}" x2="${W}" y2="${y+58}" stroke="var(--shot-line)"/>`;
+}
+
+function lines(x,y,w,n,gap,c){
+  let s="";
+  for(let i=0;i<n;i++){
+    const ww = i===n-1 ? w*0.62 : w*(0.86+((i*37)%14)/100);
+    s+=`<rect x="${x}" y="${y+i*gap}" width="${ww}" height="7" rx="3.5" fill="${c||"var(--shot-line)"}"/>`;
+  }
+  return s;
+}
+
+function jacket(x,y,w,h){
+  const cx=x+w/2;
+  return `
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--shot-fill)"/>
+  <path d="M${cx-w*0.26} ${y+h*0.24} L${cx-w*0.10} ${y+h*0.17} L${cx} ${y+h*0.22} L${cx+w*0.10} ${y+h*0.17} L${cx+w*0.26} ${y+h*0.24}
+           L${cx+w*0.30} ${y+h*0.66} L${cx+w*0.20} ${y+h*0.68} L${cx+w*0.19} ${y+h*0.82} L${cx-w*0.19} ${y+h*0.82}
+           L${cx-w*0.20} ${y+h*0.68} L${cx-w*0.30} ${y+h*0.66} Z"
+        fill="none" stroke="var(--shot-mut)" stroke-width="2" stroke-linejoin="round" opacity=".75"/>
+  <path d="M${cx} ${y+h*0.22} L${cx} ${y+h*0.82}" stroke="var(--shot-mut)" stroke-width="1.5" opacity=".55"/>
+  <path d="M${cx-w*0.10} ${y+h*0.17} Q${cx} ${y+h*0.07} ${cx+w*0.10} ${y+h*0.17}" fill="none" stroke="var(--shot-mut)" stroke-width="2" opacity=".75"/>`;
+}
+
+function btn(x,y,w,h,label,solid){
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5"
+      fill="${solid?"var(--shot-ink)":"none"}" stroke="var(--shot-ink)" stroke-width="1.5" opacity="${solid?1:.7}"/>
+    <text x="${x+w/2}" y="${y+h/2+5}" text-anchor="middle" font-family="Inter,sans-serif" font-size="14"
+      font-weight="500" fill="${solid?"var(--shot-page)":"var(--shot-ink)"}">${esc(label)}</text>`;
+}
+
+const PAGES = {
+  pdp(){
+    return `${siteHeader(52)}
+    ${jacket(36,140,400,520)}
+    ${[0,1,2,3].map(i=>`<rect x="${36+i*76}" y="676" width="66" height="66" rx="4" fill="var(--shot-fill)" stroke="var(--shot-line)"/>`).join("")}
+    <text x="470" y="164" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Vestes / Techniques</text>
+    <text x="470" y="204" font-family="Inter,sans-serif" font-size="26" font-weight="600" fill="var(--shot-ink)">Veste Alpine 3L</text>
+    <text x="470" y="240" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Réf. ALP-3L-0421 · En stock</text>
+    <text x="470" y="288" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">CHF 489.00</text>
+    <text x="470" y="352" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Taille</text>
+    ${["XS","S","M","L","XL"].map((t,i)=>`
+      <rect x="${470+i*58}" y="366" width="48" height="38" rx="4" fill="none" stroke="var(--shot-line)"/>
+      <text x="${494+i*58}" y="391" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">${t}</text>`).join("")}
+    <text x="${W-36}" y="356" text-anchor="end" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)" text-decoration="underline">Guide des tailles</text>
+    ${btn(470,540,394,52,"Ajouter au panier",true)}
+    ${lines(470,624,394,2,22)}
+    <line x1="470" y1="800" x2="${W-36}" y2="800" stroke="var(--shot-line)"/>
+    <text x="470" y="836" font-family="Inter,sans-serif" font-size="14" font-weight="500" fill="var(--shot-ink)">Détails</text>
+    <path d="M${W-52} 830 l8 8 l8 -8" fill="none" stroke="var(--shot-mut)" stroke-width="1.6"/>
+    <line x1="470" y1="866" x2="${W-36}" y2="866" stroke="var(--shot-line)"/>
+    <text x="470" y="902" font-family="Inter,sans-serif" font-size="14" font-weight="500" fill="var(--shot-ink)">Livraison</text>
+    <path d="M${W-52} 896 l8 8 l8 -8" fill="none" stroke="var(--shot-mut)" stroke-width="1.6"/>
+    <line x1="36" y1="900" x2="436" y2="900" stroke="var(--shot-line)"/>
+    <text x="36" y="944" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Avis clients</text>
+    <text x="36" y="976" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">4,6 / 5 — 3 avis</text>
+    ${lines(36,1000,830,4,26)}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>
+    ${lines(36,1132,300,1,0,"var(--shot-line)")}`;
+  },
+  drawer(){
+    return `${PAGES.pdp()}
+    <rect x="0" y="52" width="${W}" height="${H-52}" fill="var(--shot-ink)" opacity=".18"/>
+    <rect x="${W*0.52}" y="52" width="${W*0.48}" height="${H-52}" fill="var(--shot-page)" stroke="var(--shot-line)"/>
+    <text x="${W*0.52+28}" y="104" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Ajouté au panier</text>
+    <rect x="${W*0.52+28}" y="140" width="86" height="86" rx="4" fill="var(--shot-fill)"/>
+    <text x="${W*0.52+130}" y="166" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">Veste Alpine 3L — M</text>
+    <text x="${W*0.52+130}" y="192" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">CHF 489.00</text>
+    ${btn(W*0.52+28,272,W*0.48-56,48,"Voir le panier",true)}
+    ${btn(W*0.52+28,332,W*0.48-56,48,"Continuer",false)}`;
+  },
+  cart(){
+    return `${siteHeader(52)}
+    <text x="36" y="164" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">Panier</text>
+    ${[0,1].map(i=>`
+      <rect x="36" y="${212+i*140}" width="96" height="112" rx="4" fill="var(--shot-fill)"/>
+      <text x="150" y="${240+i*140}" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">${i?"Sac Trek 45 L — Ardoise":"Veste Alpine 3L — M"}</text>
+      <text x="150" y="${266+i*140}" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">CHF ${i?"229.00":"489.00"}</text>
+      <rect x="150" y="${284+i*140}" width="78" height="30" rx="4" fill="none" stroke="var(--shot-line)"/>
+      <line x1="36" y1="${336+i*140}" x2="540" y2="${336+i*140}" stroke="var(--shot-line)"/>`).join("")}
+    <rect x="580" y="212" width="284" height="300" rx="6" fill="var(--shot-frame)" stroke="var(--shot-line)"/>
+    <text x="606" y="250" font-family="Inter,sans-serif" font-size="14" font-weight="600" fill="var(--shot-ink)">Récapitulatif</text>
+    <text x="606" y="292" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">Sous-total</text>
+    <text x="838" y="292" text-anchor="end" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">CHF 718.00</text>
+    <text x="606" y="326" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">Code promo</text>
+    <rect x="606" y="342" width="232" height="34" rx="4" fill="var(--shot-page)" stroke="var(--shot-line)"/>
+    <line x1="606" y1="400" x2="838" y2="400" stroke="var(--shot-line)"/>
+    <text x="606" y="436" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Total</text>
+    <text x="838" y="436" text-anchor="end" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">CHF 718.00</text>
+    <text x="606" y="466" font-family="Inter,sans-serif" font-size="11" fill="var(--shot-mut)">Livraison : calculée à l'étape suivante</text>
+    ${btn(36,760,240,50,"Continuer mes achats",false)}
+    ${btn(300,760,240,50,"Passer commande",false)}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>`;
+  },
+  checkout(){
+    return `${siteHeader(52)}
+    <text x="36" y="164" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">Commande</text>
+    ${["Adresse","Livraison","Paiement"].map((t,i)=>`
+      <text x="${36+i*150}" y="212" font-family="Inter,sans-serif" font-size="13" font-weight="${i===1?600:400}" fill="${i===1?"var(--shot-ink)":"var(--shot-mut)"}">${i+1}. ${t}</text>`).join("")}
+    <line x1="36" y1="236" x2="${W-36}" y2="236" stroke="var(--shot-line)"/>
+    ${[0,1].map(i=>`
+      <rect x="36" y="${282+i*104}" width="500" height="84" rx="6" fill="none" stroke="var(--shot-line)"/>
+      <circle cx="70" cy="${324+i*104}" r="9" fill="none" stroke="var(--shot-mut)" stroke-width="1.5"/>
+      <text x="100" y="${316+i*104}" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">${i?"Économique":"Standard"}</text>
+      <text x="100" y="${342+i*104}" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">3 à 5 jours ouvrés</text>
+      <text x="510" y="${324+i*104}" text-anchor="end" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">CHF ${i?"4.90":"7.90"}</text>`).join("")}
+    <text x="36" y="560" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Code postal</text>
+    <rect x="36" y="576" width="220" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+    <text x="52" y="602" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">12 04</text>
+    <text x="36" y="640" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Format invalide</text>
+    <text x="300" y="560" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Ville</text>
+    <rect x="300" y="576" width="236" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+    ${btn(36,700,240,50,"Continuer",true)}
+    <rect x="620" y="282" width="244" height="220" rx="6" fill="var(--shot-frame)" stroke="var(--shot-line)"/>
+    ${lines(646,318,192,5,26)}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>`;
+  },
+  listing(){
+    return `${siteHeader(52)}
+    <text x="36" y="164" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">Vestes techniques</text>
+    <text x="36" y="192" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">34 produits</text>
+    ${["Taille","Couleur","Prix","Marque","Usage"].map((t,i)=>`
+      <text x="36" y="${256+i*112}" font-family="Inter,sans-serif" font-size="13" font-weight="500" fill="var(--shot-ink)">${t}</text>
+      ${lines(36,276+i*112,150,2,24)}`).join("")}
+    ${[0,1,2,3,4,5].map(i=>{
+      const cx=280+(i%3)*206, cy=232+Math.floor(i/3)*332;
+      return `<rect x="${cx}" y="${cy}" width="186" height="236" rx="4" fill="var(--shot-fill)"/>
+        ${lines(cx,cy+254,150,2,22)}`;
+    }).join("")}
+    ${btn(360,1000,220,46,"Voir plus",false)}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>`;
+  },
+  search(){
+    return `${siteHeader(52)}
+    <rect x="36" y="140" width="${W-72}" height="46" rx="6" fill="none" stroke="var(--shot-line)"/>
+    <text x="56" y="169" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-mut)">Rechercher un produit</text>
+    <text x="36" y="260" font-family="Inter,sans-serif" font-size="20" font-weight="600" fill="var(--shot-ink)">Aucun résultat pour « veste imperméable »</text>
+    ${lines(36,300,540,2,26)}
+    ${btn(36,400,240,48,"Retour à l'accueil",false)}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>`;
+  },
+  home(){
+    return `${siteHeader(52)}
+    <rect x="0" y="110" width="${W}" height="440" fill="var(--shot-fill)"/>
+    <text x="${W/2}" y="326" text-anchor="middle" font-family="Inter,sans-serif" font-size="40" font-weight="700" fill="var(--shot-ink)">Nouvelle collection hiver</text>
+    ${btn(W/2-110,376,220,50,"Découvrir",true)}
+    ${["Livraison offerte","Retours faciles","Paiement sécurisé"].map((t,i)=>
+      `<text x="${150+i*300}" y="600" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-mut)">${t}</text>`).join("")}
+    <line x1="36" y1="640" x2="${W-36}" y2="640" stroke="var(--shot-line)"/>
+    ${[0,1,2,3].map(i=>`<rect x="${36+i*212}" y="690" width="192" height="240" rx="4" fill="var(--shot-fill)"/>
+      ${lines(36+i*212,948,160,2,22)}`).join("")}
+    <rect x="0" y="1108" width="${W}" height="72" fill="var(--shot-frame)"/>`;
+  },
+  policy(){
+    return `${siteHeader(52)}
+    <text x="36" y="180" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">Livraison et retours</text>
+    <text x="36" y="252" font-family="Inter,sans-serif" font-size="15" font-weight="500" fill="var(--shot-ink)">Retours acceptés sous 14 jours</text>
+    ${lines(36,282,660,3,26)}
+    <text x="36" y="400" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">Les frais de retour sont à la charge du client.</text>
+    ${lines(36,430,660,6,26)}
+    ${lines(36,640,660,5,26)}
+    <rect x="0" y="1020" width="${W}" height="160" fill="var(--shot-frame)"/>
+    ${["Mentions légales","CGV","Contact","Livraison"].map((t,i)=>
+      `<text x="${36+i*190}" y="1074" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">${t}</text>`).join("")}`;
+  }
+};
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+function renderShot(finding, dim){
+  const d = SHOTS[finding.shot] || SHOTS.pdp_cart;
+  const body = (PAGES[d.page] || PAGES.pdp)();
+  const bx = px(d.box[0],W), by = px(d.box[1],H-52)+52, bw = px(d.box[2],W), bh = px(d.box[3],H-52);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" preserveAspectRatio="xMidYMin meet"
+      aria-label="Capture de ${esc(SHOP+finding.url)}, zone observée : ${esc(finding.zone)}">
+    <rect width="${W}" height="${H}" fill="var(--shot-page)"/>
+    ${chrome(SHOP + finding.url)}
+    ${body}
+    <g class="dimmer">
+      <path fill="var(--dim)" fill-rule="evenodd"
+        d="M0 52 H${W} V${H} H0 Z M${bx} ${by} H${bx+bw} V${by+bh} H${bx} Z"/>
+      <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none"
+        stroke="#ffffff" stroke-width="2" rx="3"/>
+      <rect x="${bx}" y="${Math.max(by-26,58)}" width="${8+finding.zone.length*6.5}" height="21" rx="4" fill="#ffffff"/>
+      <text x="${bx+6}" y="${Math.max(by-26,58)+15}" font-family="Inter,sans-serif" font-size="11.5"
+        font-weight="600" fill="#0d0e10">${esc(finding.zone)}</text>
+    </g>
+  </svg>`;
+}
+
+/* ============================================================
+   ÉTAT DE L'APPLICATION
+   ============================================================ */
+let state = "recurrent";
+let items = [];
+let sel = 0;
+let onlyTodo = true;
+let dim = true;
+let lastAction = null;
+let liveTimer = null;
+let liveIdx = 0;
+
+const $ = s => document.querySelector(s);
+const el = (t,c,h) => {const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n;};
+
+function clone(a){return a.map(o=>({...o}))}
+
+function visible(){ return onlyTodo ? items.filter(f=>f.statut==="a_juger") : items; }
+function current(){ const v=visible(); return v[Math.min(sel, v.length-1)] || items[0] || null; }
+
+/* ============================================================
+   RENDU
+   ============================================================ */
+function renderStates(){
+  const box = $("#states"); box.innerHTML="";
+  STATES.forEach(s=>{
+    const b = el("button","hit chip","<span>"+s.label+"</span>");
+    b.setAttribute("aria-pressed", String(state===s.key));
+    b.onclick = ()=>setState(s.key);
+    box.appendChild(b);
+  });
+}
+
+function runOf(){
+  if(state==="vide") return null;
+  if(state==="encours") return RUNS.encours;
+  if(state==="interrompu") return RUNS.interrompu;
+  return RUNS.revue;
+}
+
+function renderRunbar(){
+  const r = runOf();
+  const meta = $("#run-meta"), counts = $("#run-counts"), notice = $("#run-notice");
+  meta.innerHTML=""; counts.innerHTML=""; notice.innerHTML="";
+
+  if(!r){
+    $("#run-title").textContent = "alpinia.ch";
+    meta.appendChild(el("span",null,"Aucun run terminé"));
+    return;
+  }
+  $("#run-title").textContent = "Run " + r.n;
+  [r.date, r.agent, "Persona : " + r.persona].forEach(t=>meta.appendChild(el("span",null,esc(t))));
+
+  const judged = items.filter(f=>f.statut!=="a_juger").length;
+  if(r.live){
+    counts.appendChild(el("div","live",'<i></i>'+items.length+" constats · page "+
+      Math.min(r.pages[0]+liveIdx,r.pages[1])+" sur "+r.pages[1]));
+  }else{
+    counts.appendChild(el("span","counts__text","<b>"+judged+"</b> jugés sur "+items.length));
+    const bar = el("div","bar"); bar.innerHTML='<i style="width:'+(items.length?judged/items.length*100:0)+'%"></i>';
+    counts.appendChild(bar);
+  }
+
+  if(r.stopped){
+    const n = el("div","notice");
+    n.innerHTML =
+      '<span class="notice__mark" aria-hidden="true">!</span>'+
+      '<p class="notice__body"><b>Run arrêté au plafond de budget.</b> '+r.pages[0]+' pages parcourues sur les '+r.pages[1]+
+      ' prévues. Les '+items.length+' constats ci-dessous ont été vérifiés et sont exploitables ; les '+
+      (r.pages[1]-r.pages[0])+' pages restantes n\'ont pas été visitées et seront reprises en tête du prochain run. '+
+      '<button class="notice__more" id="cov-btn" aria-expanded="false">Voir les pages non parcourues</button></p>';
+    notice.appendChild(n);
+    const cov = el("div","coverage");
+    cov.innerHTML = "<ul>"+["/produits/doudoune-cirrus","/produits/polaire-grid","/produits/pantalon-mixte",
+      "/produits/bonnet-laine","/produits/lampe-frontale","/produits/gourde-1l","/produits/batons-carbone",
+      "/collections/doudounes","/collections/chaussures","/collections/soldes","/collections/accessoires",
+      "/compte/connexion","/compte/commandes","/contact","/guide-des-tailles","/marques/alpinia",
+      "/blog/entretien-membrane","/cartes-cadeaux","/magasins","/recherche?q=doudoune"]
+      .map(u=>"<li>"+esc(u)+"</li>").join("")+"</ul>";
+    notice.appendChild(cov);
+    $("#cov-btn").onclick = e=>{
+      const open = cov.dataset.open==="true";
+      cov.dataset.open = String(!open);
+      e.currentTarget.setAttribute("aria-expanded", String(!open));
+    };
+  }
+}
+
+function renderQueue(){
+  const col = el("section","col queue");
+
+  const head = el("div","queue__head");
+  const todo = items.filter(f=>f.statut==="a_juger").length;
+  const bTodo = el("button","hit filter","<span>À juger <b>"+todo+"</b></span>");
+  bTodo.setAttribute("aria-pressed", String(onlyTodo));
+  bTodo.onclick=()=>{onlyTodo=true;sel=0;render()};
+  const bAll = el("button","hit filter","<span>Tous <b>"+items.length+"</b></span>");
+  bAll.setAttribute("aria-pressed", String(!onlyTodo));
+  bAll.onclick=()=>{onlyTodo=false;sel=0;render()};
+  head.appendChild(bTodo); head.appendChild(bAll);
+  const hint = el("span","hit",'<span><kbd>F</kbd></span>');
+  hint.style.marginLeft="auto"; hint.style.pointerEvents="none";
+  head.appendChild(hint);
+  col.appendChild(head);
+
+  const list = el("div","queue__list");
+  list.setAttribute("role","listbox");
+  list.setAttribute("aria-label","Constats du run");
+  list.id="queue-list";
+
+  const v = visible();
+  const cur = current();
+  v.forEach((f,i)=>{
+    const row = el("button","row"+(f.fresh?" row--new":""));
+    row.setAttribute("role","option");
+    row.setAttribute("aria-selected", String(cur && f.id===cur.id));
+    row.dataset.statut = f.statut;
+    row.dataset.id = f.id;
+
+    let flags="";
+    if(f.runs.length>=3) flags+='<span class="flag">'+f.runs.length+'ᵉ run</span>';
+    else if(f.runs.length===2) flags+='<span class="flag flag--quiet">2ᵉ run</span>';
+    if(f.statut==="actionnable") flags+='<span class="flag flag--quiet">Actionnable</span>';
+    if(f.statut==="bruit") flags+='<span class="flag flag--quiet">Bruit</span>';
+    if(f.statut==="exporte") flags+='<span class="flag">'+esc(f.linear.id)+'</span>';
+
+    row.innerHTML =
+      '<span class="row__top"><span class="row__cat">'+esc(CAT_LABEL[f.cat])+'</span>'+
+      '<span class="row__flags">'+flags+'</span></span>'+
+      '<span class="row__zone">'+esc(f.zone)+'</span>'+
+      '<span class="row__obs">'+esc(f.obs)+'</span>'+
+      '<span class="row__url">'+esc(f.url)+'</span>';
+    row.onclick=()=>{sel=i;render()};
+    list.appendChild(row);
+  });
+
+  const r = runOf();
+  if(r && r.live){
+    const p = el("div","queue__pending");
+    p.innerHTML='<span class="skel"></span><span class="skel"></span>';
+    p.setAttribute("aria-hidden","true");
+    list.appendChild(p);
+  }else if(v.length===0){
+    list.appendChild(el("div","queue__end","Tous les constats de ce run sont jugés. Bascule sur « Tous » pour les revoir."));
+  }
+
+  col.appendChild(list);
+  return col;
+}
+
+function renderEvidence(f){
+  const col = el("section","col evidence");
+  const head = el("div","evidence__head");
+  head.innerHTML = '<span class="evidence__url">'+esc(SHOP+f.url)+'</span>';
+  const t = el("button","hit iconbtn", "<span>"+(dim?"Sans surlignage":"Avec surlignage")+' <kbd>S</kbd></span>');
+  t.onclick=()=>{dim=!dim;render()};
+  head.appendChild(t);
+  col.appendChild(head);
+
+  const stage = el("div","evidence__stage");
+  const fig = el("div","shot", renderShot(f, dim));
+  fig.dataset.dim = dim?"on":"off";
+  fig.onclick=()=>{dim=!dim;render()};
+  fig.title = dim ? "Cliquer pour voir la capture entière" : "Cliquer pour resurligner la zone";
+  stage.appendChild(fig);
+  col.appendChild(stage);
+  return col;
+}
+
+function renderVerdict(f){
+  const col = el("section","col verdict");
+  const s = el("div","verdict__scroll");
+
+  if(f.runs.length>=3){
+    const p = el("div","persist");
+    p.innerHTML =
+      '<p class="persist__t">Vu aux '+f.runs.length+' derniers runs, jamais jugé</p>'+
+      '<p class="persist__d">Relevé pour la première fois le '+esc(f.first||"21 juillet")+
+      '. Il est resté à l\'identique depuis : la zone n\'a pas changé et le constat n\'a pas été traité.</p>'+
+      '<div class="runs">'+f.runs.map(n=>"<span>run "+n+"</span>").join("")+'</div>';
+    s.appendChild(p);
+  }
+
+  if(f.statut==="bruit"){
+    const r = el("div","resolved");
+    r.innerHTML =
+      '<p class="resolved__t">Jugé bruit le '+esc(f.juge||"8 août")+'</p>'+
+      '<p class="resolved__d">Sorti de la file. Ce constat ne sera plus remonté pour cette zone tant que la page ne change pas — '+
+      'si la zone est modifiée, il reviendra à juger.</p>';
+    s.appendChild(r);
+  }
+  if(f.statut==="exporte"){
+    const r = el("div","resolved");
+    r.innerHTML =
+      '<p class="resolved__t">Exporté vers Linear</p>'+
+      '<p class="resolved__d">La user story reprend l\'observation, l\'impact et la capture. '+
+      'Tower ne suit pas l\'avancement du ticket au-delà de son état.</p>'+
+      '<div class="linear"><span class="linear__id">'+esc(f.linear.id)+'</span>'+
+      '<span class="linear__state">'+esc(f.linear.state)+'</span>'+
+      '<a class="linear__link" href="#" onclick="return false">Ouvrir dans Linear ↗</a></div>';
+    s.appendChild(r);
+  }
+
+  s.appendChild(el("p","eyebrow","Observation"));
+  s.appendChild(el("p","obs",esc(f.obs)));
+  s.appendChild(el("p","eyebrow","Impact estimé"));
+  s.appendChild(el("p","impact",esc(f.imp)));
+
+  const dl = el("dl","facts");
+  const facts = [
+    ["Catégorie", CAT_LABEL[f.cat]],
+    ["Zone", f.zone],
+    ["Page", SHOP+f.url],
+    ["Constat", f.id]
+  ];
+  facts.forEach(([k,v])=>{
+    const row = el("div","fact");
+    row.innerHTML = "<dt>"+esc(k)+"</dt><dd>"+esc(v)+"</dd>";
+    dl.appendChild(row);
+  });
+  s.appendChild(dl);
+  col.appendChild(s);
+
+  /* Barre de jugement */
+  const j = el("div","judge");
+  if(f.statut==="a_juger"){
+    const a = el("button","btn btn--go","Actionnable<small>A</small>");
+    a.onclick=()=>judge("actionnable");
+    const b = el("button","btn","Bruit<small>B</small>");
+    b.onclick=()=>judge("bruit");
+    const e = el("button","btn","Exporter<small>E</small>");
+    e.onclick=()=>judge("exporte");
+    j.appendChild(a); j.appendChild(b); j.appendChild(e);
+  }else if(f.statut==="actionnable"){
+    const e = el("button","btn btn--go btn--wide","Exporter vers Linear<small>E</small>");
+    e.onclick=()=>judge("exporte");
+    const u = el("button","btn","Remettre en file<small>U</small>");
+    u.onclick=()=>judge("a_juger");
+    j.appendChild(e); j.appendChild(u);
+  }else if(f.statut==="bruit"){
+    const u = el("button","btn btn--wide","Remettre en file<small>U</small>");
+    u.onclick=()=>judge("a_juger");
+    j.appendChild(u);
+    j.className="judge judge--single";
+  }else{
+    const u = el("button","btn btn--wide","Détacher du ticket et remettre en file<small>U</small>");
+    u.onclick=()=>judge("a_juger");
+    j.appendChild(u);
+    j.className="judge judge--single";
+  }
+  col.appendChild(j);
+  return col;
+}
+
+function renderEmpty(){
+  const box = el("div","blank");
+  box.innerHTML =
+    '<div class="blank__box">'+
+    '<h1 class="blank__t">Le premier audit tourne cette nuit</h1>'+
+    '<p class="blank__d">L\'agent parcourt alpinia.ch entre 4 h et 6 h, quand la boutique est calme, '+
+    'et se comporte comme le persona que vous avez décrit. Les constats seront ici demain matin. '+
+    'Comptez entre cinq et trente constats pour un premier passage.</p>'+
+    '<ol class="steps">'+
+    '<li><span class="n done">✓</span><span><b>Boutique connectée</b><p>alpinia.ch — vérifiée le 7 août.</p></span></li>'+
+    '<li><span class="n done">✓</span><span><b>Persona décrit</b><p>Léa — première visite, compare trois boutiques avant d\'acheter.</p></span></li>'+
+    '<li><span class="n done">✓</span><span><b>Linear connecté</b><p>Espace Croissance — les exports arriveront dans le backlog.</p></span></li>'+
+    '<li><span class="n">4</span><span><b>Premier run</b><p>Programmé cette nuit, 4 h 30. Agent UX. Rien à faire d\'ici là.</p></span></li>'+
+    '</ol>'+
+    '<p class="blank__foot">Vous recevrez un e-mail quand les constats seront prêts.</p>'+
+    '</div>';
+  return box;
+}
+
+function render(){
+  renderStates();
+  renderRunbar();
+  const ws = $("#workspace");
+  ws.innerHTML="";
+
+  if(state==="vide"){ ws.appendChild(renderEmpty()); return; }
+
+  const v = visible();
+  if(sel >= v.length) sel = Math.max(0, v.length-1);
+  const f = current();
+  ws.appendChild(renderQueue());
+  if(f){
+    ws.appendChild(renderEvidence(f));
+    ws.appendChild(renderVerdict(f));
+  }
+  const cur = ws.querySelector('.row[aria-selected="true"]');
+  if(cur) cur.scrollIntoView({block:"nearest"});
+}
+
+/* ============================================================
+   JUGEMENT — un geste, puis avance tout seul
+   ============================================================ */
+const VERB = {actionnable:"classé actionnable", bruit:"classé bruit", exporte:"exporté vers Linear", a_juger:"remis en file"};
+
+function judge(next){
+  const f = current(); if(!f) return;
+  const idx = items.findIndex(x=>x.id===f.id);
+  lastAction = {id:f.id, from:f.statut, linear:f.linear||null};
+  items[idx].statut = next;
+  if(next==="exporte" && !items[idx].linear){
+    items[idx].linear = {id:"TOW-"+(220+Math.floor(idx)), state:"Backlog"};
+  }
+  if(next==="bruit") items[idx].juge = "aujourd'hui";
+  if(next==="a_juger"){ items[idx].linear=null; items[idx].juge=null; }
+
+  toast((next==="exporte" ? f.id+" exporté vers Linear · "+items[idx].linear.id : f.id+" "+VERB[next]));
+  if(onlyTodo && next!=="a_juger"){ /* la file se referme, sel reste en place */ }
+  else if(next!=="a_juger"){ sel = Math.min(sel+1, visible().length-1); }
+  render();
+}
+
+function undo(){
+  if(!lastAction) return;
+  const i = items.findIndex(x=>x.id===lastAction.id);
+  if(i<0) return;
+  items[i].statut = lastAction.from;
+  items[i].linear = lastAction.linear;
+  const v = visible().findIndex(x=>x.id===lastAction.id);
+  if(v>=0) sel = v;
+  lastAction = null;
+  hideToast();
+  render();
+}
+
+let toastTimer=null;
+function toast(text){
+  $("#toast-text").textContent = text;
+  $("#toast").dataset.open="true";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 6000);
+}
+function hideToast(){ $("#toast").dataset.open="false"; }
+$("#toast-undo").onclick = undo;
+
+/* ============================================================
+   CLAVIER
+   ============================================================ */
+document.addEventListener("keydown", e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const k = e.key.toLowerCase();
+  if(k==="escape"){ $("#help").dataset.open="false"; hideToast(); return; }
+  if(k==="?"||(e.shiftKey&&k==="/")){ e.preventDefault(); const h=$("#help"); h.dataset.open = h.dataset.open==="true"?"false":"true"; return; }
+  if(state==="vide") return;
+  const v = visible();
+  if(k==="j"||e.key==="ArrowDown"){ e.preventDefault(); sel=Math.min(sel+1,v.length-1); render(); }
+  else if(k==="k"||e.key==="ArrowUp"){ e.preventDefault(); sel=Math.max(sel-1,0); render(); }
+  else if(k==="a"){ e.preventDefault(); if(current()&&current().statut==="a_juger") judge("actionnable"); }
+  else if(k==="b"){ e.preventDefault(); if(current()&&current().statut==="a_juger") judge("bruit"); }
+  else if(k==="e"){ e.preventDefault(); if(current()&&current().statut!=="exporte") judge("exporte"); }
+  else if(k==="u"){ e.preventDefault(); if(lastAction) undo(); else if(current()&&current().statut!=="a_juger") judge("a_juger"); }
+  else if(k==="f"){ e.preventDefault(); onlyTodo=!onlyTodo; sel=0; render(); }
+  else if(k==="s"){ e.preventDefault(); dim=!dim; render(); }
+});
+
+/* ============================================================
+   ÉTATS
+   ============================================================ */
+function setState(next){
+  state = next;
+  clearInterval(liveTimer); liveTimer=null; liveIdx=0;
+  lastAction=null; hideToast(); onlyTodo=true; sel=0; dim=true;
+
+  if(next==="vide"){ items=[]; render(); return; }
+
+  if(next==="encours"){
+    items = clone(LIVE).slice(0,4);
+    liveTimer = setInterval(()=>{
+      if(items.length >= LIVE.length){ clearInterval(liveTimer); liveTimer=null; return; }
+      const nx = {...LIVE[items.length], fresh:true};
+      items.forEach(f=>f.fresh=false);
+      items.push(nx);
+      liveIdx += 2;
+      render();
+    }, 3200);
+    render(); return;
+  }
+
+  if(next==="interrompu"){ items = clone(PARTIAL); render(); return; }
+
+  items = clone(F);
+  if(next==="recurrent"){ onlyTodo=true; sel = visible().findIndex(f=>f.runs.length>=3); }
+  if(next==="bruit"){ onlyTodo=false; sel = items.findIndex(f=>f.statut==="bruit"); }
+  if(next==="exporte"){ onlyTodo=false; sel = items.findIndex(f=>f.statut==="exporte"); }
+  if(sel<0) sel=0;
+  render();
+}
+
+/* Thème */
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("#theme-lbl").textContent = t==="dark" ? "Clair" : "Sombre";
+}
+$("#theme-btn").onclick = ()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+$("#help-btn").onclick = ()=>{const h=$("#help"); h.dataset.open = h.dataset.open==="true"?"false":"true"};
+$("#help").onclick = e=>{ if(e.target===$("#help")) $("#help").dataset.open="false"; };
+
+applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+setState("recurrent");
+</script>
+</body>
+</html>
