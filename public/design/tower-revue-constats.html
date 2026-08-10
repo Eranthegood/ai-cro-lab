@@ -546,8 +546,8 @@ const SHOTS = {
   cart_total:  {page:"cart",     box:[64.4,16.4,31.6,31]},
   cart_cta:    {page:"cart",     box:[3.3,53,57.3,8]},
   ship_opts:   {page:"checkout", box:[3.3,21.8,57,22.4]},
-  pay_block:   {page:"checkout", box:[3.3,47.8,57.3,22.6]},
-  form_zip:    {page:"checkout", box:[3.3,47.8,26.4,11.6]},
+  pay_block:   {page:"checkout", box:[3.3,21.5,57.3,44]},
+  form_zip:    {page:"checkout", box:[3.3,45.5,28,10.5]},
   ck_steps:    {page:"checkout", box:[3.3,14.7,93.3,4]},
   list_filter: {page:"listing",  box:[3.3,19.4,18,52.2]},
   list_grid:   {page:"listing",  box:[30.2,17.7,45.3,58.6]},
@@ -996,24 +996,55 @@ const PAGES = {
     ${footer()}`;
   },
   checkout(x){
+    const corps = {
+      0: `
+        <text x="36" y="292" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Adresse e-mail</text>
+        <rect x="36" y="308" width="420" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="392" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Choisir un mot de passe</text>
+        <rect x="36" y="408" width="420" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="492" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Confirmer le mot de passe</text>
+        <rect x="36" y="508" width="420" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        ${btn(36,596,260,50,"Créer mon compte",true)}`,
+      1: `
+        <text x="36" y="292" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Nom et prénom</text>
+        <rect x="36" y="308" width="500" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="386" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Rue et numéro</text>
+        <rect x="36" y="402" width="500" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="480" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Code postal</text>
+        <rect x="36" y="496" width="220" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="52" y="522" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">12 04</text>
+        <text x="36" y="560" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Format invalide</text>
+        <text x="300" y="480" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Ville</text>
+        <rect x="300" y="496" width="236" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+        ${btn(36,616,240,50,"Continuer",true)}`,
+      2: `
+        ${[0,1].map(i=>`
+          <rect x="36" y="${266+i*100}" width="500" height="84" rx="6" fill="none" stroke="var(--shot-line)"/>
+          <circle cx="70" cy="${308+i*100}" r="9" fill="none" stroke="var(--shot-mut)" stroke-width="1.5"/>
+          <text x="100" y="${300+i*100}" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">${i?"Économique":"Standard"}</text>
+          <text x="100" y="${326+i*100}" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">3 à 5 jours ouvrés</text>
+          <text x="510" y="${308+i*100}" text-anchor="end" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">CHF ${i?"4.90":"7.90"}</text>`).join("")}
+        <text x="36" y="512" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Pays</text>
+        <rect x="36" y="528" width="500" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="52" y="554" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">Suisse</text>
+        ${btn(36,616,240,50,"Continuer",true)}`,
+      3: `
+        <text x="36" y="292" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Numéro de carte</text>
+        <rect x="36" y="308" width="500" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="390" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Expiration</text>
+        <rect x="36" y="406" width="236" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="300" y="390" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Cryptogramme</text>
+        <rect x="300" y="406" width="236" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        <text x="36" y="488" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Nom sur la carte</text>
+        <rect x="36" y="504" width="500" height="44" rx="5" fill="none" stroke="var(--shot-line)"/>
+        ${btn(36,596,260,50,"Payer CHF 725.90",true)}`
+    }[x.etape] || "";
     return `${siteHeader()}
     <text x="36" y="164" font-family="Inter,sans-serif" font-size="24" font-weight="600" fill="var(--shot-ink)">Commande</text>
     ${["Compte","Adresse","Livraison","Paiement"].map((t,i)=>`
       <text x="${36+i*150}" y="208" font-family="Inter,sans-serif" font-size="13" font-weight="${i===x.etape?600:400}" fill="${i===x.etape?"var(--shot-ink)":"var(--shot-mut)"}">${i+1}. ${t}</text>`).join("")}
     <line x1="36" y1="230" x2="864" y2="230" stroke="var(--shot-line)"/>
-    ${[0,1].map(i=>`
-      <rect x="36" y="${266+i*100}" width="500" height="84" rx="6" fill="none" stroke="var(--shot-line)"/>
-      <circle cx="70" cy="${308+i*100}" r="9" fill="none" stroke="var(--shot-mut)" stroke-width="1.5"/>
-      <text x="100" y="${300+i*100}" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">${i?"Économique":"Standard"}</text>
-      <text x="100" y="${326+i*100}" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">3 à 5 jours ouvrés</text>
-      <text x="510" y="${308+i*100}" text-anchor="end" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">CHF ${i?"4.90":"7.90"}</text>`).join("")}
-    <text x="36" y="512" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Code postal</text>
-    <rect x="36" y="528" width="220" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
-    <text x="52" y="554" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">12 04</text>
-    <text x="36" y="592" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Format invalide</text>
-    <text x="300" y="512" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Ville</text>
-    <rect x="300" y="528" width="236" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
-    ${btn(36,644,240,50,"Continuer",true)}
+    ${corps}
     <rect x="620" y="266" width="244" height="220" rx="6" fill="var(--shot-frame)" stroke="var(--shot-line)"/>
     ${lines(646,302,192,5,26)}
     ${footer()}`;
