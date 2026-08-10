@@ -402,7 +402,7 @@ kbd{
   flex:none;width:18px;height:18px;border-radius:6px;border:1px solid var(--border-strong);
   font-size:11px;line-height:16px;text-align:center;color:var(--text-3);margin-top:1px;
 }
-.steps .done{border-color:transparent;background:var(--surface-sel);color:var(--text)}
+.steps .n--ok{border-color:transparent;background:var(--surface-sel);color:var(--text)}
 .steps b{font-weight:500;display:block;color:var(--text)}
 .steps p{margin:2px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}
 .blank__foot{margin-top:18px;font-size:12px;color:var(--text-3)}
@@ -452,7 +452,9 @@ kbd{
    TABLETTE — la colonne verdict passe sous la preuve
    ============================================================ */
 @media (max-width:1180px){
+  .toast{bottom:auto;top:12px;left:12px;right:12px}
   .workspace{grid-template-columns:296px minmax(0,1fr)}
+  .evidence{min-height:320px}
   .evidence__stage{overflow-y:auto;align-items:flex-start;padding:12px}
   .shot{height:auto;width:100%;max-height:none}
   .shot svg{width:100%;height:auto}
@@ -550,7 +552,10 @@ const SHOTS = {
   pdp_qty:     {page:"pdp",      box:[51,38.4,11,6.5]},
   pdp_top:     {page:"pdp",      box:[51,12.9,47,13.4]},
   pdp_stock:   {page:"pdp",      box:[51,17.7,47,3.2]},
+  pdp_ref:     {page:"pdp",      box:[51,17.4,25,3.6]},
   pdp_size:    {page:"pdp",      box:[51,28.2,47,8.4]},
+  pdp_modale:  {page:"pdp",      box:[25.5,20.2,49,41], modale:true},
+  pdp_erreur:  {page:"pdp",      box:[3.3,7.5,93.3,5.5], erreurPanier:true},
   pdp_gallery: {page:"pdp",      box:[3.3,7.8,46,61.6]},
   pdp_reviews: {page:"pdp",      box:[3.3,71.6,93.3,13.4]},
   pdp_desc:    {page:"pdp",      box:[51,46.8,47,9]},
@@ -575,7 +580,7 @@ const SHOTS = {
   home_hero:   {page:"home",     box:[1,6.5,98,42.7]},
   home_nav:    {page:"home",     box:[1,0.9,98,5.6]},
   home_trust:  {page:"home",     box:[10,52.2,80,4.5]},
-  login_form:  {page:"login",    box:[3.3,17.4,49,31.8]},
+  login_form:  {page:"login",    box:[3.3,17.4,49,36]},
   acct_list:   {page:"account",  box:[27.8,15.5,69,37.5]},
   acct_row:    {page:"account",  box:[27.8,18.9,69,8.6]},
   policy:      {page:"policy",   box:[3.3,17.7,75.6,19.8]},
@@ -630,7 +635,7 @@ const F = [
    imp:"Une note parfaite adossée à trois avis d’une ligne et sans date ne se distingue pas d’une note fabriquée."},
 
   {id:"C-1247", url:"/produits/veste-alpine-3l", cat:"friction_ui", zone:"Guide des tailles",
-   shot:"pdp_size", statut:"a_juger", runs:[13],
+   shot:"pdp_modale", statut:"a_juger", runs:[13],
    obs:"Le guide des tailles s’ouvre dans une fenêtre modale qui recouvre le sélecteur. Pour comparer sa mesure au tableau puis choisir, il faut fermer la modale, ce qui fait perdre la ligne qu’on était en train de lire.",
    imp:"Le tableau et le sélecteur ne peuvent pas être vus ensemble, alors que la décision demande de les mettre côte à côte."},
 
@@ -675,7 +680,7 @@ const F = [
    imp:"L’erreur est signalée après coup et ne dit pas comment la corriger."},
 
   {id:"C-1256", url:"/produits/sac-trek-45", cat:"tunnel", zone:"Bloc d’ajout au panier",
-   shot:"pdp_cart", statut:"a_juger", runs:[13],
+   shot:"pdp_erreur", statut:"a_juger", runs:[13],
    obs:"Le bouton « Ajouter au panier » reste actif alors qu’aucune taille n’est sélectionnée. Le clic déclenche un message d’erreur rouge en haut de page, hors du champ de vision de quelqu’un qui regarde le bouton.",
    imp:"L’action principale de la page échoue sans que rien ne change à l’endroit où le regard se trouve."},
 
@@ -771,7 +776,7 @@ const LIVE = [
    obs:"Les images de la grille se chargent après le texte, sans emplacement réservé. La grille se réorganise pendant environ deux secondes et les vignettes se déplacent sous le curseur.",
    imp:"La cible d’un clic se déplace pendant le temps de chargement, sur la page où se fait la présélection."},
   {id:"C-1249", url:"/", cat:"reassurance", zone:"Bande de réassurance d’accueil",
-   shot:"home_trust", statut:"a_juger", runs:[14,13], page:32,
+   shot:"home_trust", statut:"a_juger", runs:[14,13], first:"3 août", verdictPasse:{run:13, statut:"actionnable"}, page:32,
    obs:"La bande sous le bandeau annonce « Livraison offerte ». Aucun seuil n’est indiqué. À l’étape de livraison, le tunnel facture CHF 7.90 ou CHF 4.90, sans condition de gratuité nulle part.",
    imp:"L’accueil et le tunnel se contredisent sur le même sujet. La promesse la plus visible du site est démentie trois pages plus loin."}
 ];
@@ -797,7 +802,7 @@ const PARTIAL = [
    obs:"Aucun bouton de rachat sur les lignes de l’historique ni dans le détail d’une commande. Le seul lien mène à la fiche produit, où la taille doit être resélectionnée depuis le début.",
    imp:"Le parcours le plus court du site, celui d’un client qui sait déjà quoi et en quelle taille, repasse par le catalogue entier."},
   {id:"C-1213", url:"/produits/veste-alpine-3l", cat:"proposition_valeur", zone:"Haut de fiche produit",
-   shot:"pdp_top", statut:"a_juger", runs:[11],
+   shot:"pdp_ref", statut:"a_juger", runs:[11],
    obs:"La référence ALP-3L-0421 est affichée sous le titre, sans année ni saison. Rien sur la fiche n’indique si le modèle en vente est celui de la saison passée ou une version révisée.",
    imp:"Un client qui rachète ne peut pas vérifier sur la fiche qu’il rachète bien le même produit."},
   {id:"C-1214", url:"/panier", cat:"tunnel", zone:"Panier après identification",
@@ -831,7 +836,17 @@ const PARTIAL = [
   {id:"C-1254", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
    shot:"policy", statut:"a_juger", runs:[11],
    obs:"La page indique « retours acceptés sous 14 jours ». Le paragraphe suivant précise que les frais de retour sont à la charge du client, en corps de texte, sans mise en avant. La fiche produit ne mentionne ni l’un ni l’autre.",
-   imp:"La condition qui engage le portefeuille est enterrée deux paragraphes sous celle qui rassure, et absente de la page où l’on décide."}
+   imp:"La condition qui engage le portefeuille est enterrée deux paragraphes sous celle qui rassure, et absente de la page où l’on décide."},
+
+  {id:"C-1239", url:"/commande/paiement", cat:"reassurance", zone:"Moyens de paiement",
+   shot:"pay_block", statut:"a_juger", runs:[11],
+   obs:"Au moment de saisir le numéro de carte, la page ne porte aucun logo de moyen de paiement, aucune mention de sécurisation et aucun rappel du droit de retour. Elle est plus nue que le panier qui la précède.",
+   imp:"La dernière page du tunnel est celle qui rassure le moins, alors que c’est la seule où l’on donne un numéro de carte."},
+
+  {id:"C-1252", url:"/recherche?q=veste+imperm%C3%A9able", cat:"navigation", zone:"Résultats de recherche",
+   shot:"search_zero", statut:"a_juger", runs:[11],
+   obs:"La recherche « veste imperméable » renvoie zéro résultat. Les mêmes vestes sont au catalogue sous « veste hardshell ». La page vide propose un retour à l’accueil, sans suggestion ni correction.",
+   imp:"Le catalogue contient la réponse et la recherche répond qu’il n’y en a pas. Le vocabulaire du site et celui de l’acheteur ne se rejoignent pas."}
 ];
 
 const RUNS = {
@@ -988,7 +1003,7 @@ function ctxOf(url){
     q: q ? decodeURIComponent(q.replace(/\+/g," ")) : "veste imperméable",
     etape: /adresse/.test(url) ? 1 : /livraison/.test(url) ? 2 : /paiement/.test(url) ? 3 : 0,
     vide: false,
-    erreurZip: false
+    erreurZip: false, modale: false, erreurPanier: false
   };
 }
 
@@ -1001,12 +1016,13 @@ const PAGES = {
     ${produit(x.p.fam,36,132,400,480)}
     ${[0,1,2,3].map(i=>`
       <rect x="${36+i*68}" y="628" width="60" height="60" rx="4" fill="var(--shot-fill)" stroke="var(--shot-line)"/>
-      <g transform="translate(${36+i*68},628) scale(0.13) ${i===1?"rotate(0)":""}" opacity=".8">
+      <g transform="translate(${36+i*68},628) scale(0.13)" opacity=".8">
         <g transform="${i===2?"translate(460,0) scale(-1,1)":"translate(0,0)"}">
           ${(SILHOUETTES[x.p.fam]||SILHOUETTES.veste)(230,0,460,460)}
         </g>
+        ${i===3?`<path d="M120 150 L340 150 M230 150 L230 400" stroke="var(--shot-mut)" stroke-width="14" opacity=".9"/>`:""}
       </g>
-      <text x="${36+i*68+4}" y="${684}" font-family="Inter,sans-serif" font-size="9" fill="var(--shot-mut)">${i+1}</text>`).join("")}
+      <text x="${36+i*68+4}" y="684" font-family="Inter,sans-serif" font-size="9" fill="var(--shot-mut)">${i+1}${i===3?" · dos":""}</text>`).join("")}
     <text x="${RX}" y="156" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">${esc(x.p.fil)}</text>
     <text x="${RX}" y="196" font-family="Inter,sans-serif" font-size="26" font-weight="600" fill="var(--shot-ink)">${esc(x.p.nom)}</text>
     <text x="${RX}" y="230" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Réf. ${esc(x.p.ref)} · ${esc(x.p.stock)}</text>
@@ -1025,6 +1041,21 @@ const PAGES = {
     ${x.p.desc
       ? `<text x="${RX}" y="512" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">${esc(x.p.desc)}</text>`
       : lines(RX,500,RW,2,22)}
+    ${x.modale ? `
+      <rect x="0" y="${TOP}" width="${W}" height="${H-TOP}" fill="var(--shot-ink)" opacity=".10"/>
+      <rect x="230" y="240" width="440" height="380" rx="8" fill="var(--shot-page)" stroke="var(--shot-line)"/>
+      <text x="258" y="286" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Guide des tailles</text>
+      <text x="644" y="286" text-anchor="end" font-family="Inter,sans-serif" font-size="16" fill="var(--shot-mut)">×</text>
+      ${["Taille","Poitrine","Longueur"].map((t,i)=>
+        `<text x="${258+i*136}" y="330" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">${t}</text>`).join("")}
+      ${["XS","S","M","L","XL"].map((t,i)=>`
+        <line x1="258" y1="${348+i*44}" x2="642" y2="${348+i*44}" stroke="var(--shot-line)"/>
+        <text x="258" y="${376+i*44}" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">${t}</text>
+        <text x="394" y="${376+i*44}" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">${86+i*6} cm</text>
+        <text x="530" y="${376+i*44}" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">${66+i*3} cm</text>`).join("")}` : ""}
+    ${x.erreurPanier ? `
+      <rect x="36" y="126" width="828" height="44" rx="5" fill="none" stroke="var(--shot-ink)" stroke-width="1.5"/>
+      <text x="56" y="154" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-ink)">Veuillez sélectionner une taille avant d’ajouter au panier.</text>` : ""}
     ${x.p.onglets===false ? `
       <line x1="${RX}" y1="576" x2="${RX+RW}" y2="576" stroke="var(--shot-line)"/>
       ${lines(RX,606,RW,3,24)}` : `
@@ -1044,7 +1075,7 @@ const PAGES = {
   },
   drawer(x){
     return `${PAGES.pdp(x)}
-    <rect x="0" y="${TOP}" width="${W}" height="${H-TOP}" fill="var(--shot-ink)" opacity=".18"/>
+    <rect x="0" y="${TOP}" width="${W}" height="${H-TOP}" fill="var(--shot-ink)" opacity=".10"/>
     <rect x="470" y="${TOP}" width="${W-470}" height="${H-TOP}" fill="var(--shot-page)" stroke="var(--shot-line)"/>
     <text x="500" y="104" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Ajouté au panier</text>
     <rect x="500" y="136" width="86" height="86" rx="4" fill="var(--shot-fill)"/>
@@ -1209,6 +1240,7 @@ const PAGES = {
     ${btn(36,410,420,50,"Se connecter",true)}
     <text x="36" y="484" font-family="Inter,sans-serif" font-size="11" fill="var(--shot-mut)">Mot de passe oublié</text>
     <text x="36" y="512" font-family="Inter,sans-serif" font-size="11" fill="var(--shot-mut)">Pas encore de compte ? Créer un compte</text>
+    <text x="36" y="540" font-family="Inter,sans-serif" font-size="11" fill="var(--shot-mut)">© 2026 Alpinia SA — tous droits réservés</text>
     <rect x="560" y="176" width="304" height="300" rx="6" fill="var(--shot-frame)" stroke="var(--shot-line)"/>
     ${lines(588,216,248,6,26)}
     ${footer()}`;
@@ -1251,6 +1283,8 @@ function renderShot(finding, dim, cadre){
   const ctx = ctxOf(finding.url);
   if(d.vide) ctx.vide = true;
   if(d.erreurZip) ctx.erreurZip = true;
+  if(d.modale) ctx.modale = true;
+  if(d.erreurPanier) ctx.erreurPanier = true;
   const body = (PAGES[d.page] || PAGES.pdp)(ctx);
   const bx = px(d.box[0],W), by = px(d.box[1],BODY)+TOP, bw = px(d.box[2],W), bh = px(d.box[3],BODY);
 
@@ -1269,26 +1303,41 @@ function renderShot(finding, dim, cadre){
     const x0 = anc === "end" ? tx - w : anc === "middle" ? tx - w/2 : tx;
     textes.push({x:x0, y:ty - fs, w, h:fs * 1.3});
   }
+  /* Un cadre qui coupe un mot en deux n'est pas une preuve : on l'étend
+     à toute ligne de texte qu'il ne recouvre que partiellement. */
+  let x1 = bx, y1 = by, x2 = bx + bw, y2 = by + bh;
+  textes.forEach(t => {
+    const ox = Math.min(x2, t.x + t.w) - Math.max(x1, t.x);
+    const oy = Math.min(y2, t.y + t.h) - Math.max(y1, t.y);
+    if(ox > 1 && oy > 1 && (ox < t.w - 1 || oy < t.h - 1)){
+      x1 = Math.min(x1, t.x - 4); x2 = Math.max(x2, t.x + t.w + 4);
+      y1 = Math.min(y1, t.y - 3); y2 = Math.max(y2, t.y + t.h + 3);
+    }
+  });
+  x1 = Math.max(2, x1); x2 = Math.min(W - 2, x2);
+  y1 = Math.max(TOP + 2, y1); y2 = Math.min(H - 2, y2);
+  const rx = x1, ry = y1, rw = x2 - x1, rh = y2 - y1;
+
   const lw = 10 + finding.zone.length * 6.5, lh = 21;
   const croise = (a) => a.y < TOP + 2 || a.x < 2 || a.x + a.w > W - 2 ||
     textes.some(t => a.x < t.x + t.w && a.x + a.w > t.x && a.y < t.y + t.h && a.y + a.h > t.y);
   const ancrages = [
-    {x:bx,               y:by - lh - 5},              // au-dessus, à gauche
-    {x:bx + bw - lw,     y:by - lh - 5},              // au-dessus, à droite
-    {x:bx + 6,           y:by + 6},                   // dedans, en haut à gauche
-    {x:bx + bw - lw - 6, y:by + 6},                   // dedans, en haut à droite
-    {x:bx + 6,           y:by + bh - lh - 6},         // dedans, en bas à gauche
-    {x:bx,               y:by + bh + 5},              // en dessous
-    {x:bx - lw - 6,      y:by + (bh - lh)/2},          // à gauche du cadre
-    {x:bx + bw + 6,      y:by + (bh - lh)/2}           // à droite du cadre
+    {x:rx,               y:ry - lh - 5},              // au-dessus, à gauche
+    {x:rx + rw - lw,     y:ry - lh - 5},              // au-dessus, à droite
+    {x:rx + 6,           y:ry + 6},                   // dedans, en haut à gauche
+    {x:rx + rw - lw - 6, y:ry + 6},                   // dedans, en haut à droite
+    {x:rx + 6,           y:ry + rh - lh - 6},         // dedans, en bas à gauche
+    {x:rx,               y:ry + rh + 5},              // en dessous
+    {x:rx - lw - 6,      y:ry + (rh - lh)/2},          // à gauche du cadre
+    {x:rx + rw + 6,      y:ry + (rh - lh)/2}           // à droite du cadre
   ].map(a => ({...a, w:lw, h:lh}));
   const pose = ancrages.find(a => !croise(a)) || ancrages[2];
 
   let vb = `0 0 ${W} ${H}`;
   if(cadre){
     const mg = 46;
-    const vx = Math.max(0, bx - mg), vy = Math.max(TOP, by - mg - 22);
-    const vw = Math.min(W - vx, bw + mg*2), vh = Math.min(H - vy, bh + mg*2 + 22);
+    const vx = Math.max(0, rx - mg), vy = Math.max(TOP, ry - mg - 22);
+    const vw = Math.min(W - vx, rw + mg*2), vh = Math.min(H - vy, rh + mg*2 + 22);
     vb = `${vx} ${vy} ${vw} ${vh}`;
   }
   return `<svg viewBox="${vb}" role="img" preserveAspectRatio="xMidYMid meet"
@@ -1298,8 +1347,8 @@ function renderShot(finding, dim, cadre){
     ${body}
     <g class="dimmer">
       <path fill="var(--dim)" fill-rule="evenodd"
-        d="M0 ${TOP} H${W} V${H} H0 Z M${bx} ${by} H${bx+bw} V${by+bh} H${bx} Z"/>
-      <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none"
+        d="M0 ${TOP} H${W} V${H} H0 Z M${rx} ${ry} H${rx+rw} V${ry+rh} H${rx} Z"/>
+      <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="none"
         stroke="#ffffff" stroke-width="2" rx="3"/>
       <rect x="${pose.x}" y="${pose.y}" width="${lw}" height="${lh}" rx="4" fill="#ffffff"/>
       <text x="${pose.x+6}" y="${pose.y+15}" font-family="Inter,sans-serif" font-size="11.5"
@@ -1313,7 +1362,7 @@ function renderShot(finding, dim, cadre){
    ============================================================ */
 let state = "recurrent";
 let items = [];
-let sel = 0;
+let selId = null;
 let onlyTodo = true;
 let dim = true;
 let undoStack = [];
@@ -1336,7 +1385,23 @@ function ordered(list){
     .map(o=>o.f);
 }
 function visible(){ return ordered(onlyTodo ? items.filter(f=>f.statut==="a_juger") : items); }
-function current(){ const v=visible(); return v.length ? v[Math.min(sel, v.length-1)] : null; }
+function current(){
+  const v = visible();
+  if(!v.length) return null;
+  return v.find(f=>f.id===selId) || null;
+}
+/* Recale la sélection sur le constat le plus proche encore visible. */
+function recaler(prefere){
+  const v = visible();
+  if(!v.length){ selId = null; return; }
+  if(prefere && v.some(f=>f.id===prefere)){ selId = prefere; return; }
+  if(!v.some(f=>f.id===selId)) selId = v[0].id;
+}
+function voisin(id, pas){
+  const v = visible(), i = v.findIndex(f=>f.id===id);
+  if(i<0) return v.length ? v[0].id : null;
+  return v[Math.min(Math.max(i+pas,0), v.length-1)].id;
+}
 
 /* ============================================================
    RENDU
@@ -1426,11 +1491,11 @@ function renderQueue(){
   const bTodo = el("button","hit filter","<span>À juger <b>"+todo+"</b></span>");
   bTodo.id="f-todo";
   bTodo.setAttribute("aria-pressed", String(onlyTodo));
-  bTodo.onclick=()=>{onlyTodo=true;sel=0;render()};
+  bTodo.onclick=()=>{onlyTodo=true;recaler(selId);render()};
   const bAll = el("button","hit filter","<span>Tous <b>"+items.length+"</b></span>");
   bAll.id="f-all";
   bAll.setAttribute("aria-pressed", String(!onlyTodo));
-  bAll.onclick=()=>{onlyTodo=false;sel=0;render()};
+  bAll.onclick=()=>{onlyTodo=false;recaler(selId);render()};
   head.appendChild(bTodo); head.appendChild(bAll);
   const hint = el("span","hit",'<span><kbd>F</kbd></span>');
   hint.style.marginLeft="auto"; hint.style.pointerEvents="none";
@@ -1477,7 +1542,7 @@ function renderQueue(){
       '<span class="row__flags">'+flags+'</span></span>'+
       '<span class="row__sub"><span class="row__cat">'+esc(CAT_LABEL[f.cat])+'</span>'+
       '<span class="row__url">'+esc(f.url)+'</span></span>';
-    row.onclick=()=>{sel=i;render()};
+    row.onclick=()=>{selId=f.id;render()};
     list.appendChild(row);
   });
 
@@ -1499,7 +1564,7 @@ function renderQueue(){
     const n = el("div","queue__note");
     n.innerHTML = nBruit+' constat'+(nBruit>1?'s':'')+' non remonté'+(nBruit>1?'s':'')+
       ' par vos règles de bruit. <button>Voir</button>';
-    n.querySelector("button").onclick = ()=>{ onlyTodo=false; sel=visible().findIndex(f=>f.statut==="bruit"); render(); };
+    n.querySelector("button").onclick = ()=>{ onlyTodo=false; const b=visible().find(f=>f.statut==="bruit"); if(b) selId=b.id; render(); };
     col.appendChild(n);
   }
   col.appendChild(list);
@@ -1544,7 +1609,7 @@ function renderVerdict(f){
   col.setAttribute("aria-label","Observation, impact et jugement");
   const s = el("div","verdict__scroll");
 
-  if(f.runs.length>=3){
+  if(f.runs.length>=2){
     const p = el("div","persist");
     let titre, corps;
     if(f.statut==="exporte"){
@@ -1559,6 +1624,11 @@ function renderVerdict(f){
       titre = "Vu aux "+f.runs.length+" derniers runs, jugé bruit";
       corps = "Relevé pour la première fois le "+esc(f.first)+
         ". Il continue d’être détecté mais n’est plus remonté dans la file.";
+    }else if(f.verdictPasse){
+      titre = "Vu aux "+f.runs.length+" derniers runs, "+VERB[f.verdictPasse.statut]+" au run "+f.verdictPasse.run;
+      corps = "Relevé pour la première fois le "+esc(f.first)+
+        ". Vous l’aviez retenu au run "+f.verdictPasse.run+
+        " ; la zone n’a pas changé et il revient à juger.";
     }else{
       titre = "Vu aux "+f.runs.length+" derniers runs, jamais jugé";
       corps = "Relevé pour la première fois le "+esc(f.first)+
@@ -1690,11 +1760,11 @@ function renderEmpty(){
     'et se comportera comme le persona que vous avez décrit. Les constats seront ici demain matin, '+
     'puis chaque lundi. Comptez entre cinq et trente constats pour un premier passage.</p>'+
     '<ol class="steps">'+
-    '<li><span class="n done">✓</span><span><b>Boutique connectée</b>'+
+    '<li><span class="n n--ok">✓</span><span><b>Boutique connectée</b>'+
       '<p>alpinia.ch — connexion vérifiée il y a 4 minutes.</p></span></li>'+
-    '<li><span class="n done">✓</span><span><b>Persona décrit</b>'+
+    '<li><span class="n n--ok">✓</span><span><b>Persona décrit</b>'+
       '<p>Léa — première visite, compare trois boutiques avant d’acheter.</p></span></li>'+
-    '<li><span class="n done">✓</span><span><b>Linear connecté</b>'+
+    '<li><span class="n n--ok">✓</span><span><b>Linear connecté</b>'+
       '<p>Espace Croissance — les exports arriveront dans le backlog, préfixe GRO.</p></span></li>'+
     '<li><span class="n">4</span><span><b>Premier run</b>'+
       '<p>Cette nuit à 4 h 30, heure de Zurich. Agent UX. '+
@@ -1750,7 +1820,7 @@ function render(opts){
   if(state==="vide"){ ws.appendChild(renderEmpty()); return; }
 
   const v = visible();
-  if(sel >= v.length) sel = Math.max(0, v.length-1);
+  recaler(selId);
   const f = current();
   ws.appendChild(renderQueue());
   if(f){
@@ -1786,12 +1856,13 @@ const ETAT = {actionnable:"déjà classé actionnable", bruit:"déjà classé br
 function judge(next){
   const f = current(); if(!f) return;
   const idx = items.findIndex(x=>x.id===f.id);
+  const suivant = voisin(f.id, 1) === f.id ? voisin(f.id, -1) : voisin(f.id, 1);
   undoStack.push({id:f.id, from:f.statut, linear:f.linear||null, juge:f.juge||null});
   if(undoStack.length>20) undoStack.shift();
   items[idx].statut = next;
   if(next==="exporte" && !items[idx].linear){
     items[idx].linear = items[idx].linearPasse ||
-      {id:"GRO-"+(220+idx), state:"Backlog", exporte:null, lu:null};
+      {id:"GRO-"+items[idx].id.replace(/\D/g,"").slice(-3), state:"Backlog", exporte:null, lu:null};
   }
   if(next==="bruit") items[idx].juge = null;   /* jugé à l’instant */
   if(next==="a_juger"){
@@ -1800,8 +1871,7 @@ function judge(next){
   }
 
   toast((next==="exporte" ? f.id+" exporté vers Linear · "+items[idx].linear.id : f.id+" "+VERB[next]));
-  if(onlyTodo && next!=="a_juger"){ /* la file se referme, sel reste en place */ }
-  else if(next!=="a_juger"){ sel = Math.min(sel+1, visible().length-1); }
+  if(next!=="a_juger") recaler(suivant);   /* on avance sur l'identité, pas sur un rang */
   render();
 }
 /* U annule le dernier jugement posé pendant cette session, toujours, et
@@ -1817,7 +1887,7 @@ function undo(){
   items[i].linear = act.linear;
   items[i].juge   = act.juge;
   const v = visible().findIndex(x=>x.id===act.id);
-  if(v>=0) sel = v;
+  selId = act.id;
   toast("Annulé : "+act.id+" "+(act.from==="a_juger" ? "de nouveau à juger" : VERB[act.from])+".");
   render();
 }
@@ -1854,8 +1924,8 @@ document.addEventListener("keydown", e=>{
     }
   }
   const v = visible();
-  if(k==="j"||e.key==="ArrowDown"){ e.preventDefault(); sel=Math.min(sel+1,v.length-1); render(); }
-  else if(k==="k"||e.key==="ArrowUp"){ e.preventDefault(); sel=Math.max(sel-1,0); render(); }
+  if(k==="j"||e.key==="ArrowDown"){ e.preventDefault(); selId=voisin(selId,1); render(); }
+  else if(k==="k"||e.key==="ArrowUp"){ e.preventDefault(); selId=voisin(selId,-1); render(); }
   else if(k==="a"||k==="b"){
     e.preventDefault();
     const c = current();
@@ -1869,7 +1939,7 @@ document.addEventListener("keydown", e=>{
     else if(c) toast(c.id+" est "+ETAT[c.statut]+(undoStack.length ? " — U pour annuler le dernier jugement." : "."));
   }
   else if(k==="u"){ e.preventDefault(); undo(); }
-  else if(k==="f"){ e.preventDefault(); onlyTodo=!onlyTodo; sel=0; render(); }
+  else if(k==="f"){ e.preventDefault(); onlyTodo=!onlyTodo; recaler(selId); render(); }
   else if(k==="s"){ e.preventDefault(); dim=!dim; render(); }
 });
 
@@ -1879,7 +1949,7 @@ document.addEventListener("keydown", e=>{
 function setState(next){
   state = next;
   clearInterval(liveTimer); liveTimer=null; liveIdx=0;
-  undoStack=[]; covOpen=false; queueScroll=0; hideToast(); onlyTodo=true; sel=0; dim=true;
+  undoStack=[]; covOpen=false; queueScroll=0; hideToast(); onlyTodo=true; selId=null; dim=true;
 
   if(next==="vide"){ items=[]; render(); return; }
 
@@ -1888,6 +1958,7 @@ function setState(next){
     RUNS.encours.fini = null;
     arrived = 0;
     items = clone(LIVE).slice(0,4);
+    recaler(null);
     liveTimer = setInterval(()=>{
       if(items.length >= LIVE.length){
         clearInterval(liveTimer); liveTimer=null;
@@ -1905,15 +1976,14 @@ function setState(next){
     render(); return;
   }
 
-  if(next==="interrompu"){ items = clone(PARTIAL); render(); return; }
+  if(next==="interrompu"){ items = clone(PARTIAL); recaler(null); render(); return; }
 
   items = clone(F);
-  /* sel indexe la file VISIBLE, qui est triée par persistance : chercher
-     dans `items` désignerait un autre constat. */
-  if(next==="recurrent"){ onlyTodo=true;  sel = visible().findIndex(f=>f.runs.length>=3 && f.statut==="a_juger"); }
-  if(next==="bruit"){     onlyTodo=false; sel = visible().findIndex(f=>f.statut==="bruit"); }
-  if(next==="exporte"){   onlyTodo=false; sel = visible().findIndex(f=>f.statut==="exporte"); }
-  if(sel<0) sel=0;
+  let vise = null;
+  if(next==="recurrent"){ onlyTodo=true;  vise = visible().find(f=>f.runs.length>=3 && f.statut==="a_juger"); }
+  if(next==="bruit"){     onlyTodo=false; vise = visible().find(f=>f.statut==="bruit"); }
+  if(next==="exporte"){   onlyTodo=false; vise = visible().find(f=>f.statut==="exporte"); }
+  recaler(vise && vise.id);
   render();
 }
 
