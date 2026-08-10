@@ -1744,12 +1744,22 @@ function setState(next){
   render();
 }
 
-/* Thème */
+/* Thème — au chargement, le CSS décide seul via prefers-color-scheme :
+   aucune marque n'est posée sur la racine, donc aucun flash, et un hôte
+   qui impose déjà un thème est respecté. Le bouton prend la main ensuite. */
+function currentTheme(){
+  const stamped = document.documentElement.dataset.theme;
+  if(stamped) return stamped;
+  return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+}
+function syncThemeLabel(){
+  $("#theme-lbl").textContent = currentTheme()==="dark" ? "Clair" : "Sombre";
+}
 function applyTheme(t){
   document.documentElement.dataset.theme = t;
-  $("#theme-lbl").textContent = t==="dark" ? "Clair" : "Sombre";
+  syncThemeLabel();
 }
-$("#theme-btn").onclick = ()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+$("#theme-btn").onclick = ()=>applyTheme(currentTheme()==="dark"?"light":"dark");
 $("#help-btn").onclick = ()=>{const h=$("#help"); h.dataset.open = h.dataset.open==="true"?"false":"true"};
 $("#help").onclick = e=>{ if(e.target===$("#help")) $("#help").dataset.open="false"; };
 $("#help-close").onclick = ()=>{ $("#help").dataset.open="false"; };
@@ -1758,7 +1768,8 @@ function trapHelp(e){
   $("#help-close").focus();
 }
 
-applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+syncThemeLabel();
+if(window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeLabel);
 setState("recurrent");
 </script>
 </body>
