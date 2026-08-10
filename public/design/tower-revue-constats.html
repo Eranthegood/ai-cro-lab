@@ -67,10 +67,11 @@
   --text-3:#8a8f98;    /* 6.1:1  sur --bg */
   --accent:#5e6ad2;    /* le meme indigo : l’accent ne change pas de teinte */
   --accent-fg:#ffffff;
-  --dim:rgba(6,7,8,.34);
+  --dim:rgba(6,7,8,.20);
   --shot-edge:#000000;
   --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 28px rgba(0,0,0,.45);
   --ring:0 0 0 2px var(--bg),0 0 0 4px var(--text);
+}
 }
 }
 
@@ -260,6 +261,7 @@ kbd{
 @media (prefers-reduced-motion:reduce){.dimmer{transition:none}}
 
 /* --- Verdict --- */
+.verdict__scroll:focus-visible{box-shadow:inset var(--ring)}
 .verdict__scroll{flex:1;overflow-y:auto;padding:16px 18px 10px;min-height:0;display:flex;flex-direction:column}
 .eyebrow{font-size:11px;color:var(--text-3);margin:0 0 5px}
 .obs{font-size:13px;line-height:1.62;color:var(--text);margin:0 0 16px}
@@ -545,6 +547,7 @@ const SHOP = "www.alpinia.ch";
 /* Descripteurs de capture : type de page + zone surlignée (en %) */
 const SHOTS = {
   pdp_cart:    {page:"pdp",      box:[51,38.4,47,16.4]},
+  pdp_qty:     {page:"pdp",      box:[51,38.4,11,6.5]},
   pdp_top:     {page:"pdp",      box:[51,12.9,47,13.4]},
   pdp_stock:   {page:"pdp",      box:[51,17.7,47,3.2]},
   pdp_size:    {page:"pdp",      box:[51,28.2,47,8.4]},
@@ -560,7 +563,8 @@ const SHOTS = {
   ship_opts:   {page:"checkout", box:[3.3,21.8,57,22.4]},
   ship_country:{page:"checkout", box:[3.3,48.1,57.3,9.3]},
   pay_block:   {page:"checkout", box:[3.3,21.5,57.3,44]},
-  form_zip:    {page:"checkout", box:[3.3,45.5,28,10.5]},
+  form_zip:    {page:"checkout", box:[3.3,45.5,28,10.5], erreurZip:true},
+  form_adresse:{page:"checkout", box:[3.3,24.5,58,34]},
   ck_steps:    {page:"checkout", box:[3.3,14.7,93.3,4]},
   list_filter: {page:"listing",  box:[3.3,19.4,18,52.2]},
   list_grid:   {page:"listing",  box:[26.7,18.1,70,39.2]},
@@ -615,8 +619,8 @@ const F = [
    imp:"Les trois premières photos portent déjà l’information de volume. Celle-ci n’ajoute rien et n’induit pas en erreur."},
 
   {id:"C-1245", url:"/commande/livraison", cat:"tunnel", zone:"Choix du mode de livraison",
-   shot:"ship_opts", statut:"exporte", runs:[13,12],
-   linear:{id:"GRO-214", state:"Backlog", exporte:"3 août", lu:"3 août"},
+   shot:"ship_opts", statut:"exporte", runs:[13,12,11], first:"20 juillet",
+   linear:{id:"GRO-214", state:"Backlog", exporte:"3 août", lu:null},
    obs:"Les deux modes de livraison s’appellent « Standard » et « Économique ». Les deux annoncent 3 à 5 jours ouvrés. Seul le prix diffère : CHF 7.90 et CHF 4.90. Rien n’explique ce qu’on obtient en payant trois francs de plus.",
    imp:"Un choix est demandé sans donner le critère qui permet de le faire, à l’étape qui précède immédiatement le paiement."},
 
@@ -661,7 +665,7 @@ const F = [
    imp:"Sur un vêtement technique à CHF 489.00, la coupe portée est la question centrale et aucune image ne la traite."},
 
   {id:"C-1254", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
-   shot:"policy", statut:"a_juger", runs:[13],
+   shot:"policy", statut:"a_juger", runs:[13,11], first:"20 juillet",
    obs:"La page indique « retours acceptés sous 14 jours ». Le paragraphe suivant précise que les frais de retour sont à la charge du client, en corps de texte, sans mise en avant. La fiche produit ne mentionne ni l’un ni l’autre.",
    imp:"La condition qui engage le portefeuille est enterrée deux paragraphes sous celle qui rassure, et absente de la page où l’on décide."},
 
@@ -682,7 +686,7 @@ const F = [
 
   {id:"C-1258", url:"/produits/veste-alpine-3l", cat:"tunnel", zone:"Panier latéral",
    shot:"pdp_drawer", statut:"exporte", runs:[13],
-   linear:{id:"GRO-208", state:"En cours", exporte:"3 août", lu:"3 août"},
+   linear:{id:"GRO-208", state:"En cours", exporte:"3 août", lu:null},
    obs:"Après l’ajout au panier, le tiroir latéral s’ouvre puis se referme seul au bout de trois secondes. La confirmation que le produit est bien dans le panier disparaît avant d’avoir pu être lue.",
    imp:"Rien à l’écran ne confirme durablement que le geste a fonctionné ; la seule vérification possible est d’ouvrir le panier."},
 
@@ -707,7 +711,7 @@ const F = [
    imp:"La grille est l’endroit où se fait la présélection, et plus de la moitié des produits y sont amputés de la partie qui les distingue."},
 
   {id:"C-1263", url:"/produits/gants-merinos-hiver", cat:"tunnel", zone:"Sélecteur de quantité",
-   shot:"pdp_cart", statut:"a_juger", runs:[13],
+   shot:"pdp_qty", statut:"a_juger", runs:[13],
    obs:"Le sélecteur de quantité accepte la saisie mais ne se met à jour qu’après un clic en dehors du champ. Un ajout au panier immédiat après la saisie enregistre l’ancienne quantité.",
    imp:"La quantité affichée à l’écran et celle enregistrée peuvent différer sans que rien ne le signale."},
 
@@ -768,8 +772,8 @@ const LIVE = [
    imp:"La cible d’un clic se déplace pendant le temps de chargement, sur la page où se fait la présélection."},
   {id:"C-1249", url:"/", cat:"reassurance", zone:"Bande de réassurance d’accueil",
    shot:"home_trust", statut:"a_juger", runs:[14,13], page:32,
-   obs:"La bande sous le bandeau annonce « Livraison offerte, Retours faciles, Paiement sécurisé ». Aucun seuil, aucun délai, aucune condition n’accompagne les trois mentions.",
-   imp:"Trois promesses sans seuil ni délai. Le doute qu’elles devraient lever reste entier après les avoir lues."}
+   obs:"La bande sous le bandeau annonce « Livraison offerte ». Aucun seuil n’est indiqué. À l’étape de livraison, le tunnel facture CHF 7.90 ou CHF 4.90, sans condition de gratuité nulle part.",
+   imp:"L’accueil et le tunnel se contredisent sur le même sujet. La promesse la plus visible du site est démentie trois pages plus loin."}
 ];
 
 /* Un constat porte l'identité du problème, pas celle de la détection : le
@@ -800,14 +804,14 @@ const PARTIAL = [
    shot:"cart_vide", statut:"a_juger", runs:[11],
    obs:"Le panier constitué avant la connexion est vide après identification. Les deux articles ajoutés depuis les fiches produit n’y figurent plus, et aucun message ne signale la perte.",
    imp:"Le contenu mis de côté disparaît au moment précis où le client s’identifie, sans avertissement ni moyen de le retrouver."},
-  {id:"C-1255", url:"/commande/adresse", cat:"friction_ui", zone:"Adresse de livraison",
-   shot:"form_zip", statut:"a_juger", runs:[11],
-   obs:"L’adresse enregistrée au compte n’est pas préremplie. Les six champs sont vides, alors que la même adresse figure dans le détail des trois commandes passées.",
-   imp:"Le compte ne sert à rien à l’étape où il servirait le plus : tout est à ressaisir."},
+  {id:"C-1215", url:"/commande/adresse", cat:"friction_ui", zone:"Adresse de livraison",
+   shot:"form_adresse", statut:"a_juger", runs:[11],
+   obs:"L’adresse enregistrée au compte n’est pas préremplie. Les quatre champs du formulaire sont vides, alors que la même adresse figure dans le détail des trois commandes passées.",
+   imp:"Le compte ne sert à rien à l’étape où il servirait le plus : tout est à ressaisir."},
   {id:"C-1240", url:"/produits/veste-alpine-3l", cat:"reassurance", zone:"Bloc d’ajout au panier",
    shot:"pdp_cart", statut:"a_juger", runs:[11],
-   obs:"Sous le bouton d’ajout au panier, aucune mention du délai de livraison ni de la politique de retour. L’information existe en pied de page, à deux écrans de défilement.",
-   imp:"La question qui se pose au moment du clic n’a pas de réponse dans le champ de vision."},
+   obs:"Sous le bouton d’ajout au panier, aucune mention du délai de livraison ni de la politique de retour. L’information existe en pied de page, à deux écrans de défilement. Un acheteur qui hésite sur la taille n’a pas de réponse au moment où il clique.",
+   imp:"La question qui se pose au moment du clic — et si la taille ne va pas — n’a pas de réponse dans le champ de vision. Elle est à deux écrans de là."},
   {id:"C-1217", url:"/collections/soldes", cat:"navigation", zone:"Grille de collection",
    shot:"list_grid", statut:"actionnable", runs:[11],
    obs:"La grille affiche onze produits sous l’intitulé « Soldes ». Quatre d’entre eux sont au prix plein, sans prix barré ni mention de remise, et rien dans la vignette ne les distingue des sept autres.",
@@ -818,16 +822,16 @@ const PARTIAL = [
    imp:"La boutique imprime une référence sur ses pages et dans ses e-mails, puis ne sait pas la relire."},
   {id:"C-1245", url:"/commande/livraison", cat:"tunnel", zone:"Choix du mode de livraison",
    shot:"ship_opts", statut:"a_juger", runs:[11],
-   obs:"Les deux modes de livraison s’appellent « Standard » et « Économique » et annoncent tous deux 3 à 5 jours ouvrés. Le mode retenu à la commande précédente n’est pas présélectionné.",
-   imp:"Un choix sans critère est reposé à chaque commande, y compris à un client qui l’a déjà fait trois fois."},
+   obs:"Les deux modes de livraison s’appellent « Standard » et « Économique ». Les deux annoncent 3 à 5 jours ouvrés. Seul le prix diffère : CHF 7.90 et CHF 4.90. Rien n’explique ce qu’on obtient en payant trois francs de plus.",
+   imp:"Un choix est demandé sans donner le critère qui permet de le faire, à l’étape qui précède immédiatement le paiement."},
   {id:"C-1220", url:"/produits/chaussures-approche-gtx", cat:"reassurance", zone:"Disponibilité",
    shot:"pdp_stock", statut:"a_juger", runs:[11],
    obs:"La mention « En stock » ne précise ni la quantité restante ni la date de réapprovisionnement pour les tailles épuisées. Aucune alerte de retour en stock n’est proposée.",
    imp:"Pour une taille épuisée, la page se termine sans proposer aucune suite."},
   {id:"C-1254", url:"/livraison-et-retours", cat:"reassurance", zone:"Conditions de retour",
    shot:"policy", statut:"a_juger", runs:[11],
-   obs:"La page indique « retours acceptés sous 14 jours » et précise ensuite que les frais de retour sont à la charge du client. Aucune de ces deux conditions n’est rappelée dans le compte ni dans le détail d’une commande.",
-   imp:"Un client qui veut retourner un article doit quitter son compte pour trouver la règle qui s’y applique."}
+   obs:"La page indique « retours acceptés sous 14 jours ». Le paragraphe suivant précise que les frais de retour sont à la charge du client, en corps de texte, sans mise en avant. La fiche produit ne mentionne ni l’un ni l’autre.",
+   imp:"La condition qui engage le portefeuille est enterrée deux paragraphes sous celle qui rassure, et absente de la page où l’on décide."}
 ];
 
 const RUNS = {
@@ -983,7 +987,8 @@ function ctxOf(url){
     c: COLLECTIONS[coll] || COLLECTIONS["vestes-techniques"],
     q: q ? decodeURIComponent(q.replace(/\+/g," ")) : "veste imperméable",
     etape: /adresse/.test(url) ? 1 : /livraison/.test(url) ? 2 : /paiement/.test(url) ? 3 : 0,
-    vide: false
+    vide: false,
+    erreurZip: false
   };
 }
 
@@ -1031,7 +1036,9 @@ const PAGES = {
       <path d="M${RX+RW-16} 664 l8 8 l8 -8" fill="none" stroke="var(--shot-mut)" stroke-width="1.6"/>`}
     <line x1="36" y1="716" x2="864" y2="716" stroke="var(--shot-line)"/>
     <text x="36" y="754" font-family="Inter,sans-serif" font-size="16" font-weight="600" fill="var(--shot-ink)">Avis clients</text>
-    <text x="36" y="782" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">5,0 / 5 — 3 avis</text>
+    ${x.p.note
+      ? `<text x="36" y="782" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">${esc(x.p.note)}</text>`
+      : `<text x="36" y="782" font-family="Inter,sans-serif" font-size="13" fill="var(--shot-mut)">Aucun avis pour ce produit</text>`}
     ${lines(36,804,828,3,22)}
     ${footer()}`;
   },
@@ -1098,8 +1105,9 @@ const PAGES = {
         <rect x="36" y="402" width="500" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
         <text x="36" y="480" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Code postal</text>
         <rect x="36" y="496" width="220" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
-        <text x="52" y="522" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">12 04</text>
-        <text x="36" y="560" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Format invalide</text>
+        ${x.erreurZip ? `
+          <text x="52" y="522" font-family="Inter,sans-serif" font-size="14" fill="var(--shot-ink)">12 04</text>
+          <text x="36" y="560" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Format invalide</text>` : ""}
         <text x="300" y="480" font-family="Inter,sans-serif" font-size="12" fill="var(--shot-mut)">Ville</text>
         <rect x="300" y="496" width="236" height="42" rx="5" fill="none" stroke="var(--shot-line)"/>
         ${btn(36,616,240,50,"Continuer",true)}`,
@@ -1242,20 +1250,49 @@ function renderShot(finding, dim, cadre){
   const d = SHOTS[finding.shot] || SHOTS.pdp_cart;
   const ctx = ctxOf(finding.url);
   if(d.vide) ctx.vide = true;
+  if(d.erreurZip) ctx.erreurZip = true;
   const body = (PAGES[d.page] || PAGES.pdp)(ctx);
   const bx = px(d.box[0],W), by = px(d.box[1],BODY)+TOP, bw = px(d.box[2],W), bh = px(d.box[3],BODY);
-  const above = by - 26 >= TOP + 34;
-  const ly = above ? by - 26 : by + 5;
-  const lw = 10 + finding.zone.length * 6.5;
+
+  /* L'étiquette de zone ne doit rien recouvrir de la page : on relève les
+     textes réellement rendus et on choisit le premier ancrage libre. */
+  const textes = [];
+  const re = /<text\b([^>]*)>([^<]*)<\/text>/g;
+  const attr = (t, n) => { const m = t.match(new RegExp(n+'="([^"]*)"')); return m ? m[1] : null; };
+  let m;
+  while((m = re.exec(body)) !== null){
+    const at = m[1], txt = m[2] || "";
+    const fs = parseFloat(attr(at,"font-size") || 13);
+    const tx = parseFloat(attr(at,"x") || 0), ty = parseFloat(attr(at,"y") || 0);
+    const w = txt.length * fs * 0.58;
+    const anc = attr(at,"text-anchor");
+    const x0 = anc === "end" ? tx - w : anc === "middle" ? tx - w/2 : tx;
+    textes.push({x:x0, y:ty - fs, w, h:fs * 1.3});
+  }
+  const lw = 10 + finding.zone.length * 6.5, lh = 21;
+  const croise = (a) => a.y < TOP + 2 || a.x < 2 || a.x + a.w > W - 2 ||
+    textes.some(t => a.x < t.x + t.w && a.x + a.w > t.x && a.y < t.y + t.h && a.y + a.h > t.y);
+  const ancrages = [
+    {x:bx,               y:by - lh - 5},              // au-dessus, à gauche
+    {x:bx + bw - lw,     y:by - lh - 5},              // au-dessus, à droite
+    {x:bx + 6,           y:by + 6},                   // dedans, en haut à gauche
+    {x:bx + bw - lw - 6, y:by + 6},                   // dedans, en haut à droite
+    {x:bx + 6,           y:by + bh - lh - 6},         // dedans, en bas à gauche
+    {x:bx,               y:by + bh + 5},              // en dessous
+    {x:bx - lw - 6,      y:by + (bh - lh)/2},          // à gauche du cadre
+    {x:bx + bw + 6,      y:by + (bh - lh)/2}           // à droite du cadre
+  ].map(a => ({...a, w:lw, h:lh}));
+  const pose = ancrages.find(a => !croise(a)) || ancrages[2];
+
   let vb = `0 0 ${W} ${H}`;
   if(cadre){
-    const m = 46;
-    const vx = Math.max(0, bx - m), vy = Math.max(TOP, by - m - 22);
-    const vw = Math.min(W - vx, bw + m*2), vh = Math.min(H - vy, bh + m*2 + 22);
+    const mg = 46;
+    const vx = Math.max(0, bx - mg), vy = Math.max(TOP, by - mg - 22);
+    const vw = Math.min(W - vx, bw + mg*2), vh = Math.min(H - vy, bh + mg*2 + 22);
     vb = `${vx} ${vy} ${vw} ${vh}`;
   }
   return `<svg viewBox="${vb}" role="img" preserveAspectRatio="xMidYMid meet"
-      aria-label="Capture de ${esc(SHOP+finding.url)}, zone observée : ${esc(finding.zone)}">
+      aria-label="Capture de ${esc(SHOP+finding.url)}, zone observée : ${esc(finding.zone)}">
     <rect width="${W}" height="${H}" fill="var(--shot-page)"/>
     ${chrome(SHOP + finding.url)}
     ${body}
@@ -1264,8 +1301,8 @@ function renderShot(finding, dim, cadre){
         d="M0 ${TOP} H${W} V${H} H0 Z M${bx} ${by} H${bx+bw} V${by+bh} H${bx} Z"/>
       <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none"
         stroke="#ffffff" stroke-width="2" rx="3"/>
-      <rect x="${bx + (above?0:6)}" y="${ly}" width="${lw}" height="21" rx="4" fill="#ffffff"/>
-      <text x="${bx + (above?6:12)}" y="${ly+15}" font-family="Inter,sans-serif" font-size="11.5"
+      <rect x="${pose.x}" y="${pose.y}" width="${lw}" height="${lh}" rx="4" fill="#ffffff"/>
+      <text x="${pose.x+6}" y="${pose.y+15}" font-family="Inter,sans-serif" font-size="11.5"
         font-weight="600" fill="#0d0e10">${esc(finding.zone)}</text>
     </g>
   </svg>`;
@@ -1310,6 +1347,7 @@ function renderStates(){
     const b = el("button","hit chip","<span>"+s.label+"</span>");
     b.id = "chip-"+s.key;
     b.setAttribute("role","radio");
+    b.setAttribute("tabindex", state===s.key ? "0" : "-1");
     b.setAttribute("aria-checked", String(state===s.key));
     b.setAttribute("aria-pressed", String(state===s.key));
     b.onclick = ()=>setState(s.key);
@@ -1339,7 +1377,8 @@ function renderRunbar(){
 
   const judged = items.filter(f=>f.statut!=="a_juger").length;
   if(r.live){
-    counts.appendChild(el("div","live",'<i></i>'+items.length+" constats · page "+
+    counts.appendChild(el("span","counts__text","<b>"+judged+"</b> jugés sur "+items.length));
+    counts.appendChild(el("div","live",'<i></i>page '+
       Math.min(liveIdx||r.pages[0],r.pages[1])+" sur "+r.pages[1]));
   }else if(r.fini){
     counts.appendChild(el("span","counts__text","<b>"+judged+"</b> jugés sur "+items.length));
@@ -1417,7 +1456,7 @@ function renderQueue(){
       r.setAttribute("role","presentation");
       list.appendChild(r);
     }
-    const row = el("button","row"+(f.fresh?" row--new":""));
+    const row = el("button","row"+(f.nouveau?" row--new":""));
     row.setAttribute("role","option");
     row.setAttribute("tabindex","-1");
     row.id = "row-"+f.id;
@@ -1565,6 +1604,7 @@ function renderVerdict(f){
       sd.dataset.open = String(!open);
       sb.setAttribute("aria-expanded", String(!open));
       sb.textContent = open ? "Voir la user story envoyée" : "Masquer la user story";
+      if(!open) sd.scrollIntoView({block:"nearest"});
     };
     s.appendChild(r);
   }
@@ -1820,13 +1860,13 @@ document.addEventListener("keydown", e=>{
     e.preventDefault();
     const c = current();
     if(c && c.statut==="a_juger") judge(k==="a" ? "actionnable" : "bruit");
-    else if(c) toast(c.id+" est "+ETAT[c.statut]+" — U pour annuler le dernier jugement.");
+    else if(c) toast(c.id+" est "+ETAT[c.statut]+(undoStack.length ? " — U pour annuler le dernier jugement." : "."));
   }
   else if(k==="e"){
     e.preventDefault();
     const c = current();
     if(c && (c.statut==="a_juger" || c.statut==="actionnable")) judge("exporte");
-    else if(c) toast(c.id+" est "+ETAT[c.statut]+" — U pour annuler le dernier jugement.");
+    else if(c) toast(c.id+" est "+ETAT[c.statut]+(undoStack.length ? " — U pour annuler le dernier jugement." : "."));
   }
   else if(k==="u"){ e.preventDefault(); undo(); }
   else if(k==="f"){ e.preventDefault(); onlyTodo=!onlyTodo; sel=0; render(); }
